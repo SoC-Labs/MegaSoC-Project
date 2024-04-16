@@ -1,0 +1,6 @@
+[submodule "expansion_subsystem_tech"]
+	path = expansion_subsystem_tech
+	url = https://git.soton.ac.uk/soclabs/expansion_subsystem_tech.git
+[submodule "megasoc_tech"]
+	path = megasoc_tech
+	url = https://git.soton.ac.uk/soclabs/megasoc_tech.git
