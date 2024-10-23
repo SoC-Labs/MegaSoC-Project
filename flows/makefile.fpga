@@ -1,0 +1,74 @@
+#-----------------------------------------------------------------------------
+# megaSoC FPGA Flow Makefile 
+# A joint work commissioned on behalf of SoC Labs, under Arm Academic Access license.
+#
+# Contributors
+#
+# David Mapstone (d.a.mapstone@soton.ac.uk)
+# Daniel Newbrook (d.newbrook@soton.ac.uk)
+#
+# Copyright (C) 2021-4, SoC Labs (www.soclabs.org)
+#-----------------------------------------------------------------------------
+
+# Get properties for FPGA Boards
+include $(SOCLABS_PROJECT_DIR)/fpga/makefile.targets
+
+# Vivado Options
+VIVIADO_VERSION  ?= 2021_1
+
+# MegaSoC Synthesis Properties
+MEGASOC_VENDOR   ?= soclabs.org
+MEGASOC_CORE_REV ?= 1
+
+# Top-level of RTL design to Implement
+COMPONENT_TOP    ?= megasoc_chip
+
+# Name of Implemented Chip Design (Including Socket IP)
+DESIGN_NAME      ?= megasoc_design
+
+# Location to build FPGA files
+IMPLEMENTATION_DIR   ?= $(SOCLABS_PROJECT_DIR)/imp/fpga
+RUN_DIR              := $(IMPLEMENTATION_DIR)/run
+IMP_MEGASOC_DIR      := $(IMPLEMENTATION_DIR)/megasoc
+IMP_SOCKET_DIR       := $(IMPLEMENTATION_DIR)/socket
+PROJECT_DIR          := $(IMPLEMENTATION_DIR)/targets/$(BOARD_NAME)
+
+# Name of generated filelist by python script
+TCL_FLIST_DIR        := $(IMP_MEGASOC_DIR)/flist
+TCL_OUTPUT_FILELIST  := $(TCL_FLIST_DIR)/gen_flist.tcl
+
+
+# MegaSoC Tech Flow Dependencies
+MEGASOC_FPGA_FLOW_DIR := $(SOCLABS_PROJECT_DIR)/fpga
+
+# Directory to look for FPGA specific implementation files
+TARGET_DIR            ?= $(MEGASOC_FPGA_FLOW_DIR)/targets/$(BOARD_NAME)
+TARGET_TCL_DIR        := $(TARGET_DIR)/vivado_script/$(VIVIADO_VERSION)
+PINMAP_FILE           ?= $(TARGET_DIR)/fpga_pinmap.xdc
+
+
+# Generate TCL filelist from flists
+flist_tcl_megasoc: 
+	@mkdir -p $(TCL_FLIST_DIR)
+	@(cd $(TCL_FLIST_DIR); \
+	$(SOCLABS_SOCTOOLS_FLOW_DIR)/bin/filelist_compile.py -t -f $(DESIGN_VC) -o $(TCL_OUTPUT_FILELIST) -i $(FLIST_INCLUDES) -r $(IMP_MEGASOC_DIR)/src ;)
+
+
+# Environment Variables for Packaging NanoSoC
+package_megasoc: export FPGA_COMPONENT_FILELIST = $(TCL_OUTPUT_FILELIST)
+package_megasoc: export FPGA_COMPONENT_LIB      = $(IMP_MEGASOC_DIR)
+package_megasoc: export FPGA_ACCELERATOR        = $(ACCELERATOR_SUBSYSTEM)
+package_megasoc: export FPGA_COMPONENT_TOP      = $(COMPONENT_TOP)
+package_megasoc: export FPGA_VENDOR             = $(MEGASOC_VENDOR)
+package_megasoc: export FPGA_CORE_REV           = $(MEGASOC_CORE_REV)
+
+# Package MegaSoC IP
+package_megasoc: code flist_tcl_megasoc
+	@echo Packaging MegaSoC
+	@mkdir -p $(RUN_DIR)
+	@cd $(RUN_DIR); vivado -mode batch -source $(SOCLABS_SOCTOOLS_FLOW_DIR)/resources/fpga/package_component.tcl
+	@mkdir -p $(IMP_MEGASOC_DIR)/logs
+	@cp $(RUN_DIR)/vivado.log $(IMP_MEGASOC_DIR)/logs
+	@echo MegaSoC Packaged
+
+

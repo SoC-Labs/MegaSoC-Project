@@ -1,0 +1,318 @@
+`timescale 1 ps / 1 ps
+
+module megasoc_design_wrapper(
+//------------------------------------------------------
+// Port declarations
+//------------------------------------------------------
+
+// DDR
+    // output wire         c0_ddr4_act_n,
+    // output wire [16:0]  c0_ddr4_adr,
+    // output wire [1:0]   c0_ddr4_ba,
+    // output wire [0:0]   c0_ddr4_bg,
+    // output wire [0:0]   c0_ddr4_cke,
+    // output wire [0:0]   c0_ddr4_odt,
+    // output wire [0:0]   c0_ddr4_cs_n,
+    // output wire [0:0]   c0_ddr4_ck_t,
+    // output wire [0:0]   c0_ddr4_ck_c,
+    // output wire         c0_ddr4_reset_n,
+    // inout  wire [7:0]   c0_ddr4_dm_dbi_n,
+    // inout  wire [63:0]  c0_ddr4_dq,
+    // inout  wire [7:0]   c0_ddr4_dqs_t,
+    // inout  wire [7:0]   c0_ddr4_dqs_c,
+    // input  wire         c0_sys_clk_p,
+    // input  wire         c0_sys_clk_n,
+    // input  wire         DDR_nALERT,
+    // output wire         DDR_PARITY,
+    // input               DDR_nEVENT,
+    // output  wire        DDR_SCL,
+    // inout   wire        DDR_SDA,
+	
+// SMB
+//-----------
+    output wire [6:0]   SMBF_ADDR,
+    output wire         SMBF_FIFOSEL,
+    inout  wire [15:0]  SMBF_DATA,
+    output wire         SMBF_nOE,
+    output wire         SMBF_nWE,
+    output wire         SMBF_nRST,
+
+    output wire         ETH_nCS,
+    output wire         ETH_nOE,
+    input  wire         ETH_INT,
+
+    output wire         USB_nCS,
+    output wire         USB_DACK,
+    input  wire         USB_DREQ,
+    input  wire         USB_INT,
+
+// HDMI
+//-----------
+    output wire [23:0]  MMB_DATA,
+    output wire         MMB_DE,
+    output wire         MMB_HS,
+    output wire         MMB_VS,
+    output wire         MMB_IDCLK,
+    output wire         MMB_SCK,
+    output wire         MMB_WS,
+    output wire [3:0]   MMB_SD,
+
+    output wire         HDMI_CSCL,
+    inout  wire         HDMI_CSDA,
+    input  wire         HDMI_INT,
+
+// Audio
+//-----------
+    output wire         AUD_MCLK,
+    output wire         AUD_SCLK,
+    output wire         AUD_LRCK,
+    output wire         AUD_SDIN,
+    input  wire         AUD_SDOUT,
+
+    output wire         AUD_nRST,
+    output wire         AUD_SCL,
+    inout  wire         AUD_SDA,
+
+// EMMC
+//-----------
+    inout  wire [7:0]   EMMC_DAT,
+    inout  wire         EMMC_CMD,
+    output wire         EMMC_CLK,
+    output wire         EMMC_nRST,
+    input  wire         EMMC_DS,
+
+// CLCD
+//-----------
+    inout  wire [17:10] CLCD_PD,
+    output wire         CLCD_RD,
+    output wire         CLCD_RS,
+    output wire         CLCD_CS,
+    output wire         CLCD_WR_SCL,
+    output wire         CLCD_BL,
+    output wire         CLCD_RST,
+
+    output wire         CLCD_TSCL,
+    inout  wire         CLCD_TSDA,
+    input  wire         CLCD_TINT,
+    output wire         CLCD_TNC,
+
+// UART
+//-----------
+    output wire [3:0]   UART_TX_F,
+
+    input  wire [3:0]   UART_RX_F,
+
+// DEBUG
+//-----------
+    input  wire         CS_TDI,
+    output wire         CS_TDO,        // SWV     / JTAG TDO
+    inout  wire         CS_TMS,        // SWD I/O / JTAG TMS
+    input  wire         CS_TCK,        // SWD Clk / JTAG TCK
+    input  wire         CS_nSRST,
+    input  wire         CS_nTRST,
+    input  wire         CS_nDET,
+
+    output wire [15:0]  CS_T_D,        // Trace data
+    output wire         CS_T_CLK,      // Trace clock
+    output wire         CS_T_CTL,      // Trace control
+
+// LED SW
+//-----------
+    output wire [9:0]   USER_nLED,
+    input  wire [7:0]   USER_SW,
+    input  wire [1:0]   USER_nPB,
+
+// OSCCLK
+//-----------
+    input  wire [5:0]   OSCCLK,
+
+// FMC
+//-----------
+    // input  wire [1:0]   CLK_M2C_P,
+    // input  wire [1:0]   CLK_M2C_N,
+
+    // input  wire         FMC_CLK_DIR,
+
+    // inout  wire [3:2]   CLK_BIDIR_P,
+    // inout  wire [3:2]   CLK_BIDIR_N,
+
+    // inout  wire [23:0]  HA_P, // HA CLK=0,1,17
+    // inout  wire [23:0]  HA_N,
+
+    // inout  wire [21:0]  HB_P, // HB CLK=0,6,17
+    // inout  wire [21:0]  HB_N,
+
+    // inout  wire [33:0]  LA_P, // LA CLK=0,1,17,18
+    // inout  wire [33:0]  LA_N,
+
+    // input  wire [1:0]   GBTCLK_M2C_P,
+    // input  wire [1:0]   GBTCLK_M2C_N,
+// `ifdef GTH
+    // input  wire [9:0]   DP_M2C_P,
+    // input  wire [9:0]   DP_M2C_N,
+
+    // output wire [9:0]   DP_C2M_P,
+    // output wire [9:0]   DP_C2M_N,
+// `endif
+    // input  wire         FMC_nPRSNT,
+
+    // input  wire         GTX_CLK_N,
+    // input  wire         GTX_CLK_P,
+
+    // input  wire         SATA_CLK_N,
+    // input  wire         SATA_CLK_P,
+
+// Quad SPI
+//-----------	
+	inout wire      	QSPI_D0,
+	inout wire      	QSPI_D1,
+	inout wire      	QSPI_D2,
+	inout wire      	QSPI_D3,
+	output wire     	QSPI_SCLK,
+	output wire     	QSPI_nCS,
+
+// USER SD
+//-----------
+    inout  wire [3:0]   USD_DAT,
+    inout  wire         USD_CMD,
+    output wire         USD_CLK,
+    input  wire         USD_NCD,
+
+// RESET
+//-----------
+    input  wire         CB_nPOR,
+    input  wire         CB_nRST,
+    input  wire         CB_RUN,
+
+    input  wire         IOFPGA_NRST,
+    input  wire         IOFPGA_NSPIR,
+
+    output wire         IOFPGA_SYSWDT,
+    input  wire         PB_IRQ,
+    output wire         WDOG_RREQ,
+
+// SCC
+//-----------
+    output wire         CFG_DATAOUT,
+    input  wire         CFG_LOAD,
+    input  wire         CFG_nRST,
+    input  wire         CFG_CLK,
+    input  wire         CFG_DATAIN,
+    input  wire         CFG_WnR,
+
+// MCC SMB
+//-----------
+    input  wire [25:16] SMBM_A,
+    inout  wire [15:0]  SMBM_D,
+    input  wire [4:1]   SMBM_nE,
+    input  wire         SMBM_CLK,
+    input  wire [1:0]   SMBM_nBL,
+    input  wire         SMBM_nOE,
+    input  wire         SMBM_nWE,
+    output wire         SMBM_nWAIT,
+
+// SHIELD
+//-----------
+    inout  wire [17:0]  SH0_IO,
+    inout  wire [17:0]  SH1_IO,
+    output wire         SH_nRST,
+
+    output wire         SH_ADC_CS,
+    output wire         SH_ADC_CK,
+    output wire         SH_ADC_DI,
+    input  wire         SH_ADC_DO
+//   (PMOD0_0,
+//    PMOD0_1,
+//    PMOD0_2,
+//    PMOD0_3,
+//    PMOD0_4,
+//    PMOD0_5,
+//    PMOD0_6,
+//    PMOD0_7
+    );
+//    PMOD1_0,
+//    PMOD1_1,
+//    PMOD1_2,
+//    PMOD1_3,
+//    PMOD1_4,
+//    PMOD1_5,
+//    PMOD1_6,
+//    PMOD1_7,
+//    dip_switch_4bits_tri_i,
+//    led_4bits_tri_o);
+
+
+
+//REFCLK24MHZ                 24        MHz
+//******************************************************************************
+BUFG uBUFG_REFCLK24MHZ    (.I(OSCCLK[0]), .O(REFCLK24MHZ));
+
+//ACLK  Big CPU        50        MHz
+//******************************************************************************
+BUFG uBUFG_iACLK        (.I(OSCCLK[1]), .O(ACLK));        //Big CPU        50        MHz
+BUFG uBUFG_iBCLK        (.I(OSCCLK[2]), .O(BCLK)); 
+//******************************************************************************
+// SMBMCLK     Micro SMB            25    MHz
+//******************************************************************************
+BUFG uBUFG_SMBM        (.I(SMBM_CLK),     .O(iSMBMCLK));    //Micro SMB
+
+//******************************************************************************
+// Main body of code
+// =================
+//******************************************************************************
+  assign SMBF_FIFOSEL  = 1'b0;
+  assign SMBF_ADDR	   = {7{1'b0}};
+  assign CLCD_BL       = 1'b0;                     // Extinguish LCD back light
+  // Minimum design tie-offs
+  assign MMB_IDCLK     = 1'b0;
+  assign EMMC_CLK      = 1'b0;
+  assign QSPI_nCS      = 1'b1;
+  assign QSPI_SCLK     = 1'b0;
+  assign IOFPGA_SYSWDT = 1'b0;
+  assign WDOG_RREQ     = 1'b0;
+  assign SMBM_nWAIT    = 1'b1;
+  assign CFG_DATAOUT   = 1'b0;
+  wire nRST;
+  reg  rst_sync0, rst_sync1, rst_sync2;
+  assign nRST_in = CB_nRST || CS_nSRST;
+  assign nRST = rst_sync2;
+
+  always @(posedge ACLK)
+    if (~nRST_in) begin
+      rst_sync0 <= 1'b0;
+      rst_sync1 <= 1'b0;
+    end else begin
+      rst_sync0 <= 1'b1;
+      rst_sync1 <= rst_sync0;
+      rst_sync2 <= rst_sync1;
+    end
+
+    wire SWDITMS_0;
+    wire SWDOEN_0;
+    wire SWDO_0;
+
+    assign CS_TMS = (SWDOEN_0==1'b1) ? SWDO_0 : 1'bz;
+    assign SWDITMS_0 = CS_TMS;
+
+  megasoc_design megasoc_design_i
+       (.CLK_IN_0(ACLK),
+        .nRESET_0(nRST),
+
+        .QSPI_IO_e_0(),
+        .QSPI_IO_i_0(),
+        .QSPI_IO_o_0(),
+        .QSPI_SCLK_0(),
+        .QSPI_nCS_0(),
+
+        .UARTRXD_0(1'b0),
+        .UARTTXD_0(UART_TX_F[1]),
+
+        .SWCLKTCK_0(CS_TCK),
+        .SWDITMS_0(SWDITMS_0),
+        .SWDOEN_0(SWDOEN_0),
+        .SWDO_0(SWDO_0),
+        .TDI_0(),
+        .TDO_0(),
+        .nTDOEN_0(),
+        .nTRST_0(CS_nTRST));
+endmodule

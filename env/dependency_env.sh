@@ -15,7 +15,7 @@
 #-----------------------------------------------------------------------------
 
 # MilliSoC Tech
-export SOCLABS_MEGASOC_TECH_DIR="$SOCLABS_PROJECT_DIR/millisoc_tech"
+export SOCLABS_MEGASOC_TECH_DIR="$SOCLABS_PROJECT_DIR/megasoc_tech"
 
 # MilliSoC Expansion Tech
 export SOCLABS_MEGASOC_EXP_TECH_DIR="$SOCLABS_PROJECT_DIR/expansion_subsystem_tech"
@@ -26,3 +26,5 @@ export SOCLABS_MEGASOC_EXP_TECH_DIR="$SOCLABS_PROJECT_DIR/expansion_subsystem_te
 
 # SoCTools - Toolkit of scripts related to SoCLabs projects
 export SOCLABS_SOCTOOLS_FLOW_DIR="$SOCLABS_PROJECT_DIR/soctools_flow"
+
+export SOCLABS_AHB_QSPI_DIR="$SOCLABS_MEGASOC_TECH_DIR/logical/sl_ahb_qspi"

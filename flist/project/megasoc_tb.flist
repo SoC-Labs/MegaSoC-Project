@@ -1,0 +1,27 @@
+//-----------------------------------------------------------------------------
+// NanoSoC Testbench Filelist
+// A joint work commissioned on behalf of SoC Labs, under Arm Academic Access license.
+//
+// Contributors
+//
+// David Mapstone (d.a.mapstone@soton.ac.uk)
+// Daniel Newbrook (d.newbrook@soton.ac.uk)
+//
+// Copyright � 2021-4, SoC Labs (www.soclabs.org)
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// Abstract : Verilog Command File for NanoSoC Testbench
+//-----------------------------------------------------------------------------
+
+// ============= Verilog library extensions ===========
++libext+.v+.vlib
+
+// =============    MegaSoC Testbench search path    =============
+
+// - Top-level testbench
+$(SOCLABS_PROJECT_DIR)/verif/testbench/logical/megasoc_tb.sv
+$(SOCLABS_PROJECT_DIR)/verif/trace/megasoc_uart_capture.v
+$(SOCLABS_PROJECT_DIR)/verif/control/logical/megasoc_clkreset.v
+
+// $(SOCLABS_MEGASOC_TECH_DIR)/logical/MS_QSPI_XIP_CACHE/verify/vip/sst26wf080b.v
+

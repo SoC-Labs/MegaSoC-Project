@@ -2,3 +2,5 @@
 .metadata
 CheckResults.log
 CoherencyCheckConfiguration.config
+simulate/
+imp/
