@@ -36,7 +36,7 @@ megasoc_clkreset u_megasoc_clkreset(
 initial begin 
     $readmemh("bootloader.hex", `MEGASOC_ROM.mem, 32'h0000_0000);
     $readmemh("app_ram.v8-a.hex", `MEGASOC_SRAM.mem, 32'h0000_0000);
-    //#1 $readmemh("app_flash.v8-a.hex", FLASH.I0.memory);
+    #1 $readmemh("app_flash.v8-a.hex", FLASH.I0.memory);
 
 end
 
@@ -63,11 +63,11 @@ megasoc_chip_pads u_megasoc_chip_pads(
     .QSPI_nCS(QSPI_nCS)
 );
 
-// sst26vf064b FLASH(
-//     .SCK(QSPI_SCLK),
-//     .SIO(QSPI_IO),
-//     .CEb(QSPI_nCS)
-// );
+sst26vf064b FLASH(
+    .SCK(QSPI_SCLK),
+    .SIO(QSPI_IO),
+    .CEb(QSPI_nCS)
+);
 
 `define MEGASOC_PERIPHERALS u_megasoc_chip_pads.u_megasoc_chip.u_megasoc_system.u_megasoc_tech_wrapper.u_megasoc_peripheral_subsystem
 `define MEGASOC_UART `MEGASOC_PERIPHERALS.u_apb_uart_0
@@ -116,5 +116,26 @@ megasoc_uart_capture #(.LOGFILENAME("logs/uart.log"), .VERBOSE(1)) u_uart_captur
 );
 
 
+`define MEGASOC_QSPI_SUBSYSTEM `MEGASOC_TECH_WRAPPER.u_sl_ahb_qspi
+
+megasoc_qspi_capture #(
+    .FILENAME("logs/qspi_ahb.log"),
+    .SYS_ADDR_W(22),
+    .SYS_DATA_W(32)
+) u_megasoc_qspi_capture (
+    .HCLK(`MEGASOC_QSPI_SUBSYSTEM.HCLK),
+    .HRESETn(`MEGASOC_QSPI_SUBSYSTEM.HRESETn),
+    .HSEL_i(`MEGASOC_QSPI_SUBSYSTEM.HSELx),
+    .HADDR_i(`MEGASOC_QSPI_SUBSYSTEM.HADDR),
+    .HTRANS_i(`MEGASOC_QSPI_SUBSYSTEM.HTRANS),
+    .HSIZE_i(`MEGASOC_QSPI_SUBSYSTEM.HSIZE),
+    .HPROT_i(`MEGASOC_QSPI_SUBSYSTEM.HPROT),
+    .HWRITE_i(`MEGASOC_QSPI_SUBSYSTEM.HWRITE),
+    .HREADY_i(`MEGASOC_QSPI_SUBSYSTEM.HREADY),
+    .HWDATA_i(`MEGASOC_QSPI_SUBSYSTEM.HWDATA),
+    .HREADYOUT_o(`MEGASOC_QSPI_SUBSYSTEM.HREADYOUT),
+    .HRDATA_o(`MEGASOC_QSPI_SUBSYSTEM.HRDATA),
+    .HRESP_o(`MEGASOC_QSPI_SUBSYSTEM.HRESP)
+);
 
 endmodule

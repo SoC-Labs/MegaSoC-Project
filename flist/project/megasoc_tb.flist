@@ -17,10 +17,10 @@
 +libext+.v+.vlib
 
 // =============    MegaSoC Testbench search path    =============
-
 // - Top-level testbench
 $(SOCLABS_PROJECT_DIR)/verif/testbench/logical/megasoc_tb.sv
 $(SOCLABS_PROJECT_DIR)/verif/trace/megasoc_uart_capture.v
+$(SOCLABS_PROJECT_DIR)/verif/trace/megasoc_qspi_capture.v
 $(SOCLABS_PROJECT_DIR)/verif/control/logical/megasoc_clkreset.v
 
 // $(SOCLABS_MEGASOC_TECH_DIR)/logical/MS_QSPI_XIP_CACHE/verify/vip/sst26wf080b.v

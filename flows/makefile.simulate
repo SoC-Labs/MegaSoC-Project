@@ -126,7 +126,7 @@ sim_xm : code compile_xm
 
 # Compile RTL
 compile_mti :  gen_defs flist_vfiles_megasoc lib_mti
-	cd $(SIM_DIR); vlog -incr -lint +v2k -f tbench.vc +ca53_tarmac_enable $(DEFINES_VC) | tee compile_mti.log
+	cd $(SIM_DIR); vlog -incr -lint +v2k  -f tbench.vc +ca53_tarmac_enable $(DEFINES_VC) | tee compile_mti.log
 
 # Run simulation in batch mode
 run_mti : code compile_mti
