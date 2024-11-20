@@ -34,7 +34,7 @@ megasoc_clkreset u_megasoc_clkreset(
 `define MEGASOC_SRAM `MEGASOC_TECH_WRAPPER.u_SRAM_wrapper.u_SRAM
 
 initial begin 
-    $readmemh("bootloader.hex", `MEGASOC_ROM.mem, 32'h0000_0000);
+    //$readmemh("bootloader.hex", `MEGASOC_ROM.mem, 32'h0000_0000);
     $readmemh("app_ram.v8-a.hex", `MEGASOC_SRAM.mem, 32'h0000_0000);
     #1 $readmemh("app_flash.v8-a.hex", FLASH.I0.memory);
 

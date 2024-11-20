@@ -14,12 +14,12 @@ ifeq ($(FPGA),mps3)
 	XILINX_PART  := xcku115-flvb1760-1-c
 	BOARD_NAME   := arm_mps3
 	PLATFORM     := bare
-else ifeq ($(FPGA),zcu104)
-	XILINX_PART  := xczu7ev-ffvc1156-2-e
-	BOARD_NAME   := pynq_zcu104
-	PLATFORM     := pynq
-else # Default to MPS3
-	XILINX_PART  := xcku115-flvb1760-1-c
-	BOARD_NAME   := arm_mps3
+else ifeq ($(FPGA),haps_sx)
+	XILINX_PART  := xcvu19p-fsva3824-2-e
+	BOARD_NAME   := haps_sx
+	PLATFORM     := bare
+else # Default to HAPS
+	XILINX_PART  := xcvu19p-fsva3824-2-e
+	BOARD_NAME   := haps_sx
 	PLATFORM     := bare
 endif

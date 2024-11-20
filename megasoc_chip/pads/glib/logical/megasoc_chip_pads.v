@@ -70,6 +70,7 @@ assign QSPI_IO_i[1] = QSPI_IO[1];
 assign QSPI_IO_i[2] = QSPI_IO[2];
 assign QSPI_IO_i[3] = QSPI_IO[3];
 
+assign REF_CLK_XTAL2 = REF_CLK_XTAL1;
 
 megasoc_chip u_megasoc_chip(
     .CLK_IN(REF_CLK_XTAL1),
@@ -78,7 +79,18 @@ megasoc_chip u_megasoc_chip(
     .QSPI_nCS(QSPI_nCS),
     .QSPI_IO_o(QSPI_IO_o),
     .QSPI_IO_i(QSPI_IO_i),
-    .QSPI_IO_e(QSPI_IO_e)
+    .QSPI_IO_e(QSPI_IO_e),
+    .UARTRXD(),
+    .UARTTXD(),
+    .UARTTXEN(),
+    .nTRST(),
+    .SWCLKTCK(),
+    .SWDITMS(),
+    .TDI(),
+    .TDO(),
+    .nTDOEN(),
+    .SWDO(),
+    .SWDOEN()
 );
 
 

@@ -266,8 +266,6 @@ BUFG uBUFG_SMBM        (.I(SMBM_CLK),     .O(iSMBMCLK));    //Micro SMB
   // Minimum design tie-offs
   assign MMB_IDCLK     = 1'b0;
   assign EMMC_CLK      = 1'b0;
-  assign QSPI_nCS      = 1'b1;
-  assign QSPI_SCLK     = 1'b0;
   assign IOFPGA_SYSWDT = 1'b0;
   assign WDOG_RREQ     = 1'b0;
   assign SMBM_nWAIT    = 1'b1;
@@ -293,16 +291,30 @@ BUFG uBUFG_SMBM        (.I(SMBM_CLK),     .O(iSMBMCLK));    //Micro SMB
 
     assign CS_TMS = (SWDOEN_0==1'b1) ? SWDO_0 : 1'bz;
     assign SWDITMS_0 = CS_TMS;
+    
+    wire [3:0] QSPI_IO_e;
+    wire [3:0] QSPI_IO_i;
+    wire [3:0] QSPI_IO_o;
+    
+	assign QSPI_D0 = (QSPI_IO_e[0]==1'b1)? QSPI_IO_o[0]:1'bz;
+	assign QSPI_D1 = (QSPI_IO_e[1]==1'b1)? QSPI_IO_o[1]:1'bz;
+	assign QSPI_D2 = (QSPI_IO_e[2]==1'b1)? QSPI_IO_o[2]:1'bz;
+	assign QSPI_D3 = (QSPI_IO_e[3]==1'b1)? QSPI_IO_o[3]:1'bz;
+
+    assign QSPI_IO_i[0] = QSPI_D0;
+    assign QSPI_IO_i[1] = QSPI_D1;
+    assign QSPI_IO_i[2] = QSPI_D2;
+    assign QSPI_IO_i[3] = QSPI_D3;
 
   megasoc_design megasoc_design_i
        (.CLK_IN_0(ACLK),
         .nRESET_0(nRST),
 
-        .QSPI_IO_e_0(),
-        .QSPI_IO_i_0(),
-        .QSPI_IO_o_0(),
-        .QSPI_SCLK_0(),
-        .QSPI_nCS_0(),
+        .QSPI_IO_e_0(QSPI_IO_e),
+        .QSPI_IO_i_0(QSPI_IO_i),
+        .QSPI_IO_o_0(QSPI_IO_o),
+        .QSPI_SCLK_0(QSPI_SCLK),
+        .QSPI_nCS_0(QSPI_nCS),
 
         .UARTRXD_0(1'b0),
         .UARTTXD_0(UART_TX_F[1]),
@@ -311,8 +323,9 @@ BUFG uBUFG_SMBM        (.I(SMBM_CLK),     .O(iSMBMCLK));    //Micro SMB
         .SWDITMS_0(SWDITMS_0),
         .SWDOEN_0(SWDOEN_0),
         .SWDO_0(SWDO_0),
-        .TDI_0(),
-        .TDO_0(),
+        .TDI_0(CS_TDI),
+        .TDO_0(CS_TDO),
         .nTDOEN_0(),
         .nTRST_0(CS_nTRST));
+
 endmodule

@@ -24,7 +24,7 @@ SW_MAKE_OPTIONS = CPU_PRODUCT=CORTEX_M0 TOOL_CHAIN=$(TOOL_CHAIN)
 # Bootrom Parameters:
 # Boot Loader image
 BOOTLOADER        ?= bootloader
-BOOTROM_ADDRW     ?= 8
+BOOTROM_ADDRW     ?= 14
 BOOTROM_HEX       ?= $(SOCLABS_MEGASOC_TECH_DIR)/software/src/bootloader/$(BOOTLOADER).hex
 BOOTROM_BUILD_DIR ?= $(SOCLABS_PROJECT_DIR)/system/src/bootrom
 
@@ -38,7 +38,7 @@ code : testcode bootrom
 # Compile bootloader
 # Note : The use of ls after compile allows the computing server to sync up
 bootrom:
-	@cd $(TESTCODES_DIR)/$(BOOTLOADER) ;\
+	@(cd $(TESTCODES_DIR)/$(BOOTLOADER) ;\
 	echo CD $(TESTCODES_DIR)/$(BOOTLOADER) ;\
 	$(MAKE) boot_build $(SW_MAKE_OPTIONS) ;\
 	echo Bootrom Compile done ;\
@@ -52,9 +52,14 @@ bootrom:
 	if [ ! -e  $(TESTCODES_DIR)/../build/$(BOOTLOADER)/bootloader.hex ] ; then \
 		echo Problem reading hex file ;\
 		exit 1; \
-	else \
-		cp $(TESTCODES_DIR)/../build/$(BOOTLOADER)/bootloader.hex $(SIM_DIR)/bootloader.hex ;\
+	# else \
+	# 	cp $(TESTCODES_DIR)/../build/$(BOOTLOADER)/bootloader.hex $(SIM_DIR)/bootloader.hex ;\
 	fi ;\
+	mkdir -p $(BOOTROM_BUILD_DIR)/verilog/ ;\
+	mkdir -p $(BOOTROM_BUILD_DIR)/bintxt/ ;\
+	python3 bootrom_gen.py -a $(BOOTROM_ADDRW) -i $(TESTCODES_DIR)/../build/$(BOOTLOADER)/bootloader.hex/SEC_ROM_BOOT_IMG -v $(BOOTROM_BUILD_DIR)/verilog/bootrom.v -b $(BOOTROM_BUILD_DIR)/bintxt/bootrom.bintxt )
+	mkdir -p $(SIM_TOP_DIR)/bootloader
+
 
 # Compile test code
 # Note : The use of ls after compile allows the computing server to sync up

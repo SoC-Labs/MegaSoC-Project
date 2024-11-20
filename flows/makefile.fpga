@@ -51,7 +51,7 @@ PINMAP_FILE           ?= $(TARGET_DIR)/fpga_pinmap.xdc
 flist_tcl_megasoc: 
 	@mkdir -p $(TCL_FLIST_DIR)
 	@(cd $(TCL_FLIST_DIR); \
-	$(SOCLABS_SOCTOOLS_FLOW_DIR)/bin/filelist_compile.py -t -f $(DESIGN_VC) -o $(TCL_OUTPUT_FILELIST) -i $(FLIST_INCLUDES) -r $(IMP_MEGASOC_DIR)/src ;)
+	$(SOCLABS_SOCTOOLS_FLOW_DIR)/bin/filelist_compile.py -t -f $(FPGA_DESIGN_VC) -o $(TCL_OUTPUT_FILELIST) -i $(FLIST_INCLUDES) -r $(IMP_MEGASOC_DIR)/src ;)
 
 
 # Environment Variables for Packaging NanoSoC
