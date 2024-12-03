@@ -13,5 +13,4 @@
 # Add your Accelerator Repository here
 
 megasoc_tech: main
-expansion_subsystem_tech: main
 soctools_flow: main
