@@ -14,16 +14,16 @@
 MTI_VC_OPTIONS    = +acc
 MTI_VC_OPTIONS    += -suppress 2892
 MTI_VC_OPTIONS    += -f $(TBENCH_VC) 
-MTI_VC_OPTIONS    += -sv_lib $(SOCLABS_MEGASOC_TECH_DIR)/logical/CortexA53_1/logical/ca53univent/build_x86_64/lib/ca53_tarmac_dpi
+MTI_VC_OPTIONS    += -sv_lib $(CORTEX_A53_IP_LOGICAL_DIR)/ca53univent/build_x86_64/lib/ca53_tarmac_dpi
 MTI_RUN_OPTIONS   = -voptargs=+acc
-MTI_RUN_OPTIONS   += -sv_lib $(SOCLABS_MEGASOC_TECH_DIR)/logical/CortexA53_1/logical/ca53univent/build_x86_64/lib/ca53_tarmac_dpi
+MTI_RUN_OPTIONS   += -sv_lib $(CORTEX_A53_IP_LOGICAL_DIR)/logical/ca53univent/build_x86_64/lib/ca53_tarmac_dpi
 
 # VCS options
 VCS_OPTIONS    =  +vcs+lic+wait +v2k -sverilog -override_timescale=1ns/1ps +lint=all,noTMR,noVCDE -debug -debug_access+all 
 VCS_SIM_OPTION = +vcs+lic+wait +vcs+flush+log -assert nopostproc
 VCS_VC_OPTIONS = -f $(TBENCH_VC) 
-VCS_OPTIONS   += -sverilog $(SOCLABS_MEGASOC_TECH_DIR)/logical/CortexA53_1/logical/ca53univent/build_x86_64/lib/ca53_tarmac_dpi.so
-CA53_TARMAC_EXECUTABLE = $(SOCLABS_MEGASOC_TECH_DIR)/logical/CortexA53_1/logical/ca53univent/build_x86_32/bin/ca53_tarmac_decode --plain 
+VCS_OPTIONS   += -sverilog $(CORTEX_A53_IP_LOGICAL_DIR)/ca53univent/build_x86_64/lib/ca53_tarmac_dpi.so
+CA53_TARMAC_EXECUTABLE = $(CORTEX_A53_IP_LOGICAL_DIR)/ca53univent/build_x86_32/bin/ca53_tarmac_decode --plain 
 export CA53_TARMAC_EXECUTABLE
 
 # XM verilog options

@@ -81,6 +81,7 @@ FPGA_DESIGN_VC ?= $(SOCLABS_PROJECT_DIR)/flist/project/top_FPGA.flist
 # Make variables visible to target shells
 export ARM_CORTEX_M0_DIR
 export ARM_CORSTONE_101_DIR
+export CORTEX_A53_IP_LOGICAL_DIR
 export FLIST_INCLUDES
 export AMS
 # Location of Defines File
