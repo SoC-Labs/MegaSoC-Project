@@ -120,4 +120,16 @@ gen_defs:
 clean_sim:
 	@rm -rf ./simulate
 
+make_project:
+	make -C ./megasoc_tech make_project
+
+build_ip:
+	make -C ./megasoc_tech build_ip
+
+get_flash_model:
+	make -C ./megasoc_tech/logical/sl_ahb_qspi get_flash_model
+
+first_time_setup: make_project build_ip get_flash_model
+
+
 clean: clean_sim clean_all_code

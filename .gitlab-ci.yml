@@ -31,9 +31,7 @@ build-job:       # This job runs in the build stage, which runs first.
     - git submodule foreach --recursive git submodule init
     - git fetch --recurse-submodules
     - source set_env.sh
-    - cd megasoc_tech
     - make first_time_setup
-    - cd ..
     - make run
     - echo "building complete."
 
