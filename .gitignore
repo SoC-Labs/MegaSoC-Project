@@ -4,3 +4,6 @@ CheckResults.log
 CoherencyCheckConfiguration.config
 simulate/
 imp/
+
+system/src/bootrom
+system/src/defines
