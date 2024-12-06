@@ -47,9 +47,17 @@ module megasoc_system(
     output wire         TDO,
     output wire         nTDOEN,
     output wire         SWDO,
-    output wire         SWDOEN
+    output wire         SWDOEN,
 
+    input  wire [15:0]  P0_IN,
+    output wire [15:0]  P0_OUT,
+    output wire [15:0]  P0_EN,
+    output wire [15:0]  P0_FUNC,
 
+    input  wire [15:0]  P1_IN,
+    output wire [15:0]  P1_OUT,
+    output wire [15:0]  P1_EN,
+    output wire [15:0]  P1_FUNC
 );
 
 
@@ -338,7 +346,16 @@ megasoc_tech_wrapper u_megasoc_tech_wrapper(
     .TDO(TDO),
     .nTDOEN(nTDOEN),
     .SWDO(SWDO),
-    .SWDOEN(SWDOEN)
+    .SWDOEN(SWDOEN),
+
+    .P0_IN(P0_IN),
+    .P0_OUT(P0_OUT),
+    .P0_EN(P0_EN),
+    .P0_FUNC(P0_FUNC),
+    .P1_IN(P1_IN),
+    .P1_OUT(P1_OUT),
+    .P1_EN(P1_EN),
+    .P1_FUNC(P1_FUNC)
 );
 
 

@@ -46,9 +46,28 @@ module megasoc_chip(
     output wire         TDO,
     output wire         nTDOEN,
     output wire         SWDO,
-    output wire         SWDOEN
+    output wire         SWDOEN,
 
+    input  wire [15:0]      PAD_P0_IN,
+    output wire [15:0]      PAD_P0_OUT,
+    output wire [15:0]      PAD_P0_EN,
+    output wire [15:0]      PAD_P0_FUNC,
+
+    input  wire [15:0]      PAD_P1_IN,
+    output wire [15:0]      PAD_P1_OUT,
+    output wire [15:0]      PAD_P1_EN,
+    output wire [15:0]      PAD_P1_FUNC
 );
+
+wire [15:0]      SOC_P0_IN;
+wire [15:0]      SOC_P0_OUT;
+wire [15:0]      SOC_P0_EN;
+wire [15:0]      SOC_P0_FUNC;
+wire [15:0]      SOC_P1_IN;
+wire [15:0]      SOC_P1_OUT;
+wire [15:0]      SOC_P1_EN;
+wire [15:0]      SOC_P1_FUNC;
+
 
 megasoc_system u_megasoc_system(
     .CLK_IN(CLK_IN),
@@ -80,7 +99,35 @@ megasoc_system u_megasoc_system(
     .TDO(TDO),
     .nTDOEN(nTDOEN),
     .SWDO(SWDO),
-    .SWDOEN(SWDOEN)
+    .SWDOEN(SWDOEN),
+
+    .P0_IN(SOC_P0_IN),
+    .P0_OUT(SOC_P0_OUT),
+    .P0_EN(SOC_P0_EN),
+    .P0_FUNC(SOC_P0_FUNC),
+    .P1_IN(SOC_P1_IN),
+    .P1_OUT(SOC_P1_OUT),
+    .P1_EN(SOC_P1_EN),
+    .P1_FUNC(SOC_P1_FUNC)
+);
+
+megasoc_chip_pin_mux u_pin_mux(
+    .SOC_P0_IN(),
+    .SOC_P0_OUT(),
+    .SOC_P0_EN(),
+    .SOC_P0_FUNC(),
+    .SOC_P1_IN(),
+    .SOC_P1_OUT(),
+    .SOC_P1_EN(),
+    .SOC_P1_FUNC(),
+    .PAD_P0_IN(PAD_P0_IN),
+    .PAD_P0_OUT(PAD_P0_OUT),
+    .PAD_P0_EN(PAD_P0_EN),
+    .PAD_P0_FUNC(PAD_P0_FUNC),
+    .PAD_P1_IN(PAD_P1_IN),
+    .PAD_P1_OUT(PAD_P1_OUT),
+    .PAD_P1_EN(PAD_P1_EN),
+    .PAD_P1_FUNC(PAD_P1_FUNC)
 );
 
 endmodule

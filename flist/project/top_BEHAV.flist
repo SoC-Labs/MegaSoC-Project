@@ -32,6 +32,7 @@
 -f $(SOCLABS_MEGASOC_TECH_DIR)/flist/megasoc_tech_BEHAV.flist
 
 $(SOCLABS_PROJECT_DIR)/megasoc_chip/chip/logical/megasoc_chip.v
+$(SOCLABS_PROJECT_DIR)/megasoc_chip/chip/logical/megasoc_chip_pin_mux.v
 $(SOCLABS_PROJECT_DIR)/megasoc_chip/pads/glib/logical/megasoc_chip_pads.v
 
 $(SOCLABS_PROJECT_DIR)/megasoc_system/logical/megasoc_system.v
