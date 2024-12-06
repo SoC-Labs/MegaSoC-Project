@@ -17,15 +17,29 @@ module megasoc_tb();
 `define CORTEXA53_UNIVENT_DPI_CAPTURE
 `define CORTEXA53_UNIVENT 
 
-wire EXT_CLK;
+wire EXT_CLK; // 100 MHz crystal clock 
+wire RT_CLK; // 32.768 kHz crystal clock
 wire nRESET;
 
 wire         QSPI_SCLK;
 wire [3:0]   QSPI_IO;
 wire         QSPI_nCS;
+wire         FT_CLK;   
+wire         FT_SSN;   
+wire         FT_MISO;  
+wire         FT_MIOSIO;
+
+wire        ft_miosio_i;
+wire        ft_miosio_o;
+wire        ft_miosio_z;
+
+assign ft_miosio_i = FT_MIOSIO;
+bufif1 #1 (FT_MIOSIO, ft_miosio_o, !ft_miosio_z);
+
 
 megasoc_clkreset u_megasoc_clkreset(
     .CLK(EXT_CLK),
+    .CLK_RT(RT_CLK),
     .NRST(nRESET)
 );
 
@@ -43,6 +57,8 @@ end
 megasoc_chip_pads u_megasoc_chip_pads(
     .REF_CLK_XTAL1(EXT_CLK),
     .REF_CLK_XTAL2(),
+    .RT_CLK_XTAL1(RT_CLK),
+    .RT_CLK_XTAL2(),
     .PORESTn(nRESET),
     .nSRST(nRESET),
     .GPIO_P0(),
@@ -60,7 +76,11 @@ megasoc_chip_pads u_megasoc_chip_pads(
     .DBGACK(),
     .QSPI_SCLK(QSPI_SCLK),
     .QSPI_IO(QSPI_IO),
-    .QSPI_nCS(QSPI_nCS)
+    .QSPI_nCS(QSPI_nCS),
+    .FT_CLK(FT_CLK),
+    .FT_SSN(FT_SSN),
+    .FT_MISO(FT_MISO),
+    .FT_MIOSIO(FT_MIOSIO)
 );
 
 sst26vf064b FLASH(
@@ -137,5 +157,69 @@ megasoc_qspi_capture #(
     .HRDATA_o(`MEGASOC_QSPI_SUBSYSTEM.HRDATA),
     .HRESP_o(`MEGASOC_QSPI_SUBSYSTEM.HRESP)
 );
+
+
+wire rxd8_tvalid;
+wire rxd8_tready;
+wire[7:0] rxd8_tdata;
+
+megasoc_ft1248x1_to_axi_streamio_v1_0 u_ft1248_to_axi_stream(
+    .ft_clk_i(FT_CLK),
+    .ft_ssn_i(FT_SSN),
+    .ft_miso_o(FT_MISO),
+    .ft_miosio_i(ft_miosio_i),
+    .ft_miosio_o(ft_miosio_o),
+    .ft_miosio_z(ft_miosio_z),
+    .aclk(EXT_CLK),
+    .aresetn(nRESET),
+    .txd_tvalid_o(rxd8_tvalid),
+    .txd_tdata8_o(rxd8_tdata),
+    .txd_tready_i(rxd8_tready),
+    .rxd_tready_o(),
+    .rxd_tdata8_i(8'h00),
+    .rxd_tvalid_i(1'b0)
+);
+
+
+megasoc_axi_stream_io_8_rxd_to_file#(
+    .RXDFILENAME("logs/ft1248_out.log")
+) u_megasoc_axi_stream_io_8_rxd_to_file (
+    .aclk         (EXT_CLK),
+    .aresetn      (nRESET),
+    .eof_received ( ),
+    .rxd8_ready   (rxd8_tready),
+    .rxd8_valid   (rxd8_tvalid),
+    .rxd8_data    (rxd8_tdata)
+  );
+
+
+wire ft_clk2uart;
+wire ft_rxd2uart;
+wire ft_txd2uart;
+
+megasoc_ft1248x1_track
+  u_megasoc_ft1248x1_track
+  (
+  .ft_clk_i     (FT_CLK),
+  .ft_ssn_i     (FT_SSN),
+  .ft_miso_i    (FT_MISO),
+  .ft_miosio_i  (ft_miosio_i),
+  .aclk         (EXT_CLK),
+  .aresetn      (nRESET),
+  .FTDI_CLK2UART_o      (ft_clk2uart),  // Clock (baud rate)
+  .FTDI_OP2UART_o       (ft_rxd2uart),  // Received data to UART capture
+  .FTDI_IP2UART_o       (ft_txd2uart)   // Transmitted data to UART capture
+  );
+
+  megasoc_uart_capture  #(.LOGFILENAME("logs/ft1248_op.log"), .VERBOSE(1))
+    u_megasoc_uart_capture1(
+    .RESETn               (nRESET),
+    .CLK                  (ft_clk2uart),
+    .RXD                  (ft_rxd2uart),
+    .DEBUG_TESTER_ENABLE  ( ), //debug_test_en2), //driven by u_nanosoc_track_tb_iostream
+    .SIMULATIONEND        (),      // This signal set to 1 at the end of simulation.
+    .AUXCTRL              ()
+  );
+
 
 endmodule

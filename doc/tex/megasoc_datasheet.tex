@@ -1,0 +1,50 @@
+\documentclass{report}
+\usepackage{hyperref}
+
+\title{megaSoC Datasheet}
+\author{\href{http://www.soclabs.org}{SoC Labs}}
+\begin{document}
+\maketitle
+\input{preamble.tex}
+
+\tableofcontents
+\clearpage
+\chapter{Introduction}
+
+\section{Summary}
+
+
+\chapter{System}
+
+\section{Bus Interconnect}
+
+\section{Address Map}
+\subsection{Summary}
+
+\input{megasoc_sys_address_map.tex}
+
+\subsection{Peripheral Region}
+Below are the address regions for the System IO/Peripherals, detailed address maps for each peripheral are in chapter \ref{peripherals}
+\begin{center}
+    \begin{tabular}{||c | c | c ||}
+        \hline
+        Region & Start Address & End Address \\ 
+        \hline\hline
+        UART 0 & 0x40000000 & 0x40000FFF \\
+        \hline
+        Timer 1 & 0x40001000 & 0x40001FFF \\
+        \hline
+    \end{tabular}
+\end{center}
+
+\section{}
+
+
+\chapter{Peripherals} \label{peripherals} 
+
+\chapter{Recommended Testboard}
+
+
+
+
+\end{document}

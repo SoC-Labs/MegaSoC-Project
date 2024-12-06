@@ -10,33 +10,18 @@
 //--------------------------------------------------------------------------------
 `timescale 1 ps / 1 ps
 
-module megasoc_design_wrapper
-   (CLK_IN_P,
-   CLK_IN_N,
-    //QSPI_IO_e_0,
-    //QSPI_IO_i_0,
-    //QSPI_IO_o_0,
-    //QSPI_SCLK_0,
-    //QSPI_nCS_0,
-    nRESET_0);
-    
-  input CLK_IN_P;
-  input CLK_IN_N;
-  //output [3:0]QSPI_IO_e_0;
-  //input [3:0]QSPI_IO_i_0;
-  //output [3:0]QSPI_IO_o_0;
-  //output QSPI_SCLK_0;
-  //output QSPI_nCS_0;
-  input nRESET_0;
+module megasoc_design_wrapper(
+  input  wire   CLK_IN_P,
+  input  wire   CLK_IN_N,
+  input  wire   nRESET_0,
+  inout  wire [7:0] PMOD1_IO    
+);
 
-  wire CLK_IN_P;
-  wire CLK_IN_N;
   wire [3:0]QSPI_IO_e_0;
   wire [3:0]QSPI_IO_i_0;
   wire [3:0]QSPI_IO_o_0;
   wire QSPI_SCLK_0;
   wire QSPI_nCS_0;
-  wire nRESET_0;
 
   megasoc_design megasoc_design_i
        (.CLK_P(CLK_IN_P),

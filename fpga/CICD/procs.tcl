@@ -147,7 +147,15 @@ proc connect_zc702 {} {
 }
 
 proc connect_haps_sx {} {
-  
+  open_hw_manager
+  connect_hw_server -allow_non_jtag
+  open_hw_target -xvc_url 10.22.13.34:2542
+  set_property PROBES.FILE {/home/dwn1c21/SoC-Labs/megasoc_project/imp/fpga/megasoc/tmp_edit_project.runs/impl_1/megasoc_design_wrapper.ltx} [get_hw_devices xcvu19p_0]
+  set_property FULL_PROBES.FILE {/home/dwn1c21/SoC-Labs/megasoc_project/imp/fpga/megasoc/tmp_edit_project.runs/impl_1/megasoc_design_wrapper.ltx} [get_hw_devices xcvu19p_0]
+  set_property PROGRAM.FILE {/home/dwn1c21/SoC-Labs/megasoc_project/imp/fpga/megasoc/tmp_edit_project.runs/impl_1/megasoc_design_wrapper.bit} [get_hw_devices xcvu19p_0]
+  program_hw_devices [get_hw_devices xcvu19p_0]
+  refresh_hw_device [lindex [get_hw_devices xcvu19p_0] 0]
+  reset_hw_axi [get_hw_axis]
 }
 
 

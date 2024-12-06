@@ -14,8 +14,9 @@
 
 `include "gen_defines.v"
 module megasoc_system(
-    input wire          CLK_IN,
-    input wire          nRESET,
+    input  wire         CLK_IN,
+    input  wire         RT_CLK, // 32kHz real time clock
+    input  wire         nRESET,
 
     // QSPI Signals
     output wire         QSPI_SCLK,
@@ -29,6 +30,15 @@ module megasoc_system(
     output wire         UARTTXD,
     output wire         UARTTXEN,
 
+    // FT1248 Signals
+    output wire         FT_CLK_O,    // SCLK
+    output wire         FT_SSN_O,    // SS_N
+    input  wire         FT_MISO_I,   // MISO
+    output wire         FT_MIOSIO_O, // MIOSIO tristate output when enabled
+    output wire         FT_MIOSIO_E, // MIOSIO tristate output enable (active hi)
+    output wire         FT_MIOSIO_Z, // MIOSIO tristate output enable (active lo)
+    input  wire         FT_MIOSIO_I, // MIOSIO tristate input
+
     // DAP-LITE external signals
     input  wire         nTRST,
     input  wire         SWCLKTCK,
@@ -41,6 +51,64 @@ module megasoc_system(
 
 
 );
+
+
+// DMA 350 APB Interface Wires
+wire [31:0]         PADDR_DMA_CTRL;
+wire [31:0]         PWDATA_DMA_CTRL;
+wire                PWRITE_DMA_CTRL;
+wire [2:0]          PPROT_DMA_CTRL;
+wire [3:0]          PSTRB_DMA_CTRL;
+wire                PENABLE_DMA_CTRL;
+wire                PSELx_DMA_CTRL;
+wire [31:0]         PRDATA_DMA_CTRL;
+wire                PSLVERR_DMA_CTRL;
+wire                PREADY_DMA_CTRL;
+
+// DMA 350 AXI Interface Wires
+wire [1:0]          AWID_DMA350;
+wire [43:0]         AWADDR_DMA350;
+wire [7:0]          AWLEN_DMA350;
+wire [2:0]          AWSIZE_DMA350;
+wire [1:0]          AWBURST_DMA350;
+wire                AWLOCK_DMA350;
+wire [3:0]          AWCACHE_DMA350;
+wire [2:0]          AWPROT_DMA350;
+wire                AWVALID_DMA350;
+wire                AWREADY_DMA350;
+
+wire [127:0]        WDATA_DMA350;
+wire [15:0]         WSTRB_DMA350;
+wire                WLAST_DMA350;
+wire                WVALID_DMA350;
+wire                WREADY_DMA350;
+
+wire [1:0]          BID_DMA350;
+wire [1:0]          BRESP_DMA350;
+wire                BVALID_DMA350;
+wire                BREADY_DMA350;
+
+wire [1:0]          ARID_DMA350;
+wire [43:0]         ARADDR_DMA350;
+wire [7:0]          ARLEN_DMA350;
+wire [2:0]          ARSIZE_DMA350;
+wire [1:0]          ARBURST_DMA350;
+wire                ARLOCK_DMA350;
+wire [3:0]          ARCACHE_DMA350;
+wire [2:0]          ARPROT_DMA350;
+wire                ARVALID_DMA350;
+wire                ARREADY_DMA350;
+
+wire [1:0]          RID_DMA350;
+wire [127:0]        RDATA_DMA350;
+wire [1:0]          RRESP_DMA350;
+wire                RLAST_DMA350;
+wire                RVALID_DMA350;
+wire                RREADY_DMA350;
+
+wire [3:0]              DMA350_irq_channel;
+wire                    DMA350_irq_comb_nonsec;
+
 
 wire [1:0]      AXI_SYS_EXP_awid;
 wire [31:0]     AXI_SYS_EXP_awaddr;
@@ -117,6 +185,7 @@ wire            AXI_EXP_SYS_rready;
 megasoc_tech_wrapper u_megasoc_tech_wrapper(
     .SYS_CLK(CLK_IN),
     .SYS_CLKEN(1'b1),
+    .RT_CLK(RT_CLK),
     .SYS_RESETn(nRESET),
 
     // Millisoc system AXI Manager
@@ -193,6 +262,58 @@ megasoc_tech_wrapper u_megasoc_tech_wrapper(
     .AXI_EXP_SYS_rlast(AXI_EXP_SYS_rlast),
     .AXI_EXP_SYS_rvalid(AXI_EXP_SYS_rvalid),
     .AXI_EXP_SYS_rready(AXI_EXP_SYS_rready),
+
+
+    .PADDR_DMA_CTRL(PADDR_DMA_CTRL),
+    .PWDATA_DMA_CTRL(PWDATA_DMA_CTRL),
+    .PWRITE_DMA_CTRL(PWRITE_DMA_CTRL),
+    .PPROT_DMA_CTRL(PPROT_DMA_CTRL),
+    .PSTRB_DMA_CTRL(PSTRB_DMA_CTRL),
+    .PENABLE_DMA_CTRL(PENABLE_DMA_CTRL),
+    .PSELx_DMA_CTRL(PSELx_DMA_CTRL),
+    .PRDATA_DMA_CTRL(PRDATA_DMA_CTRL),
+    .PSLVERR_DMA_CTRL(PSLVERR_DMA_CTRL),
+    .PREADY_DMA_CTRL(PREADY_DMA_CTRL),
+
+    .AWID_DMA350(AWID_DMA350),
+    .AWADDR_DMA350(AWADDR_DMA350),
+    .AWLEN_DMA350(AWLEN_DMA350),
+    .AWSIZE_DMA350(AWSIZE_DMA350),
+    .AWBURST_DMA350(AWBURST_DMA350),
+    .AWLOCK_DMA350(AWLOCK_DMA350),
+    .AWCACHE_DMA350(AWCACHE_DMA350),
+    .AWPROT_DMA350(AWPROT_DMA350),
+    .AWVALID_DMA350(AWVALID_DMA350),
+    .AWREADY_DMA350(AWREADY_DMA350),
+    .WDATA_DMA350(WDATA_DMA350),
+    .WSTRB_DMA350(WSTRB_DMA350),
+    .WLAST_DMA350(WLAST_DMA350),
+    .WVALID_DMA350(WVALID_DMA350),
+    .WREADY_DMA350(WREADY_DMA350),
+    .BID_DMA350(BID_DMA350),
+    .BRESP_DMA350(BRESP_DMA350),
+    .BVALID_DMA350(BVALID_DMA350),
+    .BREADY_DMA350(BREADY_DMA350),
+    .ARID_DMA350(ARID_DMA350),
+    .ARADDR_DMA350(ARADDR_DMA350),
+    .ARLEN_DMA350(ARLEN_DMA350),
+    .ARSIZE_DMA350(ARSIZE_DMA350),
+    .ARBURST_DMA350(ARBURST_DMA350),
+    .ARLOCK_DMA350(ARLOCK_DMA350),
+    .ARCACHE_DMA350(ARCACHE_DMA350),
+    .ARPROT_DMA350(ARPROT_DMA350),
+    .ARVALID_DMA350(ARVALID_DMA350),
+    .ARREADY_DMA350(ARREADY_DMA350),
+    .RID_DMA350(RID_DMA350),
+    .RDATA_DMA350(RDATA_DMA350),
+    .RRESP_DMA350(RRESP_DMA350),
+    .RLAST_DMA350(RLAST_DMA350),
+    .RVALID_DMA350(RVALID_DMA350),
+    .RREADY_DMA350(RREADY_DMA350),
+
+    .DMA350_irq_channel(DMA350_irq_channel),
+    .DMA350_irq_comb_nonsec(DMA350_irq_comb_nonsec),
+
     .QSPI_SCLK(QSPI_SCLK),
     .QSPI_nCS(QSPI_nCS),
     .QSPI_IO_o(QSPI_IO_o),
@@ -201,6 +322,15 @@ megasoc_tech_wrapper u_megasoc_tech_wrapper(
     .UARTRXD(UARTRXD),
     .UARTTXD(UARTTXD),
     .UARTTXEN(UARTTXEN),
+
+    .FT_CLK_O(FT_CLK_O),
+    .FT_SSN_O(FT_SSN_O),
+    .FT_MISO_I(FT_MISO_I),
+    .FT_MIOSIO_O(FT_MIOSIO_O),
+    .FT_MIOSIO_E(FT_MIOSIO_E),
+    .FT_MIOSIO_Z(FT_MIOSIO_Z),
+    .FT_MIOSIO_I(FT_MIOSIO_I),
+    
     .nTRST(nTRST),
     .SWCLKTCK(SWCLKTCK),
     .SWDITMS(SWDITMS),
@@ -210,6 +340,76 @@ megasoc_tech_wrapper u_megasoc_tech_wrapper(
     .SWDO(SWDO),
     .SWDOEN(SWDOEN)
 );
+
+
+megasoc_tech_system_wrapper u_megasoc_tech_system_wrapper(
+    .CLK(CLK_IN),
+    .RESETn(nRESET),
+
+    .DMA350_PWAKEUP(1'b1),
+    .DMA350_PDEBUG(1'b0),
+    .DMA350_PSEL(PSELx_DMA_CTRL),
+    .DMA350_PENABLE(PENABLE_DMA_CTRL),
+    .DMA350_PPROT(PPROT_DMA_CTRL),
+    .DMA350_PWRITE(PWRITE_DMA_CTRL),
+    .DMA350_PADDR(PADDR_DMA_CTRL),
+    .DMA350_PWDATA(PWDATA_DMA_CTRL),
+    .DMA350_PSTRB(PSTRB_DMA_CTRL),
+    .DMA350_PREADY(PREADY_DMA_CTRL),
+    .DMA350_PSLVERR(PSLVERR_DMA_CTRL),
+    .DMA350_PRDATA(PRDATA_DMA_CTRL),
+
+    .DMA350_AWAKEUP_M0(),
+    .DMA350_AWVALID_M0(AWVALID_DMA350),
+    .DMA350_AWADDR_M0(AWADDR_DMA350),
+    .DMA350_AWBURST_M0(AWBURST_DMA350),
+    .DMA350_AWID_M0(AWID_DMA350),
+    .DMA350_AWLEN_M0(AWLEN_DMA350),
+    .DMA350_AWSIZE_M0(AWSIZE_DMA350),
+    .DMA350_AWQOS_M0(),
+    .DMA350_AWPROT_M0(AWPROT_DMA350),
+    .DMA350_AWREADY_M0(AWREADY_DMA350),
+    .DMA350_AWCACHE_M0(AWCACHE_DMA350),
+    .DMA350_AWINNER_M0(),
+    .DMA350_AWDOMAIN_M0(),
+
+    .DMA350_ARVALID_M0(ARVALID_DMA350),
+    .DMA350_ARADDR_M0(ARADDR_DMA350),
+    .DMA350_ARBURST_M0(ARBURST_DMA350),
+    .DMA350_ARID_M0(ARID_DMA350),
+    .DMA350_ARLEN_M0(ARLEN_DMA350),
+    .DMA350_ARSIZE_M0(ARSIZE_DMA350),
+    .DMA350_ARQOS_M0(),
+    .DMA350_ARPROT_M0(ARPROT_DMA350),
+    .DMA350_ARREADY_M0(ARREADY_DMA350),
+    .DMA350_ARCACHE_M0(ARCACHE_DMA350),
+    .DMA350_ARINNER_M0(),
+    .DMA350_ARDOMAIN_M0(),
+    .DMA350_ARCMDLINK_M0(),
+
+    .DMA350_WVALID_M0(WVALID_DMA350),
+    .DMA350_WLAST_M0(WLAST_DMA350),
+    .DMA350_WSTRB_M0(WSTRB_DMA350),
+    .DMA350_WDATA_M0(WDATA_DMA350),
+    .DMA350_WREADY_M0(WREADY_DMA350),
+
+    .DMA350_RVALID_M0(RVALID_DMA350),
+    .DMA350_RID_M0(RID_DMA350),
+    .DMA350_RLAST_M0(RLAST_DMA350),
+    .DMA350_RDATA_M0(RDATA_DMA350),
+    .DMA350_RPOISON_M0(2'b00),
+    .DMA350_RRESP_M0(RRESP_DMA350),
+    .DMA350_RREADY_M0(RREADY_DMA350),
+
+    .DMA350_BVALID_M0(BVALID_DMA350),
+    .DMA350_BID_M0(BID_DMA350),
+    .DMA350_BRESP_M0(BRESP_DMA350),
+    .DMA350_BREADY_M0(BREADY_DMA350),
+
+    .DMA350_irq_channel(DMA350_irq_channel),
+    .DMA350_irq_comb_nonsec(DMA350_irq_comb_nonsec)
+);
+
 
 `ifdef INC_EXP
 expansion_subsystem_wrapper u_megasoc_expansion_wrapper(

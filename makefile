@@ -131,5 +131,12 @@ get_flash_model:
 
 first_time_setup: make_project build_ip get_flash_model
 
+docs:
+	pdflatex --output-directory=./doc/tex/ ./doc/tex/megasoc_datasheet.tex
+	pdflatex --output-directory=./doc/tex/ ./doc/tex/megasoc_datasheet.tex
+	pdflatex --output-directory=./doc/tex/ ./doc/tex/megasoc_configuration_manual.tex
+	pdflatex --output-directory=./doc/tex/ ./doc/tex/megasoc_configuration_manual.tex
+	mv ./doc/tex/megasoc_datasheet.pdf ./doc/megasoc_datasheet.pdf
+	mv ./doc/tex/megasoc_configuration_manual.pdf ./doc/megasoc_configuration_manual.pdf
 
 clean: clean_sim clean_all_code

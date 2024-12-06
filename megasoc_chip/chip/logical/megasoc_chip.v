@@ -12,8 +12,9 @@
 //  megasoc_system
 
 module megasoc_chip(
-    input wire CLK_IN,
-    input wire nRESET,
+    input  wire         CLK_IN, // Main system clock input
+    input  wire         RT_CLK, // 32kHz real time clock
+    input  wire         nRESET,
 
     // QSPI signals
     output wire         QSPI_SCLK,
@@ -26,6 +27,16 @@ module megasoc_chip(
     input  wire         UARTRXD,
     output wire         UARTTXD,
     output wire         UARTTXEN,
+
+    // FT1248 Signals
+    output wire         FT_CLK_O,    // SCLK
+    output wire         FT_SSN_O,    // SS_N
+    input  wire         FT_MISO_I,   // MISO
+    output wire         FT_MIOSIO_O, // MIOSIO tristate output when enabled
+    output wire         FT_MIOSIO_E, // MIOSIO tristate output enable (active hi)
+    output wire         FT_MIOSIO_Z, // MIOSIO tristate output enable (active lo)
+    input  wire         FT_MIOSIO_I, // MIOSIO tristate input
+
 
     // DAP-lite Signals
     input  wire         nTRST,
@@ -41,15 +52,27 @@ module megasoc_chip(
 
 megasoc_system u_megasoc_system(
     .CLK_IN(CLK_IN),
+    .RT_CLK(RT_CLK),
     .nRESET(nRESET),
+
     .QSPI_SCLK(QSPI_SCLK),
     .QSPI_nCS(QSPI_nCS),
     .QSPI_IO_o(QSPI_IO_o),
     .QSPI_IO_i(QSPI_IO_i),
     .QSPI_IO_e(QSPI_IO_e),
+
     .UARTRXD(UARTRXD),
     .UARTTXD(UARTTXD),
     .UARTTXEN(UARTTXEN),
+
+    .FT_CLK_O(FT_CLK_O),
+    .FT_SSN_O(FT_SSN_O),
+    .FT_MISO_I(FT_MISO_I),
+    .FT_MIOSIO_O(FT_MIOSIO_O),
+    .FT_MIOSIO_E(FT_MIOSIO_E),
+    .FT_MIOSIO_Z(FT_MIOSIO_Z),
+    .FT_MIOSIO_I(FT_MIOSIO_I),
+
     .nTRST(nTRST),
     .SWCLKTCK(SWCLKTCK),
     .SWDITMS(SWDITMS),

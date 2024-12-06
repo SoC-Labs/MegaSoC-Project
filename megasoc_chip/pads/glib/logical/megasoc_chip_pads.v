@@ -22,6 +22,8 @@ module megasoc_chip_pads(
     // Clocks and Reset
     input  wire         REF_CLK_XTAL1,
     output wire         REF_CLK_XTAL2,
+    input  wire         RT_CLK_XTAL1,
+    output wire         RT_CLK_XTAL2,
     input  wire         PORESTn,
     input  wire         nSRST,
 
@@ -45,7 +47,13 @@ module megasoc_chip_pads(
     // QSPI Interface
     output wire         QSPI_SCLK,
     inout  wire [3:0]   QSPI_IO,
-    output wire         QSPI_nCS
+    output wire         QSPI_nCS,
+
+    // FT1248 
+    output wire         FT_CLK,     // SCLK
+    output wire         FT_SSN,     // SS_N
+    input  wire         FT_MISO,    // MISO
+    inout  wire         FT_MIOSIO   // MIOSIO 
 
     // Ethernet
 
@@ -56,6 +64,7 @@ module megasoc_chip_pads(
 
 );
 
+// QSPI
 wire [3:0]   QSPI_IO_o;
 wire [3:0]   QSPI_IO_i;
 wire [3:0]   QSPI_IO_e;
@@ -70,19 +79,41 @@ assign QSPI_IO_i[1] = QSPI_IO[1];
 assign QSPI_IO_i[2] = QSPI_IO[2];
 assign QSPI_IO_i[3] = QSPI_IO[3];
 
+// FT1248 
+wire        FT_MIOSIO_O;
+wire        FT_MIOSIO_E;
+wire        FT_MIOSIO_Z;
+wire        FT_MIOSIO_I;
+
+assign FT_MIOSIO = FT_MIOSIO_E ? FT_MIOSIO_O : 1'bz;
+
+assign FT_MIOSIO_I = FT_MIOSIO;
+
 assign REF_CLK_XTAL2 = REF_CLK_XTAL1;
+assign RT_CLK_XTAL2 = RT_CLK_XTAL1;
 
 megasoc_chip u_megasoc_chip(
     .CLK_IN(REF_CLK_XTAL1),
+    .RT_CLK(RT_CLK_XTAL1),
     .nRESET(PORESTn),
     .QSPI_SCLK(QSPI_SCLK),
     .QSPI_nCS(QSPI_nCS),
     .QSPI_IO_o(QSPI_IO_o),
     .QSPI_IO_i(QSPI_IO_i),
     .QSPI_IO_e(QSPI_IO_e),
+
     .UARTRXD(),
     .UARTTXD(),
     .UARTTXEN(),
+
+    .FT_CLK_O(FT_CLK),
+    .FT_SSN_O(FT_SSN),
+    .FT_MISO_I(FT_MISO),
+    .FT_MIOSIO_O(FT_MIOSIO_O),
+    .FT_MIOSIO_E(FT_MIOSIO_E),
+    .FT_MIOSIO_Z(FT_MIOSIO_Z),
+    .FT_MIOSIO_I(FT_MIOSIO_I),
+
     .nTRST(),
     .SWCLKTCK(),
     .SWDITMS(),

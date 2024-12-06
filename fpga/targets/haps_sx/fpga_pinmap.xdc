@@ -1,7 +1,14 @@
 set_property PACKAGE_PIN BK44 [get_ports nRESET_0]
 set_property PACKAGE_PIN BM44 [get_ports CLK_IN_P]
 set_property PACKAGE_PIN BN44 [get_ports CLK_IN_N]
-
+set_property PACKAGE_PIN AW16 [get_ports PMOD1_IO[0]]
+set_property PACKAGE_PIN AW15 [get_ports PMOD1_IO[1]]
+set_property PACKAGE_PIN AY14 [get_ports PMOD1_IO[2]]
+set_property PACKAGE_PIN AY13 [get_ports PMOD1_IO[3]]
+set_property PACKAGE_PIN AV16 [get_ports PMOD1_IO[4]]
+set_property PACKAGE_PIN AV15 [get_ports PMOD1_IO[5]]
+set_property PACKAGE_PIN AU17 [get_ports PMOD1_IO[6]]
+set_property PACKAGE_PIN AU16 [get_ports PMOD1_IO[7]]
 
 set_property IOSTANDARD DIFF_SSTL12 [get_ports CLK_IN_P]
 set_property IOSTANDARD DIFF_SSTL12 [get_ports CLK_IN_N]
