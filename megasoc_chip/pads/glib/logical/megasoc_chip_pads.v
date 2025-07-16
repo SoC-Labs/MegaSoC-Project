@@ -31,6 +31,13 @@ module megasoc_chip_pads(
     inout  wire [15:0]  GPIO_P0,
     inout  wire [15:0]  GPIO_P1,
 
+    // SPI Bus to Pads
+    output wire             SPI_SSn,
+    output wire             SPI_SCLK,
+    output wire             SPI_MOSI,
+    input  wire             SPI_MISO,
+
+
     // SWD/JTAG TRACE - for Mictor 38
     output wire         TDO_SWO, 
     input  wire         RTCK,
@@ -49,11 +56,11 @@ module megasoc_chip_pads(
     inout  wire [3:0]   QSPI_IO,
     output wire         QSPI_nCS,
 
-    // FT1248 
-    output wire         FT_CLK,     // SCLK
-    output wire         FT_SSN,     // SS_N
-    input  wire         FT_MISO,    // MISO
-    inout  wire         FT_MIOSIO   // MIOSIO 
+    // EXTIO 
+    output wire         EXTIO_REQ1,     // SCLK
+    output wire         EXTIO_REQ2,     // SS_N
+    input  wire         EXTIO_ACK,    // MISO
+    inout  wire [3:0]   EXTIO_DATA   // MIOSIO 
 
     // Ethernet
 
@@ -80,40 +87,68 @@ assign QSPI_IO_i[2] = QSPI_IO[2];
 assign QSPI_IO_i[3] = QSPI_IO[3];
 
 // FT1248 
-wire        FT_MIOSIO_O;
-wire        FT_MIOSIO_E;
-wire        FT_MIOSIO_Z;
-wire        FT_MIOSIO_I;
+wire [3:0]               iodata4_i;
+wire [3:0]               iodata4_o;
+wire [3:0]               iodata4_e;
+wire [3:0]               iodata4_t;
+wire                     ioreq1_o;
+wire                     ioreq2_o;
+wire                     ioack_i;
 
-assign FT_MIOSIO = FT_MIOSIO_E ? FT_MIOSIO_O : 1'bz;
 
-assign FT_MIOSIO_I = FT_MIOSIO;
+
+assign EXTIO_DATA[0] = iodata4_e[0] ? iodata4_o[0] : 1'bz;
+assign EXTIO_DATA[1] = iodata4_e[1] ? iodata4_o[1] : 1'bz;
+assign EXTIO_DATA[2] = iodata4_e[2] ? iodata4_o[2] : 1'bz;
+assign EXTIO_DATA[3] = iodata4_e[3] ? iodata4_o[3] : 1'bz;
+
+assign iodata4_i[0]=EXTIO_DATA[0];
+assign iodata4_i[1]=EXTIO_DATA[1];
+assign iodata4_i[2]=EXTIO_DATA[2];
+assign iodata4_i[3]=EXTIO_DATA[3];
+
+
+assign EXTIO_REQ1 = ioreq1_o;
+assign EXTIO_REQ2 = ioreq2_o;
+assign ioack_i = EXTIO_ACK;
 
 assign REF_CLK_XTAL2 = REF_CLK_XTAL1;
 assign RT_CLK_XTAL2 = RT_CLK_XTAL1;
 
 megasoc_chip u_megasoc_chip(
-    .CLK_IN(REF_CLK_XTAL1),
-    .RT_CLK(RT_CLK_XTAL1),
-    .nRESET(PORESTn),
-    .QSPI_SCLK(QSPI_SCLK),
-    .QSPI_nCS(QSPI_nCS),
-    .QSPI_IO_o(QSPI_IO_o),
-    .QSPI_IO_i(QSPI_IO_i),
-    .QSPI_IO_e(QSPI_IO_e),
+    
+    .CLK_IN(REF_CLK_XTAL1), //System Clock input
+    .RT_CLK(RT_CLK_XTAL1),  // Real Time Clock input
 
+    .nRESET(PORESTn),       // Main Power on Reset
+
+    // QSPI Interface
+    .QSPI_SCLK(QSPI_SCLK),  // Flash QSPI Clock
+    .QSPI_nCS(QSPI_nCS),    // Flash QSPI chip select
+    .QSPI_IO_o(QSPI_IO_o),  // Flash QSPI output
+    .QSPI_IO_i(QSPI_IO_i),  // Flash QSPI input
+    .QSPI_IO_e(QSPI_IO_e),  // Flash QSPI output enable
+
+    // Uart Interface
     .UARTRXD(),
     .UARTTXD(),
     .UARTTXEN(),
 
-    .FT_CLK_O(FT_CLK),
-    .FT_SSN_O(FT_SSN),
-    .FT_MISO_I(FT_MISO),
-    .FT_MIOSIO_O(FT_MIOSIO_O),
-    .FT_MIOSIO_E(FT_MIOSIO_E),
-    .FT_MIOSIO_Z(FT_MIOSIO_Z),
-    .FT_MIOSIO_I(FT_MIOSIO_I),
+    // EXTIO STDIO and DATA interface
+    .iodata4_i(iodata4_i),  // EXTIO (STDIO and DATA) data input
+    .iodata4_o(iodata4_o),  // EXTIO (STDIO and DATA) data output
+    .iodata4_e(iodata4_e),  // EXTIO (STDIO and DATA) data output enable
+    .iodata4_t(iodata4_t),  // EXTIO (STDIO and DATA) data output not enable
+    .ioreq1_o(ioreq1_o),    // EXTIO (STDIO and DATA) request 1
+    .ioreq2_o(ioreq2_o),    // EXTIO (STDIO and DATA) request 2
+    .ioack_i(ioack_i),      // EXTIO (STDIO and DATA) ackknowledge
 
+    .SPI_SSn(SPI_SSn),
+    .SPI_SCLK(SPI_SCLK),
+    .SPI_MOSI(SPI_MOSI),
+    .SPI_MISO(SPI_MISO),
+
+    // Debug Interface
     .nTRST(),
     .SWCLKTCK(),
     .SWDITMS(),

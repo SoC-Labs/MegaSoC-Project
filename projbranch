@@ -11,6 +11,6 @@
 # Each Repo needs to have its branch set manually in here - they will defaultly be checked out to main
 # Project Repository Subrepository Branch Index
 # Add your Accelerator Repository here
-
+asic_flow: main
 megasoc_tech: main
 soctools_flow: main

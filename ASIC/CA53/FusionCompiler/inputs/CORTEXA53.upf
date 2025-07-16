@@ -1,0 +1,371 @@
+#-------------------------------------------------------------------------------
+#
+# The confidential and proprietary information contained in this file may
+# only be used by a person authorised under and to the extent permitted
+# by a subsisting licensing agreement from ARM Limited.
+#
+#                 (C) COPYRIGHT 2014 ARM Limited.
+#                       ALL RIGHTS RESERVED
+#
+# This entire notice must be reproduced on all copies of this file
+# and copies of this file may only be made by a person if such person is
+# permitted to do so under the terms of a subsisting license agreement
+# from ARM Limited.
+#
+#      SVN Information
+#
+#      Checked In          : $Date: 2013-01-07 11:50:06 +0000 (Mon, 07 Jan 2013) $
+#
+#      Revision            : $Revision: 232780 $
+#
+#      Release Information : CORTEXA53-r0p4-00rel0
+#
+#-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+# Function: This is a top-level hierarchical UPF for a quad CORTEXA53
+#-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+# Supply Sets
+#-------------------------------------------------------------------------------
+
+create_supply_set SOC_ss
+create_supply_set PDCORTEXA53_ss
+create_supply_set PDCPU0_ss
+
+#-------------------------------------------------------------------------------
+# Power Domains
+#-------------------------------------------------------------------------------
+
+#Making use of string searches here to handle instance name changes when generate verilog commands are used
+#when instantiated multiple CPU
+
+set cpu0_name [string trimright [lindex [find_objects . -object_type inst -pattern g_ca53_cpu*0*u_ca53_cpu] 0]]
+
+create_power_domain PDCORTEXA53  -include_scope                         -supply {extra_supplies ""}
+create_power_domain PDCPU0       -elements $cpu0_name -supply {extra_supplies_1 SOC_ss}  
+
+#-------------------------------------------------------------------------------
+# Supply Sets association with Power Domains
+#-------------------------------------------------------------------------------
+
+associate_supply_set PDCORTEXA53_ss   -handle PDCORTEXA53.primary
+associate_supply_set SOC_ss           -handle PDCORTEXA53.default_isolation
+associate_supply_set PDCPU0_ss        -handle PDCPU0.primary
+associate_supply_set PDCORTEXA53_ss   -handle PDCPU0.default_isolation
+
+#-------------------------------------------------------------------------------
+# Supply Nets and Ports
+#-------------------------------------------------------------------------------
+
+create_supply_port VDD
+create_supply_port VSS
+
+create_supply_net VDD
+create_supply_net VSS
+
+connect_supply_net VDD -ports VDD
+connect_supply_net VSS -ports VSS
+
+create_supply_net VDDCORTEXA53   -resolve parallel 
+create_supply_net VDDCPU0        -resolve parallel
+
+#-------------------------------------------------------------------------------
+# Successive Refinement of Supply Sets
+#-------------------------------------------------------------------------------
+
+create_supply_set SOC_ss         -function {power VDD}          -function {ground VSS}   -update
+create_supply_set PDCORTEXA53_ss -function {power VDDCORTEXA53} -function {ground VSS}   -update
+create_supply_set PDCPU0_ss      -function {power VDDCPU0}      -function {ground VSS}   -update
+
+#-------------------------------------------------------------------------------
+# Power Switch Control Signals
+#-------------------------------------------------------------------------------
+
+create_logic_port -direction in nPWRUPCORTEXA53_HAMMER
+create_logic_port -direction in nPWRUPCORTEXA53_TRICKLE
+create_logic_port -direction in nPWRUPCPU0_TRICKLE
+create_logic_port -direction in nPWRUPCPU0_HAMMER
+
+create_logic_net nPWRUPCORTEXA53_HAMMER
+create_logic_net nPWRUPCORTEXA53_TRICKLE
+create_logic_net nPWRUPCPU0_TRICKLE
+create_logic_net nPWRUPCPU0_HAMMER
+
+connect_logic_net nPWRUPCORTEXA53_HAMMER -ports nPWRUPCORTEXA53_HAMMER
+connect_logic_net nPWRUPCORTEXA53_TRICKLE -ports nPWRUPCORTEXA53_TRICKLE
+connect_logic_net nPWRUPCPU0_TRICKLE -ports nPWRUPCPU0_TRICKLE
+connect_logic_net nPWRUPCPU0_HAMMER -ports nPWRUPCPU0_HAMMER
+
+
+#-------------------------------------------------------------------------------
+# Power Switches
+#-------------------------------------------------------------------------------
+
+create_power_switch ps_CORTEXA53_hammer -domain PDCORTEXA53 \
+    -input_supply_port { VDDG VDD } \
+    -output_supply_port { VDD VDDCORTEXA53 } \
+    -control_port { SLEEP nPWRUPCORTEXA53_HAMMER } \
+    -on_state { on_state VDDG {!SLEEP} } \
+    -off_state { off_state {SLEEP} }
+
+create_power_switch ps_CPU0_hammer -domain PDCPU0 \
+    -input_supply_port { VDDG VDD } \
+    -output_supply_port { VDD VDDCPU0 } \
+    -control_port { SLEEP nPWRUPCPU0_HAMMER } \
+    -on_state { on_state VDDG {!SLEEP} } \
+    -off_state { off_state {SLEEP} }
+
+create_power_switch ps_CORTEXA53_trickle -domain PDCORTEXA53 \
+    -input_supply_port { VDDG VDD } \
+    -output_supply_port { VDD VDDCORTEXA53 } \
+    -control_port { SLEEP nPWRUPCORTEXA53_TRICKLE } \
+    -on_state { on_state VDDG {!SLEEP} } \
+    -off_state { off_state {SLEEP} }
+
+create_power_switch ps_CPU0_trickle -domain PDCPU0 \
+    -input_supply_port { VDDG VDD } \
+    -output_supply_port { VDD VDDCPU0 } \
+    -control_port { SLEEP nPWRUPCPU0_TRICKLE } \
+    -on_state { on_state VDDG {!SLEEP} } \
+    -off_state { off_state {SLEEP} }
+
+
+map_power_switch ps_CORTEXA53_hammer -domain PDCORTEXA53 -lib_cells HEADTIE22_A9TS_C31
+map_power_switch ps_CORTEXA53_trickle -domain PDCORTEXA53 -lib_cells HEADTIE22_A9TS_C31
+map_power_switch ps_CPU0_hammer -domain PDCPU0 -lib_cells HEADTIE22_A9TS_C31
+map_power_switch ps_CPU0_trickle -domain PDCPU0 -lib_cells HEADTIE22_A9TS_C31
+
+
+#-------------------------------------------------------------------------------
+# Isolation Control Signals
+#-------------------------------------------------------------------------------
+
+create_logic_port -direction in nISOLATECORTEXA53
+create_logic_port -direction in nISOLATECPU0
+
+create_logic_net nISOLATECORTEXA53
+create_logic_net nISOLATECPU0
+
+connect_logic_net nISOLATECORTEXA53 -ports nISOLATECORTEXA53
+connect_logic_net nISOLATECPU0 -ports nISOLATECPU0
+
+
+#-------------------------------------------------------------------------------
+# Port Attributes / Related Supply 
+#-------------------------------------------------------------------------------
+
+set all_outputs [find_objects . -object_type port -direction out  -pattern *]
+set all_inputs  [find_objects . -object_type port -direction in   -pattern *]
+
+set_port_attributes -ports $all_inputs    -driver_supply   SOC_ss
+set_port_attributes -ports $all_outputs   -receiver_supply SOC_ss
+
+#-------------------------------------------------------------------------------
+# Isolation Strategy
+#-------------------------------------------------------------------------------
+
+# -------- CortexA53 iso ---------    
+set_isolation iso_ca53_0 -domain PDCORTEXA53 \
+    -clamp_value 0 \
+    -applies_to outputs
+
+set_isolation_control iso_ca53_0 -domain PDCORTEXA53 \
+    -isolation_signal nISOLATECORTEXA53 \
+    -isolation_sense low \
+    -location self
+
+
+set_isolation iso_ca53_1 -domain PDCORTEXA53 \
+    -clamp_value 1 \
+    -elements { \
+                nVCPUMNTIRQ \
+                nCNTPNSIRQ \
+                nCNTPSIRQ \
+                nCNTVIRQ \
+                nCNTHPIRQ \
+                STANDBYWFI \
+                STANDBYWFIL2 \
+                nINTERRIRQ \
+                nEXTERRIRQ \
+                nCOMMIRQ \
+                COMMTX \
+                nPMUIRQ \
+                AFREADYM0 \
+                AFREADYM1 \
+                AFREADYM2 \
+                AFREADYM3 \
+                PREADYDBG \
+                PSLVERRDBG \
+		CTICHINACK \
+		BREADYM \
+		AWBURSTM[0] \
+		}
+
+set_isolation_control iso_ca53_1 -domain PDCORTEXA53 \
+    -isolation_signal nISOLATECORTEXA53 \
+    -isolation_sense low \
+    -location self
+
+# -------- cpu 0 iso ---------
+
+set_isolation iso_cpu0_dc -domain PDCPU0 \
+    -clamp_value 0 \
+    -applies_to outputs
+		
+set_isolation_control iso_cpu0_dc -domain PDCPU0 \
+    -isolation_signal nISOLATECPU0 \
+    -isolation_sense low \
+    -location parent
+
+set_isolation iso_cpu0_1 -domain PDCPU0 \
+    -clamp_value 1 \
+    -elements [concat \
+               [find_objects ${cpu0_name} -object_type port -pattern stb_wfx_ready_o] \
+               [find_objects ${cpu0_name} -object_type port -pattern biu_wfx_ready_o] \
+               [find_objects ${cpu0_name} -object_type port -pattern dcu_wfx_ready_o] \
+               [find_objects ${cpu0_name} -object_type port -pattern ifu_wfx_ready_o] \
+               [find_objects ${cpu0_name} -object_type port -pattern tlb_wfx_ready_o] \
+               [find_objects ${cpu0_name} -object_type port -pattern etm_wfx_ready_o] \
+               [find_objects ${cpu0_name} -object_type port -pattern etm_afreadym_o] \
+               [find_objects ${cpu0_name} -object_type port -pattern dpu_commtx_o] \
+               [find_objects ${cpu0_name} -object_type port -pattern dpu_ncommirq_o] \
+               [find_objects ${cpu0_name} -object_type port -pattern dpu_npmuirq_o] \
+               [find_objects ${cpu0_name} -object_type port -pattern dpu_pslverrdbg_o] \
+               [find_objects ${cpu0_name} -object_type port -pattern dpu_preadydbg_o] \
+               [find_objects ${cpu0_name} -object_type port -pattern etm_preadydbg_o] \
+               [find_objects ${cpu0_name} -object_type port -pattern etm_oslock_o] \
+               [find_objects ${cpu0_name} -object_type port -pattern dpu_exception_level_o*] \
+               ]
+ 
+set_isolation_control iso_cpu0_1 -domain PDCPU0 \
+    -isolation_signal nISOLATECPU0 \
+    -isolation_sense low \
+    -location parent
+   
+
+#-------------------------------------------------------------------------------
+# Connect RAM power pins to related supplies
+
+#-------------------------------------------------------------------------------
+
+set cpu_rams "\
+                   u_idata_bank0_h1 \
+                   u_idata_bank0_h0 \
+                   u_idata_bank0_l1 \
+                   u_idata_bank0_l0 \
+                   u_idata_bank1_h1 \
+                   u_idata_bank1_h0 \
+                   u_idata_bank1_l1 \
+                   u_idata_bank1_l0 \
+                   u_itag_ram0 \
+                   u_itag_ram1 \
+                   u_ddata_bank0 \
+                   u_ddata_bank1 \
+                   u_ddata_bank2 \
+                   u_ddata_bank3 \
+                   u_ddata_bank4 \
+                   u_ddata_bank5 \
+                   u_ddata_bank6 \
+                   u_ddata_bank7 \
+                   u_dtag_bank0 \
+                   u_dtag_bank1 \
+                   u_dtag_bank2 \
+                   u_dtag_bank3 \
+                   u_ddirty_ram \
+                   u_tlb_bank0 \
+                   u_tlb_bank1 \
+                   u_tlb_bank2 \
+                   u_tlb_bank3 \
+                   u_btac_stg0 \
+                   u_btac_stg1 \	
+                "
+             
+#CPU0
+
+foreach ram $cpu_rams {
+   set power_pin_vddce ${cpu0_name}/u_ca53_caches_tlb_rams/${ram}/VDDCE
+   set power_pin_vddpe ${cpu0_name}/u_ca53_caches_tlb_rams/${ram}/VDDPE
+   set power_pin_vsse ${cpu0_name}/u_ca53_caches_tlb_rams/${ram}/VSSE
+   connect_supply_net VDD -ports $power_pin_vddce
+   connect_supply_net VDD -ports $power_pin_vddpe
+   connect_supply_net VSS -ports $power_pin_vsse
+}
+
+#L2
+
+set l1d_tagrams [find_objects . -object_type inst -pattern u_ca53_l2/u_ca53scu_l1d_tagrams/g_l1d_cpu*_rams*u_l1d_tagram_cpu*_way*]
+set l2_tagrams [find_objects u_ca53_l2 -object_type inst -pattern *u_l2_tagram_way* -transitive true]
+set l2_datarams [concat [find_objects u_ca53_l2 -object_type inst -pattern *u_l2_dataram_*high -transitive true] [find_objects u_ca53_l2 -object_type inst -pattern *u_l2_dataram_*low -transitive true]]
+set victimram [find_objects u_ca53_l2 -object_type inst -pattern *u_l2_victimram* -transitive true]
+foreach ram [concat $l1d_tagrams $l2_tagrams $l2_datarams $victimram] {
+   set power_pin_vddce $ram/VDDCE
+   set power_pin_vddpe $ram/VDDPE
+   set power_pin_vsse $ram/VSSE
+   connect_supply_net VDD -ports $power_pin_vddce
+   connect_supply_net VDD -ports $power_pin_vddpe
+   connect_supply_net VSS -ports $power_pin_vsse
+}
+
+#-------------------------------------------------------------------------------
+# Power States
+#-------------------------------------------------------------------------------
+
+add_port_state VSS				    -state {ON_SLOW 0.0 }
+add_port_state VSS				    -state {ON_TYP  0.0 }
+add_port_state VSS				    -state {ON_FAST 0.0 }
+add_port_state VDD                                  -state {ON_SLOW 0.81}
+add_port_state VDD                                  -state {ON_TYP  0.90}
+add_port_state VDD                                  -state {ON_FAST 0.99}
+add_port_state ps_CORTEXA53_hammer/VDD              -state {ON_SLOW 0.81}
+add_port_state ps_CORTEXA53_hammer/VDD              -state {ON_TYP  0.90}
+add_port_state ps_CORTEXA53_hammer/VDD              -state {ON_FAST 0.99}
+add_port_state ps_CORTEXA53_hammer/VDD              -state {OFF off}
+add_port_state ps_CPU0_hammer/VDD    		    -state {ON_SLOW 0.81}
+add_port_state ps_CPU0_hammer/VDD    		    -state {ON_TYP  0.90}
+add_port_state ps_CPU0_hammer/VDD    		    -state {ON_FAST 0.99}
+add_port_state ps_CPU0_hammer/VDD    		    -state {OFF off}
+
+create_pst all_pst -supplies  { \
+   VSS \
+   VDD \
+   ps_CORTEXA53_hammer/VDD \
+   ps_CPU0_hammer/VDD 
+   }
+
+# Here are a subset of states that infer all the necessary isolation
+
+
+
+# ps_CPU1_hammer/VDD               ------------------------------------------------------------+       
+# ps_CPU0_hammer/VDD               ---------------------------------------------------+        |       
+# ps_CORTEXA53_hammer/VDD          ------------------------------------------+        |        |       
+# VDD			           ---------------------------------+        |        |        |        |      
+# VSS                              ------------------------+        |        |        |        |       
+#                                                          |        |        |        |        |       
+add_pst_state clusteroff_slow         -pst all_pst -state {ON_SLOW  ON_SLOW  OFF      OFF      }
+add_pst_state clusteroff_typ          -pst all_pst -state {ON_TYP   ON_TYP   OFF      OFF      }
+add_pst_state clusteroff_fast         -pst all_pst -state {ON_FAST  ON_FAST  OFF      OFF      }
+add_pst_state clusteron_slow          -pst all_pst -state {ON_SLOW  ON_SLOW  ON_SLOW  OFF      }
+add_pst_state clusteron_typ           -pst all_pst -state {ON_TYP   ON_TYP   ON_TYP   OFF      }
+add_pst_state clusteron_fast          -pst all_pst -state {ON_FAST  ON_FAST  ON_FAST  OFF      }
+add_pst_state clusteroncpu0on_slow    -pst all_pst -state {ON_SLOW  ON_SLOW  ON_SLOW  ON_SLOW  }
+add_pst_state clusteroncpu0on_typ     -pst all_pst -state {ON_TYP   ON_TYP   ON_TYP   ON_TYP   }
+add_pst_state clusteroncpu0on_fast    -pst all_pst -state {ON_FAST  ON_FAST  ON_FAST  ON_FAST  }
+add_pst_state clusteroncpu1on_slow    -pst all_pst -state {ON_SLOW  ON_SLOW  ON_SLOW  OFF      }
+add_pst_state clusteroncpu1on_typ     -pst all_pst -state {ON_TYP   ON_TYP   ON_TYP   OFF      }
+add_pst_state clusteroncpu1on_fast    -pst all_pst -state {ON_FAST  ON_FAST  ON_FAST  OFF      }
+add_pst_state clusteroncpu2on_slow    -pst all_pst -state {ON_SLOW  ON_SLOW  ON_SLOW  OFF      }
+add_pst_state clusteroncpu2on_type    -pst all_pst -state {ON_TYP   ON_TYP   ON_TYP   OFF      }
+add_pst_state clusteroncpu2on_fast    -pst all_pst -state {ON_FAST  ON_FAST  ON_FAST  OFF      }
+add_pst_state clusteroncpu3on_slow    -pst all_pst -state {ON_SLOW  ON_SLOW  ON_SLOW  OFF       }
+add_pst_state clusteroncpu3on_typ     -pst all_pst -state {ON_TYP   ON_TYP   ON_TYP   OFF        }
+add_pst_state clusteroncpu3on_fast    -pst all_pst -state {ON_FAST  ON_FAST  ON_FAST  OFF       }
+add_pst_state allon_slow              -pst all_pst -state {ON_SLOW  ON_SLOW  ON_SLOW  ON_SLOW   }
+add_pst_state allon_typ               -pst all_pst -state {ON_TYP   ON_TYP   ON_TYP   ON_TYP     }
+add_pst_state allon_fast              -pst all_pst -state {ON_FAST  ON_FAST  ON_FAST  ON_FAST   }
+
+################################################################################
+# End of UPF
+################################################################################

@@ -1,0 +1,74 @@
+################################################################################
+# Create power domains
+################################################################################
+create_power_domain TOP
+
+################################################################################
+# Create and logically connect power ports and nets
+################################################################################
+
+# Always on VDD
+create_supply_port VDD
+create_supply_net  VDD -domain TOP
+connect_supply_net VDD -ports VDD
+
+# Ground
+create_supply_port VSS
+create_supply_net  VSS -domain TOP
+connect_supply_net VSS -ports VSS
+
+
+################################################################################
+# Assign power supplies to power domains
+################################################################################
+
+set_domain_supply_net TOP    -primary_power_net VDD     -primary_ground_net VSS
+
+set cpu0_name [string trimright [lindex [find_objects . -object_type inst -pattern g_ca53_cpu*0*u_ca53_cpu] 0]]
+set cpu_rams "\
+                   u_idata_bank0_h1 \
+                   u_idata_bank0_h0 \
+                   u_idata_bank0_l1 \
+                   u_idata_bank0_l0 \
+                   u_idata_bank1_h1 \
+                   u_idata_bank1_h0 \
+                   u_idata_bank1_l1 \
+                   u_idata_bank1_l0 \
+                   u_itag_ram0 \
+                   u_itag_ram1 \
+                   u_ddata_bank0 \
+                   u_ddata_bank1 \
+                   u_ddata_bank2 \
+                   u_ddata_bank3 \
+                   u_ddata_bank4 \
+                   u_ddata_bank5 \
+                   u_ddata_bank6 \
+                   u_ddata_bank7 \
+                   u_dtag_bank0 \
+                   u_dtag_bank1 \
+                   u_dtag_bank2 \
+                   u_dtag_bank3 \
+                   u_ddirty_ram \
+                   u_tlb_bank0 \
+                   u_tlb_bank1 \
+                   u_tlb_bank2 \
+                   u_tlb_bank3 \
+                   u_btac_stg0 \
+                   u_btac_stg1 \	
+                "
+
+foreach ram $cpu_rams {
+   set power_pin_vddce ${cpu0_name}/u_ca53_caches_tlb_rams/${ram}/VDDCE
+   set power_pin_vddpe ${cpu0_name}/u_ca53_caches_tlb_rams/${ram}/VDDPE
+   set power_pin_vsse ${cpu0_name}/u_ca53_caches_tlb_rams/${ram}/VSSE
+   connect_supply_net VDD -ports $power_pin_vddce
+   connect_supply_net VDD -ports $power_pin_vddpe
+   connect_supply_net VSS -ports $power_pin_vsse
+}
+
+
+add_port_state VSS              -state {on 0.0 0.0 0.0}
+add_port_state VDD              -state {on 0.72 0.8 0.88}
+
+create_pst typ -supplies           {VSS  VDD }
+add_pst_state run -pst typ -state  {on   on  }

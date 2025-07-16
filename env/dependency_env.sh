@@ -14,10 +14,10 @@
 # Technologies
 #-----------------------------------------------------------------------------
 
-# MilliSoC Tech
+# MegaSoC Tech
 export SOCLABS_MEGASOC_TECH_DIR="$SOCLABS_PROJECT_DIR/megasoc_tech"
 
-# MilliSoC Expansion Tech
+# MegaSoC Expansion Tech
 export SOCLABS_MEGASOC_EXP_TECH_DIR="$SOCLABS_PROJECT_DIR/expansion_subsystem_tech"
 
 #-----------------------------------------------------------------------------
@@ -28,3 +28,6 @@ export SOCLABS_MEGASOC_EXP_TECH_DIR="$SOCLABS_PROJECT_DIR/expansion_subsystem_te
 export SOCLABS_SOCTOOLS_FLOW_DIR="$SOCLABS_PROJECT_DIR/soctools_flow"
 
 export SOCLABS_AHB_QSPI_DIR="$SOCLABS_MEGASOC_TECH_DIR/logical/sl_ahb_qspi"
+
+# SoCLabs ASIC FLow - toolkit of scripts related to ASIC implementatino
+export SOCLABS_ASIC_FLOW_DIR="$SOCLABS_PROJECT_DIR/asic_flow"

@@ -4,3 +4,6 @@
 [submodule "soctools_flow"]
 	path = soctools_flow
 	url = https://git.soton.ac.uk/soclabs/soctools_flow.git
+[submodule "asic_flow"]
+	path = asic_flow
+	url = https://git.soton.ac.uk/soclabs/asic_flow.git

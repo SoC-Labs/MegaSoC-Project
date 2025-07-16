@@ -24,18 +24,16 @@ wire nRESET;
 wire         QSPI_SCLK;
 wire [3:0]   QSPI_IO;
 wire         QSPI_nCS;
-wire         FT_CLK;   
-wire         FT_SSN;   
-wire         FT_MISO;  
-wire         FT_MIOSIO;
 
-wire        ft_miosio_i;
-wire        ft_miosio_o;
-wire        ft_miosio_z;
+wire         EXTIO_REQ1;
+wire         EXTIO_REQ2;
+wire         EXTIO_ACK;
+wire [3:0]   EXTIO_DATA;
 
-assign ft_miosio_i = FT_MIOSIO;
-bufif1 #1 (FT_MIOSIO, ft_miosio_o, !ft_miosio_z);
-
+wire             SPI_SSn;
+wire             SPI_SCLK;
+wire             SPI_MOSI;
+wire             SPI_MISO;
 
 megasoc_clkreset u_megasoc_clkreset(
     .CLK(EXT_CLK),
@@ -77,10 +75,15 @@ megasoc_chip_pads u_megasoc_chip_pads(
     .QSPI_SCLK(QSPI_SCLK),
     .QSPI_IO(QSPI_IO),
     .QSPI_nCS(QSPI_nCS),
-    .FT_CLK(FT_CLK),
-    .FT_SSN(FT_SSN),
-    .FT_MISO(FT_MISO),
-    .FT_MIOSIO(FT_MIOSIO)
+    .EXTIO_REQ1(EXTIO_REQ1),
+    .EXTIO_REQ2(EXTIO_REQ2),
+    .EXTIO_ACK(EXTIO_ACK),
+    .EXTIO_DATA(EXTIO_DATA),
+
+    .SPI_SSn(SPI_SSn),
+    .SPI_SCLK(SPI_SCLK),
+    .SPI_MOSI(SPI_MOSI),
+    .SPI_MISO(SPI_MISO)
 );
 
 sst26vf064b FLASH(
@@ -159,67 +162,97 @@ megasoc_qspi_capture #(
 );
 
 
-wire rxd8_tvalid;
-wire rxd8_tready;
-wire[7:0] rxd8_tdata;
+// 4-channel AXIS interface - Subordinate side
+  wire       axis_rx0_tready; 
+  wire       axis_rx0_tvalid;
+  wire [7:0] axis_rx0_tdata8;
+  wire       axis_rx1_tready; 
+  wire       axis_rx1_tvalid;
+  wire [7:0] axis_rx1_tdata8;
+  wire       axis_tx0_tready; 
+  wire       axis_tx0_tvalid;
+  wire [7:0] axis_tx0_tdata8;
+  wire       axis_tx1_tready; 
+  wire       axis_tx1_tvalid;
+  wire [7:0] axis_tx1_tdata8;
+// external io interface
+  tri  [3:0] iodata4;
+  wire [3:0] iodata4_i;
+  wire [3:0] iodata4_o;
+  wire [3:0] iodata4_e;
+  wire [3:0] iodata4_t;
+  wire       ioreq1;
+  wire       ioreq2;
+  wire       ioack;
 
-megasoc_ft1248x1_to_axi_streamio_v1_0 u_ft1248_to_axi_stream(
-    .ft_clk_i(FT_CLK),
-    .ft_ssn_i(FT_SSN),
-    .ft_miso_o(FT_MISO),
-    .ft_miosio_i(ft_miosio_i),
-    .ft_miosio_o(ft_miosio_o),
-    .ft_miosio_z(ft_miosio_z),
-    .aclk(EXT_CLK),
-    .aresetn(nRESET),
-    .txd_tvalid_o(rxd8_tvalid),
-    .txd_tdata8_o(rxd8_tdata),
-    .txd_tready_i(rxd8_tready),
-    .rxd_tready_o(),
-    .rxd_tdata8_i(8'h00),
-    .rxd_tvalid_i(1'b0)
+wire test_done;
+
+always @(posedge EXT_CLK) begin
+    if(test_done) begin
+        $stop;
+    end
+end
+
+extio8x4_axis_target u_extio8x4_axis_target(
+  .clk             ( EXT_CLK             ),
+  .resetn          ( nRESET            ),
+  .testmode        ( 1'b0            ),
+// RX 4-channel AXIS interface
+  .axis_rx0_tready ( axis_rx0_tready ),
+  .axis_rx0_tvalid ( axis_rx0_tvalid ),
+  .axis_rx0_tdata8 ( axis_rx0_tdata8 ),
+  .axis_rx1_tready ( axis_rx1_tready ),
+  .axis_rx1_tvalid ( axis_rx1_tvalid ),
+  .axis_rx1_tdata8 ( axis_rx1_tdata8 ),
+  .axis_tx0_tready ( axis_tx0_tready ),
+  .axis_tx0_tvalid ( axis_tx0_tvalid ),
+  .axis_tx0_tdata8 ( axis_tx0_tdata8 ),
+  .axis_tx1_tready ( axis_tx1_tready ),
+  .axis_tx1_tvalid ( axis_tx1_tvalid ),
+  .axis_tx1_tdata8 ( axis_tx1_tdata8 ),
+// external io interface
+  .iodata4_i       ( iodata4_i       ),
+  .iodata4_o       ( iodata4_o       ),
+  .iodata4_e       ( iodata4_e       ),
+  .iodata4_t       ( iodata4_t       ),
+  .ioreq1_a        ( ioreq1          ),
+  .ioreq2_a        ( ioreq2          ),
+  .ioack_o         ( ioack           )
 );
 
+bufif0 #1 (EXTIO_DATA[0], iodata4_o[0] , iodata4_t[0]);
+bufif0 #1 (EXTIO_DATA[1], iodata4_o[1] , iodata4_t[1]);
+bufif0 #1 (EXTIO_DATA[2], iodata4_o[2] , iodata4_t[2]);
+bufif0 #1 (EXTIO_DATA[3], iodata4_o[3] , iodata4_t[3]);
+assign iodata4_i = EXTIO_DATA;
+assign ioreq1 = EXTIO_REQ1;
+assign ioreq2 = EXTIO_REQ2;
+assign EXTIO_ACK = ioack;
+assign axis_rx0_tvalid = 1'b0;
+assign axis_rx1_tvalid = 1'b0;
 
-megasoc_axi_stream_io_8_rxd_to_file#(
-    .RXDFILENAME("logs/ft1248_out.log")
-) u_megasoc_axi_stream_io_8_rxd_to_file (
+  megasoc_axi_stream_io_8_rxd_to_file#(
+    .RXDFILENAME("logs/extadp_out.log"),
+    .VERBOSE(1)
+  ) u_megasoc_axi_stream_io_stream_adp_rxd_to_file (
     .aclk         (EXT_CLK),
     .aresetn      (nRESET),
-    .eof_received ( ),
-    .rxd8_ready   (rxd8_tready),
-    .rxd8_valid   (rxd8_tvalid),
-    .rxd8_data    (rxd8_tdata)
+    .eof_received (test_done),
+    .rxd8_ready   (axis_tx0_tready),
+    .rxd8_valid   (axis_tx0_tvalid),
+    .rxd8_data    (axis_tx0_tdata8)
   );
 
-
-wire ft_clk2uart;
-wire ft_rxd2uart;
-wire ft_txd2uart;
-
-megasoc_ft1248x1_track
-  u_megasoc_ft1248x1_track
-  (
-  .ft_clk_i     (FT_CLK),
-  .ft_ssn_i     (FT_SSN),
-  .ft_miso_i    (FT_MISO),
-  .ft_miosio_i  (ft_miosio_i),
-  .aclk         (EXT_CLK),
-  .aresetn      (nRESET),
-  .FTDI_CLK2UART_o      (ft_clk2uart),  // Clock (baud rate)
-  .FTDI_OP2UART_o       (ft_rxd2uart),  // Received data to UART capture
-  .FTDI_IP2UART_o       (ft_txd2uart)   // Transmitted data to UART capture
+  megasoc_axi_stream_io_8_rxd_to_file#(
+    .RXDFILENAME("logs/extdat_out.log"),
+    .VERBOSE(0)
+  ) u_megasoc_axi_stream_io_stream_dat_rxd_to_file (
+    .aclk         (EXT_CLK),
+    .aresetn      (nRESET),
+    .eof_received (),
+    .rxd8_ready   (axis_tx1_tready),
+    .rxd8_valid   (axis_tx1_tvalid),
+    .rxd8_data    (axis_tx1_tdata8)
   );
-
-  megasoc_uart_capture  #(.LOGFILENAME("logs/ft1248_op.log"), .VERBOSE(1))
-    u_megasoc_uart_capture1(
-    .RESETn               (nRESET),
-    .CLK                  (ft_clk2uart),
-    .RXD                  (ft_rxd2uart),
-    .DEBUG_TESTER_ENABLE  ( ), //debug_test_en2), //driven by u_nanosoc_track_tb_iostream
-    .SIMULATIONEND        (),      // This signal set to 1 at the end of simulation.
-    .AUXCTRL              ()
-  );
-
 
 endmodule

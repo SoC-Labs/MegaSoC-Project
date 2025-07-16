@@ -31,13 +31,19 @@ module megasoc_system(
     output wire         UARTTXEN,
 
     // FT1248 Signals
-    output wire         FT_CLK_O,    // SCLK
-    output wire         FT_SSN_O,    // SS_N
-    input  wire         FT_MISO_I,   // MISO
-    output wire         FT_MIOSIO_O, // MIOSIO tristate output when enabled
-    output wire         FT_MIOSIO_E, // MIOSIO tristate output enable (active hi)
-    output wire         FT_MIOSIO_Z, // MIOSIO tristate output enable (active lo)
-    input  wire         FT_MIOSIO_I, // MIOSIO tristate input
+    input  wire [3:0]   iodata4_i,
+    output wire [3:0]   iodata4_o,
+    output wire [3:0]   iodata4_e,
+    output wire [3:0]   iodata4_t,
+    output wire         ioreq1_o,
+    output wire         ioreq2_o,
+    input  wire         ioack_i,
+
+    // SPI Bus to Pads
+    output wire         SPI_SSn,
+    output wire         SPI_SCLK,
+    output wire         SPI_MOSI,
+    input  wire         SPI_MISO,
 
     // DAP-LITE external signals
     input  wire         nTRST,
@@ -331,14 +337,19 @@ megasoc_tech_wrapper u_megasoc_tech_wrapper(
     .UARTTXD(UARTTXD),
     .UARTTXEN(UARTTXEN),
 
-    .FT_CLK_O(FT_CLK_O),
-    .FT_SSN_O(FT_SSN_O),
-    .FT_MISO_I(FT_MISO_I),
-    .FT_MIOSIO_O(FT_MIOSIO_O),
-    .FT_MIOSIO_E(FT_MIOSIO_E),
-    .FT_MIOSIO_Z(FT_MIOSIO_Z),
-    .FT_MIOSIO_I(FT_MIOSIO_I),
+    .iodata4_i(iodata4_i),
+    .iodata4_o(iodata4_o),
+    .iodata4_e(iodata4_e),
+    .iodata4_t(iodata4_t),
+    .ioreq1_o(ioreq1_o),
+    .ioreq2_o(ioreq2_o),
+    .ioack_i(ioack_i),
     
+    .SPI_SSn(SPI_SSn),
+    .SPI_SCLK(SPI_SCLK),
+    .SPI_MOSI(SPI_MOSI),
+    .SPI_MISO(SPI_MISO),
+
     .nTRST(nTRST),
     .SWCLKTCK(SWCLKTCK),
     .SWDITMS(SWDITMS),

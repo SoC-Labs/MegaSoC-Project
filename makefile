@@ -27,7 +27,23 @@ ASIC ?= no
 FAST_SIM ?= yes
 
 # Include the expansion subsystem?
-INC_EXP ?= no
+INC_EXP ?= yes
+
+ASIC_MEMS ?= no 
+
+ifeq ($(ASIC_MEMS),yes)
+	FLIST_INCLUDES += $(SOCLABS_MEGASOC_TECH_DIR)/flist/IP/ARM_CA53_ASICMEMS.flist
+else
+	FLIST_INCLUDES += $(SOCLABS_MEGASOC_TECH_DIR)/flist/IP/ARM_CA53_BEHAV.flist
+endif
+
+ifeq ($(INC_EXP),yes)
+	FLIST_INCLUDES += $(SOCLABS_PROJECT_DIR)/flist/project/expansion.flist
+endif
+
+export FLIST_INCLUDES
+
+
 
 COMPILE_GCC ?= 0
 AARCH64 	?= 1
@@ -47,6 +63,7 @@ FPGA_IMP_DIR     := $(SOCLABS_PROJECT_DIR)/imp/fpga
 # Directory to put simulation files
 SIM_TOP_DIR ?= $(SOCLABS_PROJECT_DIR)/simulate/sim
 SIM_DIR      = $(SIM_TOP_DIR)/$(TESTNAME)
+SIM_BUILD_DIR = $(SIM_TOP_DIR)/build
 
 #-------------------------------------
 # - Test List Variables

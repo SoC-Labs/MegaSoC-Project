@@ -1,0 +1,5 @@
+
+
+$(SOCLABS_PROJECT_DIR)/megasoc_chip/chip/logical/megasoc_chip.v
+$(SOCLABS_PROJECT_DIR)/megasoc_chip/chip/logical/megasoc_chip_pin_mux.v
+$(SOCLABS_PROJECT_DIR)/megasoc_system/logical/megasoc_system.v

@@ -1,0 +1,78 @@
+ASIC_MEM_DIR 	:= $(SOCLABS_PROJECT_DIR)/memories
+A53_MEM_DIR 	:= $(ASIC_MEM_DIR)/A53
+A53_L2_DATA_MEM_DIR 	:= $(A53_MEM_DIR)/L2_DATA
+A53_L2_TAG_MEM_DIR 		:= $(A53_MEM_DIR)/L2_TAG
+A53_L2_VICT_MEM_DIR		:= $(A53_MEM_DIR)/L2_VICTIM
+A53_L1_iDATA_MEM_DIR 	:= $(A53_MEM_DIR)/L1_iDATA
+A53_L1_iTAG_MEM_DIR 	:= $(A53_MEM_DIR)/L1_iTAG
+A53_L1_dDATA_MEM_DIR 	:= $(A53_MEM_DIR)/L1_dDATA
+A53_L1_dTAG_MEM_DIR 	:= $(A53_MEM_DIR)/L1_dTAG
+A53_L1_dDIRTY_MEM_DIR 	:= $(A53_MEM_DIR)/L1_dDIRTY
+A53_L1_TLB_MEM_DIR 		:= $(A53_MEM_DIR)/L1_TLB
+A53_L1_BTAC1_MEM_DIR 	:= $(A53_MEM_DIR)/L1_BTAC1
+A53_L1_BTAC2_MEM_DIR 	:= $(A53_MEM_DIR)/L1_BTAC2
+A53_L1_TAG_MEM_DIR 		:= $(A53_MEM_DIR)/L1_TAG
+
+
+
+ASIC_IMPLEMENTATION_DIR := $(SOCLABS_PROJECT_DIR)/imp/ASIC
+CA53_IMP_DIR 	:= $(ASIC_IMPLEMENTATION_DIR)/CA53
+CA53_FLIST_DIR 	:= $(CA53_IMP_DIR)/flist
+CA53_FLIST_i	:= $(SOCLABS_MEGASOC_TECH_DIR)/flist/IP/ARM_Cortex_A53.flist
+CA53_FLIST_inc 	:= $(SOCLABS_MEGASOC_TECH_DIR)/flist/IP/ARM_CA53_ASIC.flist
+CA53_FLIST_o 	:= $(CA53_FLIST_DIR)/ca53_fc_flist.tcl
+
+MEGASOC_ASIC_IMP_DIR	:= $(ASIC_IMPLEMENTATION_DIR)/megasoc
+MEGASOC_FLIST_DIR 		:= $(MEGASOC_ASIC_IMP_DIR)/flist
+MEGASOC_ASIC_FLIST_i	:= $(SOCLABS_PROJECT_DIR)/flist/project/top_ASIC.flist
+MEGASOC_ASIC_FLIST_o	:= $(MEGASOC_FLIST_DIR)/megasoc_fc_flist.tcl
+
+REPORTS_FOLDER			:= $(MEGASOC_ASIC_IMP_DIR)/reports
+SYN_LOGS				:= $(MEGASOC_ASIC_IMP_DIR)/logs
+NETLIST_FOLDER			:= $(MEGASOC_ASIC_IMP_DIR)/netlist/
+ASIC_OUTPUT_DIR 	    := $(MEGASOC_ASIC_IMP_DIR)/outputs
+ASIC_WORK_DIR 			:= $(MEGASOC_ASIC_IMP_DIR)/work
+ASIC_LIBS_DIR 			:= $(MEGASOC_ASIC_IMP_DIR)/libs
+
+
+flist_fc_ca53:
+	@mkdir -p $(CA53_FLIST_DIR)
+	@(cd $(CA53_FLIST_DIR) ; \
+	$(SOCLABS_SOCTOOLS_FLOW_DIR)/bin/filelist_compile.py -a -t -s -f $(CA53_FLIST_i) -i $(CA53_FLIST_inc) -o $(CA53_FLIST_o) ;)
+
+flist_fc_megasoc:
+	@mkdir -p $(MEGASOC_FLIST_DIR)
+	@(cd $(MEGASOC_FLIST_DIR) ; \
+	$(SOCLABS_SOCTOOLS_FLOW_DIR)/bin/filelist_compile.py -a -t -s -f $(MEGASOC_ASIC_FLIST_i) -o $(MEGASOC_ASIC_FLIST_o) ;)
+	
+
+gen_a53_memories_frontend:
+	@mkdir -p $(A53_MEM_DIR)
+	@mkdir -p $(A53_L2_DATA_MEM_DIR)
+	@mkdir -p $(A53_L2_TAG_MEM_DIR)
+	@mkdir -p $(A53_L2_VICT_MEM_DIR)
+	@mkdir -p $(A53_L1_iDATA_MEM_DIR)
+	@mkdir -p $(A53_L1_iTAG_MEM_DIR)
+	@mkdir -p $(A53_L1_dDATA_MEM_DIR)
+	@mkdir -p $(A53_L1_dTAG_MEM_DIR)
+	@mkdir -p $(A53_L1_dDIRTY_MEM_DIR)
+	@mkdir -p $(A53_L1_TLB_MEM_DIR)
+	@mkdir -p $(A53_L1_BTAC1_MEM_DIR)
+	@mkdir -p $(A53_L1_BTAC2_MEM_DIR)
+	@mkdir -p $(A53_L1_TAG_MEM_DIR)
+
+megasoc_fusion_setup_dirs:
+	@mkdir -p $(REPORTS_FOLDER)
+	@mkdir -p $(SYN_LOGS)	
+	@mkdir -p $(NETLIST_FOLDER)
+	@mkdir -p $(ASIC_OUTPUT_DIR) 	 
+	@mkdir -p $(ASIC_WORK_DIR) 
+	@mkdir -p $(ASIC_LIBS_DIR) 
+	cp -rf $(SOCLABS_PROJECT_DIR)/ASIC/megasoc/FusionCompiler/scripts $(MEGASOC_ASIC_IMP_DIR)/
+	cp -rf $(SOCLABS_PROJECT_DIR)/ASIC/megasoc/FusionCompiler/inputs $(MEGASOC_ASIC_IMP_DIR)/
+	cp -rf $(SOCLABS_PROJECT_DIR)/ASIC/megasoc/FusionCompiler/floorplan $(MEGASOC_ASIC_IMP_DIR)/
+
+megasoc_fusion_setup_libs: megasoc_fusion_setup_dirs
+	@if [ ! -d $(ASIC_LIBS_DIR)/cln16* ] ; then \
+		cd $(ASIC_LIBS_DIR); lc_shell -f ../scripts/synopsys_lib_conversion.tcl
+	fi

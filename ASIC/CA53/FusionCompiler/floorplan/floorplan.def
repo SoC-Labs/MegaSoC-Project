@@ -1,0 +1,13 @@
+# 
+# Fusion Compiler write_def
+# Release      : U-2022.12
+# User Name    : dwn1c21
+# Date         : Fri Mar 21 07:46:39 2025
+# 
+VERSION 5.8 ;
+DIVIDERCHAR "/" ;
+BUSBITCHARS "[]" ;
+DESIGN CORTEXA53 ;
+UNITS DISTANCE MICRONS 1000 ;
+DIEAREA ( 0 0 ) ( 0 899712 ) ( 999936 899712 ) ( 999936 0 ) ;
+END DESIGN

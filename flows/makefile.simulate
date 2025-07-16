@@ -16,7 +16,7 @@ MTI_VC_OPTIONS    += -suppress 2892
 MTI_VC_OPTIONS    += -f $(TBENCH_VC) 
 MTI_VC_OPTIONS    += -sv_lib $(CORTEX_A53_IP_LOGICAL_DIR)/ca53univent/build_x86_64/lib/ca53_tarmac_dpi
 MTI_RUN_OPTIONS   = -voptargs=+acc
-MTI_RUN_OPTIONS   += -sv_lib $(CORTEX_A53_IP_LOGICAL_DIR)/logical/ca53univent/build_x86_64/lib/ca53_tarmac_dpi
+MTI_RUN_OPTIONS   += -sv_lib $(CORTEX_A53_IP_LOGICAL_DIR)/ca53univent/build_x86_64/lib/ca53_tarmac_dpi
 
 # VCS options
 VCS_OPTIONS    =  +vcs+lic+wait +v2k -sverilog -override_timescale=1ns/1ps +lint=all,noTMR,noVCDE -debug -debug_access+all 
@@ -25,10 +25,6 @@ VCS_VC_OPTIONS = -f $(TBENCH_VC)
 VCS_OPTIONS   += -sverilog $(CORTEX_A53_IP_LOGICAL_DIR)/ca53univent/build_x86_64/lib/ca53_tarmac_dpi.so
 CA53_TARMAC_EXECUTABLE = $(CORTEX_A53_IP_LOGICAL_DIR)/ca53univent/build_x86_32/bin/ca53_tarmac_decode --plain 
 export CA53_TARMAC_EXECUTABLE
-
-# XM verilog options
-XMSIM_OPTIONS  = -unbuffered -64bit -status -LICQUEUE -f xmsim.args -cdslib cds.lib -hdlvar hdl.var -NBASYNC
-XM_VC_OPTIONS  = -f $(TBENCH_VC)  
 
 # ------- Cocotb Variables -----------
 # Convert Simulator Name for Cocotb
@@ -76,57 +72,43 @@ compile_xm:  MEGASOC_DEFINES += IMEM_0_RAM_PRELOAD
 
 # Generate verilog .vc filelist from flists
 flist_vfiles_megasoc: gen_defs
-	@if [ ! -d $(SIM_DIR) ] ; then \
-	  mkdir -p $(SIM_DIR); \
+	echo $(FLIST_INCLUDES)
+	@if [ ! -d $(SIM_BUILD_DIR) ] ; then \
+	  mkdir -p $(SIM_BUILD_DIR); \
 	fi
-	@if [ ! -d $(SIM_DIR)/logs ] ; then \
-	  mkdir -p $(SIM_DIR)/logs; \
+	@if [ ! -d $(SIM_BUILD_DIR)/logs ] ; then \
+	  mkdir -p $(SIM_BUILD_DIR)/logs; \
 	fi
-	@cd $(SIM_DIR); python $(SOCLABS_SOCTOOLS_FLOW_DIR)/bin/filelist_compile.py -f $(TBENCH_VC) -a -i $(FLIST_INCLUDES) -v -o tbench.vc
+	@cd $(SIM_BUILD_DIR); python $(SOCLABS_SOCTOOLS_FLOW_DIR)/bin/filelist_compile.py -f $(TBENCH_VC) -a -i $(FLIST_INCLUDES) -v -o tbench.vc
 
 
 # ------- VCS -----------
 
 # Compile RTL
 compile_vcs : gen_defs flist_vfiles_megasoc
-	cd $(SIM_DIR); vcs $(VCS_OPTIONS) -f tbench.vc  -kdb $(DEFINES_VC)  | tee compile_vcs.log
+	cd $(SIM_BUILD_DIR); vcs $(VCS_OPTIONS) -f tbench.vc  -kdb $(DEFINES_VC)  | tee compile_vcs.log
 
 
 # Run simulation in batch mode
-run_vcs : code compile_vcs
+run_vcs : code 
 	@echo quit > $(SIM_DIR)/quit.do
-	cd $(SIM_DIR); ./simv $(VCS_SIM_OPTION) +ca53_tarmac_enable -define ADP_FILE=adp.cmd < quit.do | tee logs/run_$(TESTNAME).log ;
+	@if [ ! -d $(SIM_DIR)/logs ] ; then \
+	  mkdir -p $(SIM_DIR)/logs; \
+	fi
+	cd $(SIM_DIR); $(SIM_BUILD_DIR)/simv $(VCS_SIM_OPTION) +ca53_tarmac_enable -define ADP_FILE=adp.cmd < quit.do | tee logs/run_$(TESTNAME).log ;
 
 # Run simulation in interactive mode
-sim_vcs : code compile_vcs
-	cd $(SIM_DIR); ./simv -gui +vcs+lic+wait +vcs+flush+log +ca53_tarmac_enable &
-
-# ------- XM -----------
-
-# Compile RTL
-compile_xm : bootrom gen_defs flist_vfiles_megasoc
-	cd $(SIM_DIR); xmprep  +overwrite $(XM_VC_OPTIONS) $(DEFINES_VC) +debug -timescale 1ns/1ps -top $(TB_TOP) | tee compile_xm.log
-	cd $(SIM_DIR); xmvlog  -work worklib -f xmvlog_ver.args | tee -a compile_xm.log
-	cd $(SIM_DIR); xmelab  -mess -f xmelab.args -access +r | tee -a compile_xm.log
-	
-# Note : If coverage is required, you can add -coverage all to xmelab
-
-# Run simulation in batch mode
-run_xm : code compile_xm
-	@echo run  >  $(SIM_DIR)/run.tcl.tmp
-	@echo exit >> $(SIM_DIR)/run.tcl.tmp
-	@mv  $(SIM_DIR)/run.tcl.tmp $(SIM_DIR)/run.tcl
-	cd $(SIM_DIR); xmsim $(XMSIM_OPTIONS) -input run.tcl  | tee logs/run_$(TESTNAME).log ;
-
-# Run simulation in interactive mode
-sim_xm : code compile_xm
-	cd $(SIM_DIR); xmsim -gui $(XMSIM_OPTIONS)
+sim_vcs : code 
+	@if [ ! -d $(SIM_DIR)/logs ] ; then \
+	  mkdir -p $(SIM_DIR)/logs; \
+	fi
+	cd $(SIM_DIR); $(SIM_BUILD_DIR)/simv -gui +vcs+lic+wait +vcs+flush+log +ca53_tarmac_enable &
 
 # ------- MTI -----------
 
 # Compile RTL
 compile_mti :  gen_defs flist_vfiles_megasoc lib_mti
-	cd $(SIM_DIR); vlog -incr -lint +v2k  -f tbench.vc +ca53_tarmac_enable $(DEFINES_VC) | tee compile_mti.log
+	cd $(SIM_BUILD_DIR); vlog -incr -lint +v2k  -f tbench.vc +ca53_tarmac_enable $(DEFINES_VC) | tee compile_mti.log
 
 # Run simulation in batch mode
 run_mti : code compile_mti

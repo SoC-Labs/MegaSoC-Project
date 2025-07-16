@@ -21,6 +21,8 @@
 $(SOCLABS_PROJECT_DIR)/verif/testbench/logical/megasoc_tb.sv
 $(SOCLABS_PROJECT_DIR)/verif/trace/megasoc_uart_capture.v
 $(SOCLABS_PROJECT_DIR)/verif/trace/megasoc_qspi_capture.v
+$(SOCLABS_PROJECT_DIR)/verif/trace/extio8x4_axis_target.v
+$(SOCLABS_PROJECT_DIR)/verif/trace/extio8x4_tfsm.v
 $(SOCLABS_PROJECT_DIR)/verif/control/logical/megasoc_clkreset.v
 
 $(SOCLABS_PROJECT_DIR)/verif/trace/megasoc_axi_stream_io_8_rxd_to_file.v
@@ -28,4 +30,3 @@ $(SOCLABS_PROJECT_DIR)/verif/trace/megasoc_ft1248x4_to_axi_streamio_v1_0.v
 $(SOCLABS_PROJECT_DIR)/verif/trace/megasoc_ft1248x1_track.v
 $(SOCLABS_PROJECT_DIR)/megasoc_tech/logical/socdebug_tech/socket/f232h_ft1248_stream/verilog/SYNCHRONIZER_EDGES.v
 // $(SOCLABS_MEGASOC_TECH_DIR)/logical/MS_QSPI_XIP_CACHE/verify/vip/sst26wf080b.v
-
