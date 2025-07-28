@@ -32,6 +32,7 @@ build-job:       # This job runs in the build stage, which runs first.
     - git fetch --recurse-submodules
     - source set_env.sh
     - make first_time_setup
+    - make compile
     - make run
     - echo "building complete."
 

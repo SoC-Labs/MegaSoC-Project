@@ -40,6 +40,8 @@ else
 	FLIST_INCLUDES += $(SOCLABS_MEGASOC_TECH_DIR)/flist/megasoc_tech_BEHAVMEMS.flist
 endif
 
+export ASIC_MEMS
+
 ifeq ($(INC_EXP),yes)
 	FLIST_INCLUDES += $(SOCLABS_PROJECT_DIR)/flist/project/expansion.flist
 endif

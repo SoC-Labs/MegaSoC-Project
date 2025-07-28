@@ -97,7 +97,9 @@ run_vcs : code
 	@if [ ! -d $(SIM_DIR)/logs ] ; then \
 	  mkdir -p $(SIM_DIR)/logs; \
 	fi
-	cp $(SOCLABS_PROJECT_DIR)/memories/megasoc/bootrom/bootrom_emulation.rcf $(SIM_DIR)/
+	@if [ $(ASIC_MEMS) -e yes] ; then \
+		cp $(SOCLABS_PROJECT_DIR)/memories/megasoc/bootrom/bootrom_emulation.rcf $(SIM_DIR)/; \
+	fi
 	cd $(SIM_DIR); $(SIM_BUILD_DIR)/simv $(VCS_SIM_OPTION) +ca53_tarmac_enable -define ADP_FILE=adp.cmd < quit.do | tee logs/run_$(TESTNAME).log ;
 
 # Run simulation in interactive mode
