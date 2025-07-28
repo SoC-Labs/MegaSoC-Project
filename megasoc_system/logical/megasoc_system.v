@@ -26,9 +26,13 @@ module megasoc_system(
     output wire [3:0]   QSPI_IO_e,
 
     // UART signals
-    input  wire         UARTRXD,
-    output wire         UARTTXD,
-    output wire         UARTTXEN,
+    input  wire         UARTRXD0,
+    output wire         UARTTXD0,
+    output wire         UARTTXEN0,
+
+    input  wire         UARTRXD1,
+    output wire         UARTTXD1,
+    output wire         UARTTXEN1,
 
     // FT1248 Signals
     input  wire [3:0]   iodata4_i,
@@ -68,60 +72,60 @@ module megasoc_system(
 
 
 // DMA 350 APB Interface Wires
-wire [31:0]         PADDR_DMA_CTRL;
-wire [31:0]         PWDATA_DMA_CTRL;
-wire                PWRITE_DMA_CTRL;
-wire [2:0]          PPROT_DMA_CTRL;
-wire [3:0]          PSTRB_DMA_CTRL;
-wire                PENABLE_DMA_CTRL;
-wire                PSELx_DMA_CTRL;
-wire [31:0]         PRDATA_DMA_CTRL;
-wire                PSLVERR_DMA_CTRL;
-wire                PREADY_DMA_CTRL;
+wire [31:0]     PADDR_DMA_CTRL;
+wire [31:0]     PWDATA_DMA_CTRL;
+wire            PWRITE_DMA_CTRL;
+wire [2:0]      PPROT_DMA_CTRL;
+wire [3:0]      PSTRB_DMA_CTRL;
+wire            PENABLE_DMA_CTRL;
+wire            PSELx_DMA_CTRL;
+wire [31:0]     PRDATA_DMA_CTRL;
+wire            PSLVERR_DMA_CTRL;
+wire            PREADY_DMA_CTRL;
 
 // DMA 350 AXI Interface Wires
-wire [1:0]          AWID_DMA350;
-wire [43:0]         AWADDR_DMA350;
-wire [7:0]          AWLEN_DMA350;
-wire [2:0]          AWSIZE_DMA350;
-wire [1:0]          AWBURST_DMA350;
-wire                AWLOCK_DMA350;
-wire [3:0]          AWCACHE_DMA350;
-wire [2:0]          AWPROT_DMA350;
-wire                AWVALID_DMA350;
-wire                AWREADY_DMA350;
+wire [1:0]      AWID_DMA350;
+wire [43:0]     AWADDR_DMA350;
+wire [7:0]      AWLEN_DMA350;
+wire [2:0]      AWSIZE_DMA350;
+wire [1:0]      AWBURST_DMA350;
+wire            AWLOCK_DMA350;
+wire [3:0]      AWCACHE_DMA350;
+wire [2:0]      AWPROT_DMA350;
+wire            AWVALID_DMA350;
+wire            AWREADY_DMA350;
 
-wire [127:0]        WDATA_DMA350;
-wire [15:0]         WSTRB_DMA350;
-wire                WLAST_DMA350;
-wire                WVALID_DMA350;
-wire                WREADY_DMA350;
+wire [127:0]    WDATA_DMA350;
+wire [15:0]     WSTRB_DMA350;
+wire            WLAST_DMA350;
+wire            WVALID_DMA350;
+wire            WREADY_DMA350;
 
-wire [1:0]          BID_DMA350;
-wire [1:0]          BRESP_DMA350;
-wire                BVALID_DMA350;
-wire                BREADY_DMA350;
+wire [1:0]      BID_DMA350;
+wire [1:0]      BRESP_DMA350;
+wire            BVALID_DMA350;
+wire            BREADY_DMA350;
 
-wire [1:0]          ARID_DMA350;
-wire [43:0]         ARADDR_DMA350;
-wire [7:0]          ARLEN_DMA350;
-wire [2:0]          ARSIZE_DMA350;
-wire [1:0]          ARBURST_DMA350;
-wire                ARLOCK_DMA350;
-wire [3:0]          ARCACHE_DMA350;
-wire [2:0]          ARPROT_DMA350;
-wire                ARVALID_DMA350;
-wire                ARREADY_DMA350;
+wire [1:0]      ARID_DMA350;
+wire [43:0]     ARADDR_DMA350;
+wire [7:0]      ARLEN_DMA350;
+wire [2:0]      ARSIZE_DMA350;
+wire [1:0]      ARBURST_DMA350;
+wire            ARLOCK_DMA350;
+wire [3:0]      ARCACHE_DMA350;
+wire [2:0]      ARPROT_DMA350;
+wire            ARVALID_DMA350;
+wire            ARREADY_DMA350;
 
-wire [1:0]          RID_DMA350;
-wire [127:0]        RDATA_DMA350;
-wire [1:0]          RRESP_DMA350;
-wire                RLAST_DMA350;
-wire                RVALID_DMA350;
-wire                RREADY_DMA350;
+wire [1:0]      RID_DMA350;
+wire [127:0]    RDATA_DMA350;
+wire [1:0]      RRESP_DMA350;
+wire            RLAST_DMA350;
+wire            RVALID_DMA350;
+wire            RREADY_DMA350;
 
-wire [3:0]              DMA350_irq_channel;
-wire                    DMA350_irq_comb_nonsec;
+wire [3:0]      DMA350_irq_channel;
+wire            DMA350_irq_comb_nonsec;
 
 
 wire [1:0]      AXI_SYS_EXP_awid;
@@ -333,9 +337,14 @@ megasoc_tech_wrapper u_megasoc_tech_wrapper(
     .QSPI_IO_o(QSPI_IO_o),
     .QSPI_IO_i(QSPI_IO_i),
     .QSPI_IO_e(QSPI_IO_e),
-    .UARTRXD(UARTRXD),
-    .UARTTXD(UARTTXD),
-    .UARTTXEN(UARTTXEN),
+
+    .UARTRXD0(UARTRXD0),
+    .UARTTXD0(UARTTXD0),
+    .UARTTXEN0(UARTTXEN0),
+
+    .UARTRXD1(UARTRXD1),
+    .UARTTXD1(UARTTXD1),
+    .UARTTXEN1(UARTTXEN1),
 
     .iodata4_i(iodata4_i),
     .iodata4_o(iodata4_o),

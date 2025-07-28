@@ -33,8 +33,11 @@ ASIC_MEMS ?= no
 
 ifeq ($(ASIC_MEMS),yes)
 	FLIST_INCLUDES += $(SOCLABS_MEGASOC_TECH_DIR)/flist/IP/ARM_CA53_ASICMEMS.flist
+	FLIST_INCLUDES += $(SOCLABS_MEGASOC_TECH_DIR)/flist/megasoc_tech_ASICMEMS.flist
+	DEFINES_VC += +define+POWER_PINS
 else
 	FLIST_INCLUDES += $(SOCLABS_MEGASOC_TECH_DIR)/flist/IP/ARM_CA53_BEHAV.flist
+	FLIST_INCLUDES += $(SOCLABS_MEGASOC_TECH_DIR)/flist/megasoc_tech_BEHAVMEMS.flist
 endif
 
 ifeq ($(INC_EXP),yes)
@@ -56,6 +59,8 @@ export AARCH64
 TESTCODES_DIR    := $(SOCLABS_MEGASOC_TECH_DIR)/software/src
 TESTCODES_BUILD_DIR := $(SOCLABS_MEGASOC_TECH_DIR)/software/build
 export TESTCODES_BUILD_DIR
+
+PROJ_SW_DIR		:= $(SOCLABS_PROJECT_DIR)/system/firmware
 
 # Project System Directory
 FPGA_IMP_DIR     := $(SOCLABS_PROJECT_DIR)/imp/fpga

@@ -17,6 +17,7 @@ module megasoc_tb();
 `define CORTEXA53_UNIVENT_DPI_CAPTURE
 `define CORTEXA53_UNIVENT 
 
+wire COM_CLK;
 wire EXT_CLK; // 100 MHz crystal clock 
 wire RT_CLK; // 32.768 kHz crystal clock
 wire nRESET;
@@ -24,21 +25,16 @@ wire nRESET;
 wire         QSPI_SCLK;
 wire [3:0]   QSPI_IO;
 wire         QSPI_nCS;
-
-wire         EXTIO_REQ1;
-wire         EXTIO_REQ2;
-wire         EXTIO_ACK;
-wire [3:0]   EXTIO_DATA;
-
-wire             SPI_SSn;
-wire             SPI_SCLK;
-wire             SPI_MOSI;
-wire             SPI_MISO;
+wire         nRESET_early;
+wire [15:0]   P0;
+wire [15:0]   P1;
 
 megasoc_clkreset u_megasoc_clkreset(
     .CLK(EXT_CLK),
     .CLK_RT(RT_CLK),
-    .NRST(nRESET)
+    .CLK_COM(COM_CLK),
+    .NRST(nRESET),
+    .NRST_early(nRESET_early)
 );
 
 `define MEGASOC_TECH_WRAPPER u_megasoc_chip_pads.u_megasoc_chip.u_megasoc_system.u_megasoc_tech_wrapper
@@ -48,7 +44,7 @@ megasoc_clkreset u_megasoc_clkreset(
 initial begin 
     //$readmemh("bootloader.hex", `MEGASOC_ROM.mem, 32'h0000_0000);
     $readmemh("app_ram.v8-a.hex", `MEGASOC_SRAM.mem, 32'h0000_0000);
-    #1 $readmemh("app_flash.v8-a.hex", FLASH.I0.memory);
+    //#1 $readmemh("app_flash.v8-a.hex", FLASH.I0.memory);
 
 end
 
@@ -57,10 +53,13 @@ megasoc_chip_pads u_megasoc_chip_pads(
     .REF_CLK_XTAL2(),
     .RT_CLK_XTAL1(RT_CLK),
     .RT_CLK_XTAL2(),
+
     .PORESTn(nRESET),
     .nSRST(nRESET),
-    .GPIO_P0(),
-    .GPIO_P1(),
+
+    .P0(P0),
+    .P1(P1),
+
     .TDO_SWO(), 
     .RTCK(),
     .TDI(),
@@ -72,25 +71,43 @@ megasoc_chip_pads u_megasoc_chip_pads(
     .TRACECTL(),
     .DBGRQ(),
     .DBGACK(),
+
     .QSPI_SCLK(QSPI_SCLK),
     .QSPI_IO(QSPI_IO),
-    .QSPI_nCS(QSPI_nCS),
-    .EXTIO_REQ1(EXTIO_REQ1),
-    .EXTIO_REQ2(EXTIO_REQ2),
-    .EXTIO_ACK(EXTIO_ACK),
-    .EXTIO_DATA(EXTIO_DATA),
-
-    .SPI_SSn(SPI_SSn),
-    .SPI_SCLK(SPI_SCLK),
-    .SPI_MOSI(SPI_MOSI),
-    .SPI_MISO(SPI_MISO)
+    .QSPI_nCS(QSPI_nCS)
 );
 
-sst26vf064b FLASH(
-    .SCK(QSPI_SCLK),
-    .SIO(QSPI_IO),
-    .CEb(QSPI_nCS)
+//sst26vf064b FLASH(
+//    .SCK(QSPI_SCLK),
+//    .SIO(QSPI_IO),
+//    .CEb(QSPI_nCS)
+//);
+
+N25Qxxx FLASH(
+  .DQ0(QSPI_IO[0]),
+  .DQ1(QSPI_IO[1]),
+  .C_(QSPI_SCLK),
+  .S(QSPI_nCS),
+  .Vpp_W_DQ2(QSPI_IO[2]),
+  .RESET2(nRESET_early),
+  .HOLD_DQ3(QSPI_IO[3]),
+  .Vcc('d1800)
 );
+
+
+// GPIO P0 Loop
+tran P0_0(P0[0],P0[8]);
+tran P0_1(P0[1],P0[9]);
+tran P0_2(P0[2],P0[10]);
+tran P0_3(P0[3],P0[11]);
+tran P0_4(P0[4],P0[12]);
+tran P0_5(P0[5],P0[13]);
+tran P0_6(P0[6],P0[14]);
+tran P0_7(P0[7],P0[15]);
+
+// GPIO P1 Loop
+tran P1_UART0(P1[0],P1[3]);
+tran P1_UART1(P1[1],P1[2]);
 
 `define MEGASOC_PERIPHERALS u_megasoc_chip_pads.u_megasoc_chip.u_megasoc_system.u_megasoc_tech_wrapper.u_megasoc_peripheral_subsystem
 `define MEGASOC_UART `MEGASOC_PERIPHERALS.u_apb_uart_0
@@ -163,16 +180,16 @@ megasoc_qspi_capture #(
 
 
 // 4-channel AXIS interface - Subordinate side
-  wire       axis_rx0_tready; 
+  wire       axis_rx0_tready;
   wire       axis_rx0_tvalid;
   wire [7:0] axis_rx0_tdata8;
-  wire       axis_rx1_tready; 
+  wire       axis_rx1_tready;
   wire       axis_rx1_tvalid;
   wire [7:0] axis_rx1_tdata8;
-  wire       axis_tx0_tready; 
+  wire       axis_tx0_tready;
   wire       axis_tx0_tvalid;
   wire [7:0] axis_tx0_tdata8;
-  wire       axis_tx1_tready; 
+  wire       axis_tx1_tready;
   wire       axis_tx1_tvalid;
   wire [7:0] axis_tx1_tdata8;
 // external io interface
@@ -194,7 +211,7 @@ always @(posedge EXT_CLK) begin
 end
 
 extio8x4_axis_target u_extio8x4_axis_target(
-  .clk             ( EXT_CLK             ),
+  .clk             ( COM_CLK             ),
   .resetn          ( nRESET            ),
   .testmode        ( 1'b0            ),
 // RX 4-channel AXIS interface
@@ -220,22 +237,22 @@ extio8x4_axis_target u_extio8x4_axis_target(
   .ioack_o         ( ioack           )
 );
 
-bufif0 #1 (EXTIO_DATA[0], iodata4_o[0] , iodata4_t[0]);
-bufif0 #1 (EXTIO_DATA[1], iodata4_o[1] , iodata4_t[1]);
-bufif0 #1 (EXTIO_DATA[2], iodata4_o[2] , iodata4_t[2]);
-bufif0 #1 (EXTIO_DATA[3], iodata4_o[3] , iodata4_t[3]);
-assign iodata4_i = EXTIO_DATA;
-assign ioreq1 = EXTIO_REQ1;
-assign ioreq2 = EXTIO_REQ2;
-assign EXTIO_ACK = ioack;
-assign axis_rx0_tvalid = 1'b0;
+// EXTIO trace to megaSoC P1 mapping
+bufif0 #1 (P1[8], iodata4_o[0] , iodata4_t[0]);
+bufif0 #1 (P1[9], iodata4_o[1] , iodata4_t[1]);
+bufif0 #1 (P1[10], iodata4_o[2] , iodata4_t[2]);
+bufif0 #1 (P1[11], iodata4_o[3] , iodata4_t[3]);
+assign iodata4_i = P1[11:8];
+assign ioreq1 = P1[12];
+assign ioreq2 = P1[13];
+assign P1[14] = ioack;
 assign axis_rx1_tvalid = 1'b0;
 
   megasoc_axi_stream_io_8_rxd_to_file#(
     .RXDFILENAME("logs/extadp_out.log"),
     .VERBOSE(1)
   ) u_megasoc_axi_stream_io_stream_adp_rxd_to_file (
-    .aclk         (EXT_CLK),
+    .aclk         (COM_CLK),
     .aresetn      (nRESET),
     .eof_received (test_done),
     .rxd8_ready   (axis_tx0_tready),
@@ -247,12 +264,20 @@ assign axis_rx1_tvalid = 1'b0;
     .RXDFILENAME("logs/extdat_out.log"),
     .VERBOSE(0)
   ) u_megasoc_axi_stream_io_stream_dat_rxd_to_file (
-    .aclk         (EXT_CLK),
+    .aclk         (COM_CLK),
     .aresetn      (nRESET),
     .eof_received (),
     .rxd8_ready   (axis_tx1_tready),
     .rxd8_valid   (axis_tx1_tvalid),
     .rxd8_data    (axis_tx1_tdata8)
+  );
+
+  megasoc_axi_stream_io_8_txd_from_file u_megasoc_axi_stream_io_8_txd_from_file(
+    .aclk(COM_CLK),
+    .aresetn(nRESET),
+    .txd8_ready(axis_rx0_tready),
+    .txd8_valid(axis_rx0_tvalid),
+    .txd8_data(axis_rx0_tdata8)
   );
 
 endmodule

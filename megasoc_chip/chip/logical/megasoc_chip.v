@@ -23,26 +23,6 @@ module megasoc_chip(
     input  wire [3:0]   QSPI_IO_i,
     output wire [3:0]   QSPI_IO_e,
 
-    // UART signals
-    input  wire         UARTRXD,
-    output wire         UARTTXD,
-    output wire         UARTTXEN,
-
-    // FT1248 Signals
-    input  wire [3:0]               iodata4_i,
-    output wire [3:0]               iodata4_o,
-    output wire [3:0]               iodata4_e,
-    output wire [3:0]               iodata4_t,
-    output wire                     ioreq1_o,
-    output wire                     ioreq2_o,
-    input  wire                     ioack_i,
-
-    // SPI Bus to Pads
-    output wire             SPI_SSn,
-    output wire             SPI_SCLK,
-    output wire             SPI_MOSI,
-    input  wire             SPI_MISO,
-
     // DAP-lite Signals
     input  wire         nTRST,
     input  wire         SWCLKTCK,
@@ -53,27 +33,149 @@ module megasoc_chip(
     output wire         SWDO,
     output wire         SWDOEN,
 
-    input  wire [15:0]      PAD_P0_IN,
-    output wire [15:0]      PAD_P0_OUT,
-    output wire [15:0]      PAD_P0_EN,
+    input  wire [15:0]  PAD_P0_IN,
+    output wire [15:0]  PAD_P0_OUT,
+    output wire [15:0]  PAD_P0_EN,
 
-    input  wire [15:0]      PAD_P1_IN,
-    output wire [15:0]      PAD_P1_OUT,
-    output wire [15:0]      PAD_P1_EN
+    input  wire [15:0]  PAD_P1_IN,
+    output wire [15:0]  PAD_P1_OUT,
+    output wire [15:0]  PAD_P1_EN
 );
 
-wire [15:0]      SOC_P0_IN;
-wire [15:0]      SOC_P0_OUT;
-wire [15:0]      SOC_P0_EN;
-wire [15:0]      SOC_P0_FUNC;
-wire [15:0]      SOC_P1_IN;
-wire [15:0]      SOC_P1_OUT;
-wire [15:0]      SOC_P1_EN;
-wire [15:0]      SOC_P1_FUNC;
+wire CPU_CLK;
+wire SYS_CLK;
 
+megasoc_clock_ctrl u_megasoc_clock_ctrl(
+    .CLK_IN(CLK_IN),
+    .PORESTn(nRESET),
+    .PADDR(),
+    .PWDATA(),
+    .PWRITE(),
+    .PPROT(),
+    .PSTRB(),
+    .PENABLE(),
+    .PSELx(),
+    .PRDATA(),
+    .PSLVERR(),
+    .PREADY(),
+    .SYS_CLK(),
+    .CPU_CLK(CPU_CLK)
+);
+
+
+wire [15:0] SOC_P0_IN;
+wire [15:0] SOC_P0_OUT;
+wire [15:0] SOC_P0_EN;
+wire [15:0] SOC_P0_FUNC;
+wire [15:0] SOC_P0_ALT_IN;
+wire [15:0] SOC_P0_ALT_OUT;
+wire [15:0] SOC_P0_ALT_EN;
+
+wire [15:0] SOC_P1_IN;
+wire [15:0] SOC_P1_OUT;
+wire [15:0] SOC_P1_EN;
+wire [15:0] SOC_P1_FUNC;
+wire [15:0] SOC_P1_ALT_IN;
+wire [15:0] SOC_P1_ALT_OUT;
+wire [15:0] SOC_P1_ALT_EN;
+
+wire        UARTRXD0;
+wire        UARTTXD0;
+wire        UARTTXEN0;
+
+wire        UARTRXD1;
+wire        UARTTXD1;
+wire        UARTTXEN1;
+
+wire        SPI_SSn;
+wire        SPI_SCLK;
+wire        SPI_MOSI;
+wire        SPI_MISO;
+
+wire [3:0]  iodata4_i;
+wire [3:0]  iodata4_o;
+wire [3:0]  iodata4_e;
+wire [3:0]  iodata4_t;
+wire        ioreq1_o;
+wire        ioreq2_o;
+wire        ioack_i;
+
+// UART0 RX to P1[0]
+assign UARTRXD0 = SOC_P1_ALT_IN[0];
+assign SOC_P1_ALT_EN[0]=1'b0;
+assign SOC_P1_ALT_OUT[0] = 1'b0;
+
+// UART0 TX to P1[1]
+assign SOC_P1_ALT_OUT[1] = UARTTXD0;
+assign SOC_P1_ALT_EN[1] = UARTTXEN0;
+
+// UART1 RX to P1[2]
+assign UARTRXD0 = SOC_P1_ALT_IN[2];
+assign SOC_P1_ALT_EN[2]=1'b0;
+assign SOC_P1_ALT_OUT[2] = 1'b0;
+
+// UART0 TX to P1[3]
+assign SOC_P1_ALT_OUT[3] = UARTTXD0;
+assign SOC_P1_ALT_EN[3] = UARTTXEN0;
+
+// SPI SSn to P1[4]
+assign SOC_P1_ALT_OUT[4] = SPI_SSn;
+assign SOC_P1_ALT_EN[4] = 1'b1;
+
+// SPI SCLK to P1[5]
+assign SOC_P1_ALT_OUT[5] = SPI_SCLK;
+assign SOC_P1_ALT_EN[5] = 1'b1;
+
+// SPI MOSI to P1[6]
+assign SOC_P1_ALT_OUT[6] = SPI_MOSI;
+assign SOC_P1_ALT_EN[6] = 1'b1;
+
+// SPI MISO to P1[7]
+assign SPI_MISO = SOC_P1_ALT_IN[7];
+assign SOC_P1_ALT_EN[7]=1'b0;
+assign SOC_P1_ALT_OUT[7] = 1'b0;
+
+// EXTIO DATA[0] to P1[8]
+assign iodata4_i[0] = SOC_P1_ALT_IN[8];
+assign SOC_P1_ALT_EN[8] = iodata4_e[0];
+assign SOC_P1_ALT_OUT[8] = iodata4_o[0];
+
+// EXTIO DATA[1] to P1[9]
+assign iodata4_i[1] = SOC_P1_ALT_IN[9];
+assign SOC_P1_ALT_EN[9] = iodata4_e[1];
+assign SOC_P1_ALT_OUT[9] = iodata4_o[1];
+
+// EXTIO DATA[2] to P1[10]
+assign iodata4_i[2] = SOC_P1_ALT_IN[10];
+assign SOC_P1_ALT_EN[10] = iodata4_e[2];
+assign SOC_P1_ALT_OUT[10] = iodata4_o[2];
+
+// EXTIO DATA[3] to P1[11]
+assign iodata4_i[3] = SOC_P1_ALT_IN[11];
+assign SOC_P1_ALT_EN[11] = iodata4_e[3];
+assign SOC_P1_ALT_OUT[11] = iodata4_o[3];
+
+// EXTIO REQ1 MOSI to P1[12]
+assign SOC_P1_ALT_OUT[12] = ioreq1_o;
+assign SOC_P1_ALT_EN[12] = 1'b1;
+
+// EXTIO REQ2 MOSI to P1[13]
+assign SOC_P1_ALT_OUT[13] = ioreq2_o;
+assign SOC_P1_ALT_EN[13] = 1'b1;
+
+// EXTIO ACK MOSI to P1[14]
+assign ioack_i = SOC_P1_ALT_IN[14];
+assign SOC_P1_ALT_EN[14]=1'b0;
+assign SOC_P1_ALT_OUT[14] = 1'b0;
+
+assign SOC_P1_ALT_EN[15] = 1'b0;
+assign SOC_P1_ALT_OUT[15] = 1'b0;
+
+assign SOC_P0_ALT_EN = 16'd0;
+assign SOC_P0_ALT_OUT = 16'd0;
 
 megasoc_system u_megasoc_system(
-    .CLK_IN(CLK_IN),
+    .CLK_IN(CPU_CLK),
     .RT_CLK(RT_CLK),
     .nRESET(nRESET),
 
@@ -83,9 +185,13 @@ megasoc_system u_megasoc_system(
     .QSPI_IO_i(QSPI_IO_i),
     .QSPI_IO_e(QSPI_IO_e),
 
-    .UARTRXD(UARTRXD),
-    .UARTTXD(UARTTXD),
-    .UARTTXEN(UARTTXEN),
+    .UARTRXD0(UARTRXD0),
+    .UARTTXD0(UARTTXD0),
+    .UARTTXEN0(UARTTXEN0),
+
+    .UARTRXD1(UARTRXD1),
+    .UARTTXD1(UARTTXD1),
+    .UARTTXEN1(UARTTXEN1),
 
     .iodata4_i(iodata4_i),
     .iodata4_o(iodata4_o),
@@ -120,21 +226,26 @@ megasoc_system u_megasoc_system(
 );
 
 megasoc_chip_pin_mux u_pin_mux(
-    .SOC_P0_IN(),
-    .SOC_P0_OUT(),
-    .SOC_P0_EN(),
-    .SOC_P0_FUNC(),
-    .SOC_P0_ALT(),
+    .SOC_P0_IN(SOC_P0_IN),
+    .SOC_P0_OUT(SOC_P0_OUT),
+    .SOC_P0_EN(SOC_P0_EN),
+    .SOC_P0_FUNC(SOC_P0_FUNC),
+    .SOC_P0_ALT_IN(SOC_P0_ALT_IN),
+    .SOC_P0_ALT_OUT(SOC_P0_ALT_OUT),
+    .SOC_P0_ALT_EN(SOC_P0_ALT_EN),
 
-    .SOC_P1_IN(),
-    .SOC_P1_OUT(),
-    .SOC_P1_EN(),
-    .SOC_P1_FUNC(),
-    .SOC_P1_ALT(),
+    .SOC_P1_IN(SOC_P1_IN),
+    .SOC_P1_OUT(SOC_P1_OUT),
+    .SOC_P1_EN(SOC_P1_EN),
+    .SOC_P1_FUNC(SOC_P1_FUNC),
+    .SOC_P1_ALT_IN(SOC_P1_ALT_IN),
+    .SOC_P1_ALT_OUT(SOC_P1_ALT_OUT),
+    .SOC_P1_ALT_EN(SOC_P1_ALT_EN),
 
     .PAD_P0_IN(PAD_P0_IN),
     .PAD_P0_OUT(PAD_P0_OUT),
     .PAD_P0_EN(PAD_P0_EN),
+
     .PAD_P1_IN(PAD_P1_IN),
     .PAD_P1_OUT(PAD_P1_OUT),
     .PAD_P1_EN(PAD_P1_EN)

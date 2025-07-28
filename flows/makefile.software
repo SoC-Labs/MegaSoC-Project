@@ -126,6 +126,11 @@ endif
 	fi ;\
 	)
 
+list_tests:
+	@echo -e "Valid system tests:\n"
+	@ls --format single-column $(TESTCODES_DIR)/
+	@echo -e "\nValid custom tests: \n"
+	@ls --format single-column $(PROJ_SW_DIR) 
 
 # Compile debugtester
 # Note : The use of ls after compile allows the computing server to sync up

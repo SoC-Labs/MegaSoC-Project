@@ -1,0 +1,323 @@
+set_design_top megasoc_chip_pads
+
+# Set Paths
+set CA53_path u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_megasoc_cpu_ss/u_cortexa53
+
+set_design_attributes -attribute UPF_dont_touch TRUE -models ca53_follower
+#######################################
+# Create Supply Ports
+#######################################
+# Top Port Supplies 
+create_supply_port VDD 
+create_supply_net VDD
+connect_supply_net VDD -ports VDD 
+
+create_supply_port VSS 
+create_supply_net VSS 
+connect_supply_net VSS -ports VSS 
+
+create_supply_port VDD_EXP
+create_supply_net VDD_EXP
+connect_supply_net VDD_EXP -ports VDD_EXP
+
+#######################################
+# Create Gated Supply Nets
+#######################################
+# Rom Gated Nets
+create_supply_net VDDG_ROM_SMC 
+create_supply_net VDDG_ROM 
+
+# SRAM Gated Nets
+create_supply_net VDDG_SRAM_SMC
+# create_supply_net VDDG_SRAM
+
+#######################################
+# Create Supply Sets
+######################################
+create_supply_set SS_TOP -function {power VDD} -function {ground VSS}
+create_supply_set SS_EXP -function {power VDD_EXP} -function {ground VSS}
+create_supply_set SS_ROM_SMC -function {power VDDG_ROM_SMC} -function {ground VSS}
+create_supply_set SS_ROM -function {power VDDG_ROM} -function {ground VSS}
+create_supply_set SS_SRAM_SMC -function {power VDDG_SRAM_SMC} -function {ground VSS}
+# create_supply_set SS_SRAM -function {power VDDG_SRAM} -function {ground VSS}
+
+#######################################
+# Create Power Domains
+######################################
+create_power_domain PD_TOP -include_scope -supply {primary SS_TOP}
+create_power_domain PD_ROM_SMC -supply {primary SS_ROM_SMC}\
+    -elements {u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_awq \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_wq \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_bq \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_arq \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_rq \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_wbeat \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_rbeat \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_arb \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_resp_gen \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_axi_mux \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_clamp \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_eam } 
+create_power_domain PD_ROM -supply {primary SS_ROM} \
+    -elements u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_ROM
+create_power_domain PD_SRAM_SMC -supply {primary SS_SRAM_SMC}\
+    -elements {u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_awq \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_wq \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_bq \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_arq \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_rq \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_wbeat \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_rbeat \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_arb \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_resp_gen \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_axi_mux \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_clamp \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_eam } 
+# create_power_domain PD_SRAM -supply {primary SS_SRAM} \
+#     -elements u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SRAM
+
+create_power_domain PD_EXP -supply {primary SS_EXP} \
+    -elements u_megasoc_chip/u_megasoc_system/u_megasoc_expansion_wrapper
+
+#######################################
+# Create Switches
+######################################
+create_power_switch SW_ROM_SMC \
+    -domain PD_ROM_SMC \
+    -input_supply_port {in VDD} \
+    -output_supply_port {out VDDG_ROM_SMC} \
+    -control_port {pd_ROM_SMC u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_megasoc_power_control/u_megasoc_ROM_power_control/u_pck_ppu_rom_pcsm/lgcpwrn_o} \
+    -on_state {ROM_SMC_state in {!pd_ROM_SMC}}
+
+create_power_switch SW_ROM \
+    -domain PD_ROM \
+    -input_supply_port {in VDD} \
+    -output_supply_port {out VDDG_ROM} \
+    -control_port {pd_ROM u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_megasoc_power_control/u_megasoc_ROM_power_control/u_pck_ppu_rom_pcsm/rampwrn_o} \
+    -on_state {ROM_state in {!pd_ROM}}
+
+create_power_switch SW_SRAM_SMC \
+    -domain PD_SRAM_SMC \
+    -input_supply_port {in VDD} \
+    -output_supply_port {out VDDG_SRAM_SMC} \
+    -control_port {pd_SRAM_SMC u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_megasoc_power_control/u_megasoc_SRAM_power_control/u_pck_ppu_sram_pcsm/lgcpwrn_o} \
+    -on_state {SRAM_SMC_state in {!pd_SRAM_SMC}}
+
+
+#######################################
+# Set Isolation
+#######################################
+set_isolation isol_ROM_SMC_low \
+    -domain PD_ROM_SMC \
+    -isolation_power_net VDD \
+    -isolation_ground_net VSS \
+    -clamp_value 0 \
+    -elements { u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_axi_mux/rvalid \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_axi_mux/bvalid \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_rbeat/rq_vld \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_resp_gen/resp_fsm_act \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_axi_mux/arready \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_axi_mux/awready \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_axi_mux/wready \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_axi_mux/rid \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_axi_mux/rpoison \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_axi_mux/rresp[0] \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_axi_mux/bvalid \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_axi_mux/bid \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_axi_mux/bresp[0] \
+    }
+
+set_isolation isol_ROM_SMC_high \
+    -domain PD_ROM_SMC \
+    -isolation_power_net VDD \
+    -isolation_ground_net VSS \
+    -clamp_value 1 \
+    -elements { u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_awq/awq_empty \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_wq/wq_empty \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_bq/bq_empty \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_arq/arq_empty \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_rq/rq_empty \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_axi_mux/rlast \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_axi_mux/rresp[1] \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_axi_mux/bresp[1] \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_ROM_wrapper/u_SMC/u_clamp/memcen \
+    }
+
+
+set_isolation isol_SRAM_SMC_low \
+    -domain PD_SRAM_SMC \
+    -isolation_power_net VDD \
+    -isolation_ground_net VSS \
+    -clamp_value 0 \
+    -elements { u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_axi_mux/rvalid \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_axi_mux/bvalid \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_rbeat/rq_vld \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_resp_gen/resp_fsm_act \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_axi_mux/arready \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_axi_mux/awready \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_axi_mux/wready \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_axi_mux/rid \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_axi_mux/rpoison \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_axi_mux/rresp[0] \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_axi_mux/bvalid \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_axi_mux/bid \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_axi_mux/bresp[0] \
+    }
+
+set_isolation isol_SRAM_SMC_high \
+    -domain PD_SRAM_SMC \
+    -isolation_power_net VDD \
+    -isolation_ground_net VSS \
+    -clamp_value 1 \
+    -elements { u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_awq/awq_empty \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_wq/wq_empty \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_bq/bq_empty \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_arq/arq_empty \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_rq/rq_empty \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_axi_mux/rlast \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_axi_mux/rresp[1] \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_axi_mux/bresp[1] \
+    u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SMC/u_clamp/memcen \
+    }
+
+#######################################
+# Add Power States
+######################################
+add_port_state VSS              -state {ON_SLOW 0.0}
+add_port_state VSS              -state {ON_TYP  0.0}
+add_port_state VSS              -state {ON_FAST 0.0}
+add_port_state VDD              -state {ON_SLOW 0.72}
+add_port_state VDD              -state {ON_TYP  0.80}
+add_port_state VDD              -state {ON_FAST 0.88}
+add_port_state VDD_EXP          -state {ON_SLOW 0.72}
+add_port_state VDD_EXP          -state {ON_TYP  0.80}
+add_port_state VDD_EXP          -state {ON_FAST 0.88}
+
+add_port_state SW_ROM_SMC/out   -state {ON_SLOW 0.72}
+add_port_state SW_ROM_SMC/out   -state {ON_TYP  0.80}
+add_port_state SW_ROM_SMC/out   -state {ON_FAST 0.88}
+add_port_state SW_ROM_SMC/out   -state {OFF off}
+
+add_port_state SW_ROM/out       -state {ON_SLOW 0.72}
+add_port_state SW_ROM/out       -state {ON_TYP  0.80}
+add_port_state SW_ROM/out       -state {ON_FAST 0.88}
+add_port_state SW_ROM/out       -state {OFF off}
+
+add_port_state SW_SRAM_SMC/out  -state {ON_SLOW 0.72}
+add_port_state SW_SRAM_SMC/out  -state {ON_TYP  0.80}
+add_port_state SW_SRAM_SMC/out  -state {ON_FAST 0.88}
+add_port_state SW_SRAM_SMC/out  -state {OFF off}
+
+
+
+
+# add_power_state SS_TOP -state ON {-supply_expr {power == `{FULL_ON, 0.8}}}
+# add_power_state SS_TOP -state OFF {-supply_expr {power == OFF}}
+# 
+# add_power_state SS_EXP -state ON {-supply_expr {power == `{FULL_ON, 0.8}}}
+# add_power_state SS_EXP -state OFF {-supply_expr {power == OFF}}
+# 
+# add_power_state SS_ROM_SMC -state ON {-supply_expr {power == `{FULL_ON, 0.8}}}
+# add_power_state SS_ROM_SMC -state OFF {-supply_expr {power == OFF}}
+# 
+# add_power_state SS_ROM -state ON {-supply_expr {power == `{FULL_ON, 0.8}}}
+# add_power_state SS_ROM -state OFF {-supply_expr {power == OFF}}
+# 
+# add_power_state SS_SRAM_SMC -state ON {-supply_expr {power == `{FULL_ON, 0.8}}}
+# add_power_state SS_SRAM_SMC -state OFF {-supply_expr {power == OFF}}
+
+# add_power_state SS_SRAM -state ON {-supply_expr {power == `{FULL_ON, 0.8}}}
+# add_power_state SS_SRAM -state OFF {-supply_expr {power == OFF}}
+
+create_pst top_pst -supplies {\
+    VSS \
+    VDD \
+    VDD_EXP \
+    SW_ROM_SMC/out \
+    SW_ROM/out \
+    SW_SRAM_SMC/out \
+    }
+
+# SW_SRAM_SMC/out               ---------------------------------------------------------------------+
+# SW_ROM/out                    ------------------------------------------------------------+        |
+# SW_ROM_SMC/out                ---------------------------------------------------+        |        |
+# VDD_EXP                       ------------------------------------------+        |        |        |
+# VDD			                ---------------------------------+        |        |        |        |
+# VSS                           ------------------------+        |        |        |        |        |
+#                                                       |        |        |        |        |        |
+add_pst_state all_on_slow -pst top_pst -state       {ON_SLOW  ON_SLOW  ON_SLOW  ON_SLOW  ON_SLOW  ON_SLOW }
+add_pst_state all_on_typ -pst top_pst -state        {ON_TYP   ON_TYP   ON_TYP   ON_TYP   ON_TYP   ON_TYP  }
+add_pst_state all_on_fast -pst top_pst -state       {ON_FAST  ON_FAST  ON_FAST  ON_FAST  ON_FAST  ON_FAST }
+add_pst_state SRAM_off_slow -pst top_pst -state     {ON_SLOW  ON_SLOW  ON_SLOW  ON_SLOW  ON_SLOW  OFF     }
+add_pst_state SRAM_off_typ -pst top_pst -state      {ON_TYP   ON_TYP   ON_TYP   ON_TYP   ON_TYP   OFF     }
+add_pst_state SRAM_off_fast -pst top_pst -state     {ON_FAST  ON_FAST  ON_FAST  ON_FAST  ON_FAST  OFF     }
+add_pst_state rom_off_slow -pst top_pst -state      {ON_SLOW  ON_SLOW  ON_SLOW  OFF      OFF      ON_SLOW }
+add_pst_state rom_off_typ -pst top_pst -state       {ON_TYP   ON_TYP   ON_TYP   OFF      OFF      ON_TYP  }
+add_pst_state rom_off_fast -pst top_pst -state      {ON_FAST  ON_FAST  ON_FAST  OFF      OFF      ON_FAST }
+add_pst_state rom_smc_off_slow -pst top_pst -state  {ON_SLOW  ON_SLOW  ON_SLOW  OFF      ON_SLOW  ON_SLOW }
+add_pst_state rom_smc_off_typ -pst top_pst -state   {ON_TYP   ON_TYP   ON_TYP   OFF      ON_TYP   ON_TYP  }
+add_pst_state rom_smc_off_fast -pst top_pst -state  {ON_FAST  ON_FAST  ON_FAST  OFF      ON_FAST  ON_FAST }
+add_pst_state rom_mem_off_slow -pst top_pst -state  {ON_SLOW  ON_SLOW  ON_SLOW  ON_SLOW  OFF      ON_SLOW }
+add_pst_state rom_mem_off_typ -pst top_pst -state   {ON_TYP   ON_TYP   ON_TYP   ON_TYP   OFF      ON_TYP  }
+add_pst_state rom_mem_off_fast -pst top_pst -state  {ON_FAST  ON_FAST  ON_FAST  ON_FAST  OFF      ON_FAST }
+add_pst_state all_off_slow -pst top_pst -state      {ON_SLOW  ON_SLOW  ON_SLOW  OFF      OFF      OFF     }
+add_pst_state all_off_typ -pst top_pst -state       {ON_TYP   ON_TYP   ON_TYP   OFF      OFF      OFF     }
+add_pst_state all_off_fast -pst top_pst -state      {ON_FAST  ON_FAST  ON_FAST  OFF      OFF      OFF     }
+
+
+
+# set_scope $CA53_path
+# load_upf ../../../verif/testbench/CORTEXA53.upf 
+# 
+# set_scope /
+# connect_supply_net VDD -ports $CA53_path/VDD 
+# connect_supply_net VSS -ports $CA53_path/VSS
+# 
+# 
+# #-------------------------------------------------------------------------------
+# # Power Switch Control Signals
+# #-------------------------------------------------------------------------------
+# create_logic_net CPU_CORE_lgcpwrn
+# create_logic_net CPU_L2_lgcpwrn
+# create_logic_net CPU_ADVSIMD_lgcpwrn
+# 
+# connect_logic_net CPU_CORE_lgcpwrn    -ports u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_megasoc_power_control/u_megasoc_CPU_power_control/u_pck_ppu_pcsm_cpu_core/lgcpwrn_o
+# connect_logic_net CPU_L2_lgcpwrn      -ports u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_megasoc_power_control/u_megasoc_CPU_power_control/u_pck_ppu_pcsm_cpu_L2/lgcpwrn_o
+# connect_logic_net CPU_ADVSIMD_lgcpwrn -ports u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_megasoc_power_control/u_megasoc_CPU_power_control/u_pck_ppu_pcsm_cpu_neon/lgcpwrn_o
+# 
+# connect_logic_net CPU_CORE_lgcpwrn  -ports $CA53_path/nPWRUPCPU0
+# connect_logic_net CPU_L2_lgcpwrn    -ports $CA53_path/nPWRUPCORTEXA53
+# connect_logic_net CPU_L2_lgcpwrn    -ports $CA53_path/nPWRUPL2
+# connect_logic_net CPU_ADVSIMD_lgcpwrn    -ports $CA53_path/nPWRUPCPU0ADVSIMD
+# 
+# #-------------------------------------------------------------------------------
+# # Isolation Control Signals
+# #-------------------------------------------------------------------------------
+# create_logic_net CPU_CORE_isolaten
+# create_logic_net CPU_L2_isolaten
+# create_logic_net CPU_ADVSIMD_isolaten
+# 
+# connect_logic_net CPU_CORE_isolaten     -ports u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_megasoc_power_control/u_megasoc_CPU_power_control/u_pck_ppu_cpu_core_q/devisolaten_o
+# connect_logic_net CPU_L2_isolaten       -ports u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_megasoc_power_control/u_megasoc_CPU_power_control/u_pck_ppu_cpu_L2_q/devisolaten_o
+# connect_logic_net CPU_ADVSIMD_isolaten  -ports u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_megasoc_power_control/u_megasoc_CPU_power_control/u_pck_ppu_cpu_neon_q/devisolaten_o
+# 
+# connect_logic_net CPU_CORE_isolaten     -ports $CA53_path/nISOLATECPU0
+# connect_logic_net CPU_L2_isolaten       -ports $CA53_path/nISOLATECORTEXA53
+# connect_logic_net CPU_L2_isolaten       -ports $CA53_path/nISOLATEL2
+# connect_logic_net CPU_ADVSIMD_isolaten  -ports $CA53_path/nISOLATECPU0ADVSIMD
+# 
+# #-------------------------------------------------------------------------------
+# # Retention Control Signals
+# #-------------------------------------------------------------------------------
+# create_logic_net CPU_CORE_reten
+# create_logic_net CPU_L2_reten
+# create_logic_net CPU_ADVSIMD_reten
+# 
+# connect_logic_net CPU_CORE_reten    -ports u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_megasoc_power_control/u_megasoc_CPU_power_control/u_pck_ppu_pcsm_cpu_core/lgcretn_o
+# connect_logic_net CPU_L2_reten      -ports u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_megasoc_power_control/u_megasoc_CPU_power_control/u_pck_ppu_pcsm_cpu_L2/lgcretn_o
+# connect_logic_net CPU_ADVSIMD_reten -ports u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_megasoc_power_control/u_megasoc_CPU_power_control/u_pck_ppu_pcsm_cpu_neon/lgcretn_o
+# 
+# connect_logic_net CPU_CORE_reten    -ports $CA53_path/nRETNCPU0
+# connect_logic_net CPU_L2_reten      -ports $CA53_path/nRETNL2
+# connect_logic_net CPU_ADVSIMD_reten -ports $CA53_path/nRETNCPU0ADVSIMD
+# 

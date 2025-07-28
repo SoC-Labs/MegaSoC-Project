@@ -30,9 +30,16 @@ Below are the address regions for the System IO/Peripherals, detailed address ma
         \hline
         Region & Start Address & End Address \\ 
         \hline\hline
-        UART 0 & 0x40000000 & 0x40000FFF \\
-        \hline
-        Timer 1 & 0x40001000 & 0x40001FFF \\
+        Timer 0     & 0x40000000 & 0x40000FFF \\ \hline
+        Timer 1     & 0x40001000 & 0x40001FFF \\ \hline
+        Dual Timer  & 0x40002000 & 0x40002FFF \\ \hline
+        USRT 0      & 0x40003000 & 0x40003FFF \\ \hline
+        USRT 1      & 0x40004000 & 0x40004FFF \\ \hline
+        UART 0      & 0x40005000 & 0x40005FFF \\ \hline
+        UART 1      & 0x40006000 & 0x40006FFF \\ \hline
+        Watchdog    & 0x40007000 & 0x40007FFF \\ \hline
+        RTC         & 0x40008000 & 0x40008FFF \\ \hline
+        SPI         & 0x40009000 & 0x40009FFF \\ 
         \hline
     \end{tabular}
 \end{center}
@@ -41,6 +48,37 @@ Below are the address regions for the System IO/Peripherals, detailed address ma
 
 
 \chapter{Peripherals} \label{peripherals} 
+
+\chapter{Pin Outs} \label{pinout}
+MegaSoC has 2 GPIO ports, P0 and P1. P0 is a completely general purpose with no
+alternative functionality. P1 can be used for some peripherals, UART0, UART1, SPI and EXTIO.
+The mapping for P1 is as follows
+
+\begin{center}
+    \begin{tabular}{||c | c ||}
+        \hline
+        P1 Pin & Alt Function \\ 
+        \hline\hline
+        0 & UART0 Rx \\
+        1 & UART0 Tx \\
+        2 & UART1 Rx \\
+        3 & UART1 Tx \\
+        4 & SPI SSn \\
+        5 & SPI SCLK \\
+        6 & SPI MOSI \\
+        7 & SPI MISO \\
+        8 & EXTIO Data 0 \\
+        9 & EXTIO Data 1 \\
+        10 & EXTIO Data 2 \\
+        11 & EXTIO Data 3 \\
+        12 & EXTIO Req 1 \\
+        13 & EXTIO Req 2 \\
+        14 & EXTIO Ack \\
+        15 & N/A \\
+        \hline
+    \end{tabular}
+\end{center}
+
 
 \chapter{Recommended Testboard}
 

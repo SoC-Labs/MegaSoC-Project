@@ -39,6 +39,7 @@
 module megasoc_clkreset(
   output wire CLK,
   output wire CLK_RT,
+  output wire CLK_COM,
   output wire NRST,
   output wire NRST_early,
   output wire NRST_late,
@@ -46,6 +47,7 @@ module megasoc_clkreset(
   );
 
   reg clock_q;
+  reg clock_com;
   reg clock_rt;
 
   reg [15:0] shifter;
@@ -53,21 +55,27 @@ module megasoc_clkreset(
   initial
     begin
       clock_q   <= 1'b0;
+      clock_com <= 1'b0;
       clock_rt  <= 1'b0;
       shifter   <= 16'h0000;
       #40 clock_q <= 1'b1;
       clock_rt <= 1'b1;
+      clock_com <= 1'b1;
     end
 
   always @(clock_q) 
-      #5 clock_q <= !clock_q;  // 10ns period, 100MHz
+      #10 clock_q <= !clock_q;  // 20ns period, 50MHz
   
 
   always @(clock_rt)
       #15259 clock_rt <= !clock_rt; // nearly 32.678 KHz
 
+  always @(clock_com)
+      #2 clock_com <= !clock_com; // 4ns Period, 250 MHz
+
   assign CLK = clock_q;
   assign CLK_RT = clock_rt;
+  assign CLK_COM = clock_com;
 
   always @(posedge clock_q)
     if (! (&shifter)) // until full...

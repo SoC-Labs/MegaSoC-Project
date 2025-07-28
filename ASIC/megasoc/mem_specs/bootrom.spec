@@ -1,0 +1,37 @@
+# user spec file, compiler rom_via_hdd_lvt_mvt, version r1p1
+
+EOL_guardband = 0
+activity_factor = 10
+back_biasing = off
+bits = 64
+bmux = on
+bus_notation = on
+check_instname = on
+code_file = bootrom.bintxt
+corners = ffgnp_0p66v_0p66v_125c,ffgnp_0p66v_0p66v_m40c,ffgnp_0p77v_0p77v_125c,ffgnp_0p77v_0p77v_m40c,ffgnp_0p825v_0p825v_125c,ffgnp_0p825v_0p825v_m40c,ffgnp_0p88v_0p88v_0c,ffgnp_0p88v_0p88v_125c,ffgnp_0p88v_0p88v_m40c,ffgnp_0p99v_0p99v_125c,ffgnp_0p99v_0p99v_m40c,ffgnp_1p05v_1p05v_125c,ffgnp_1p05v_1p05v_m40c,ssgnp_0p54v_0p54v_0c,ssgnp_0p54v_0p54v_125c,ssgnp_0p54v_0p54v_m40c,ssgnp_0p63v_0p63v_0c,ssgnp_0p63v_0p63v_125c,ssgnp_0p63v_0p63v_m40c,ssgnp_0p675v_0p675v_0c,ssgnp_0p675v_0p675v_125c,ssgnp_0p675v_0p675v_m40c,ssgnp_0p72v_0p72v_0c,ssgnp_0p72v_0p72v_125c,ssgnp_0p72v_0p72v_m40c,ssgnp_0p81v_0p81v_0c,ssgnp_0p81v_0p81v_125c,ssgnp_0p81v_0p81v_m40c,ssgnp_0p90v_0p90v_0c,ssgnp_0p90v_0p90v_125c,ssgnp_0p90v_0p90v_m40c,tt_0p54v_0p54v_0c,tt_0p60v_0p60v_85c,tt_0p63v_0p63v_0c,tt_0p675v_0p675v_0c,tt_0p70v_0p70v_85c,tt_0p72v_0p72v_0c,tt_0p75v_0p75v_85c,tt_0p80v_0p80v_25c,tt_0p80v_0p80v_85c,tt_0p81v_0p81v_0c,tt_0p90v_0p90v_0c,tt_0p90v_0p90v_85c,tt_1p00v_1p00v_85c
+cust_comment = 
+diodes = on
+drive = 6
+ema = on
+fci_type = not_fci
+frequency = 1000
+instname = bootrom
+irem_gds2_by_phyvtools = 0
+left_bus_delim = [
+libertyviewstyle = ecsm_t
+libname = rom_via_hdd
+metal_stack = 2Xa1Xd
+mode = addr
+mux = 8
+mvt = LP
+name_case = upper
+pipeline = off
+power_gating = on
+power_type = otc
+prefix = 
+pwr_gnd_rename = vdde:VDDE,vsse:VSSE
+right_bus_delim = ]
+rows_p_bl = 128
+site_def = on
+top_layer = m5-m10
+words = 8192

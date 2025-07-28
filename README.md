@@ -16,3 +16,23 @@ source set_env.sh
 make first_time_setup
 ```
 This will configure all of the IP necessary for the project.
+
+
+## Simulation
+You can run all the simulations from the top level megasoc_project directory using the makefile. To run a simulation first
+compile the project using
+
+```bash
+make compile
+```
+
+Then you can run a test using:
+```bash
+make run TESTNAME=X
+```
+
+To get a list of the valid values for TESTNAME run:
+```bash
+make list_tests
+```
+

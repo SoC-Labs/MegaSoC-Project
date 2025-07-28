@@ -3,6 +3,9 @@
 \usepackage{tcolorbox,float}
 \usepackage{listings}
 
+\usepackage{graphicx}
+\graphicspath{ {./doc/tex/images/} }
+
 \makeatletter
 \newfloat{info@box}{tbp}{loi}[section]% 1: Name of float environment. 2: Default placement (top, bottom, ...). 3: File extension if written to an aux-file (like toc, lof, lot, loa, ...). 4: Numbering within <section/subsection/...>.
 \makeatother
@@ -30,5 +33,8 @@
 \tableofcontents
 \clearpage
 \chapter{Introduction}
+
+
+\includegraphics[width=\textwidth]{megasoc_clock_structure}
 
 \end{document}

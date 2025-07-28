@@ -10,6 +10,8 @@
 # Copyright (C) 2021-4, SoC Labs (www.soclabs.org)
 #-----------------------------------------------------------------------------
 
+SIM_UPF_FILE := $(SOCLABS_PROJECT_DIR)/verif/testbench/megasoc_tb.upf
+
 # MTI options
 MTI_VC_OPTIONS    = +acc
 MTI_VC_OPTIONS    += -suppress 2892
@@ -19,7 +21,7 @@ MTI_RUN_OPTIONS   = -voptargs=+acc
 MTI_RUN_OPTIONS   += -sv_lib $(CORTEX_A53_IP_LOGICAL_DIR)/ca53univent/build_x86_64/lib/ca53_tarmac_dpi
 
 # VCS options
-VCS_OPTIONS    =  +vcs+lic+wait +v2k -sverilog -override_timescale=1ns/1ps +lint=all,noTMR,noVCDE -debug -debug_access+all 
+VCS_OPTIONS    =  -msg_config=$(SOCLABS_PROJECT_DIR)/verif/testbench/vcs_lint_config +vcs+lic+wait +v2k -sverilog -override_timescale=1ns/1ps +lint=all,noTMR,noVCDE -debug -debug_access+all -upf $(SIM_UPF_FILE)
 VCS_SIM_OPTION = +vcs+lic+wait +vcs+flush+log -assert nopostproc
 VCS_VC_OPTIONS = -f $(TBENCH_VC) 
 VCS_OPTIONS   += -sverilog $(CORTEX_A53_IP_LOGICAL_DIR)/ca53univent/build_x86_64/lib/ca53_tarmac_dpi.so
@@ -85,7 +87,7 @@ flist_vfiles_megasoc: gen_defs
 # ------- VCS -----------
 
 # Compile RTL
-compile_vcs : gen_defs flist_vfiles_megasoc
+compile_vcs : gen_defs bootrom flist_vfiles_megasoc
 	cd $(SIM_BUILD_DIR); vcs $(VCS_OPTIONS) -f tbench.vc  -kdb $(DEFINES_VC)  | tee compile_vcs.log
 
 
@@ -95,6 +97,7 @@ run_vcs : code
 	@if [ ! -d $(SIM_DIR)/logs ] ; then \
 	  mkdir -p $(SIM_DIR)/logs; \
 	fi
+	cp $(SOCLABS_PROJECT_DIR)/memories/megasoc/bootrom/bootrom_emulation.rcf $(SIM_DIR)/
 	cd $(SIM_DIR); $(SIM_BUILD_DIR)/simv $(VCS_SIM_OPTION) +ca53_tarmac_enable -define ADP_FILE=adp.cmd < quit.do | tee logs/run_$(TESTNAME).log ;
 
 # Run simulation in interactive mode
