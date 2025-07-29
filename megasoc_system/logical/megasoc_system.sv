@@ -127,78 +127,8 @@ wire            RREADY_DMA350;
 wire [3:0]      DMA350_irq_channel;
 wire            DMA350_irq_comb_nonsec;
 
-
-wire [1:0]      AXI_SYS_EXP_awid;
-wire [31:0]     AXI_SYS_EXP_awaddr;
-wire [7:0]      AXI_SYS_EXP_awlen;
-wire [2:0]      AXI_SYS_EXP_awsize;
-wire [1:0]      AXI_SYS_EXP_awburst;
-wire            AXI_SYS_EXP_awlock;
-wire [3:0]      AXI_SYS_EXP_awcache;
-wire [2:0]      AXI_SYS_EXP_awprot;
-wire            AXI_SYS_EXP_awvalid;
-wire            AXI_SYS_EXP_awready;
-wire [63:0]     AXI_SYS_EXP_wdata;
-wire [7:0]      AXI_SYS_EXP_wstrb;
-wire            AXI_SYS_EXP_wlast;
-wire            AXI_SYS_EXP_wvalid;
-wire            AXI_SYS_EXP_wready;
-wire  [1:0]     AXI_SYS_EXP_bid;
-wire  [1:0]     AXI_SYS_EXP_bresp;
-wire            AXI_SYS_EXP_bvalid;
-wire            AXI_SYS_EXP_bready;
-wire [1:0]      AXI_SYS_EXP_arid;
-wire [31:0]     AXI_SYS_EXP_araddr;
-wire [7:0]      AXI_SYS_EXP_arlen;
-wire [2:0]      AXI_SYS_EXP_arsize;
-wire [1:0]      AXI_SYS_EXP_arburst;
-wire            AXI_SYS_EXP_arlock;
-wire [3:0]      AXI_SYS_EXP_arcache;
-wire [2:0]      AXI_SYS_EXP_arprot;
-wire            AXI_SYS_EXP_arvalid;
-wire            AXI_SYS_EXP_arready;
-wire  [1:0]     AXI_SYS_EXP_rid;
-wire  [63:0]    AXI_SYS_EXP_rdata;
-wire  [1:0]     AXI_SYS_EXP_rresp;
-wire            AXI_SYS_EXP_rlast;
-wire            AXI_SYS_EXP_rvalid;
-wire            AXI_SYS_EXP_rready;
-
-wire            AXI_EXP_SYS_awid;
-wire  [31:0]    AXI_EXP_SYS_awaddr;
-wire  [7:0]     AXI_EXP_SYS_awlen;
-wire  [2:0]     AXI_EXP_SYS_awsize;
-wire  [1:0]     AXI_EXP_SYS_awburst;
-wire            AXI_EXP_SYS_awlock;
-wire  [3:0]     AXI_EXP_SYS_awcache;
-wire  [2:0]     AXI_EXP_SYS_awprot;
-wire            AXI_EXP_SYS_awvalid;
-wire            AXI_EXP_SYS_awready;
-wire  [63:0]    AXI_EXP_SYS_wdata;
-wire  [7:0]     AXI_EXP_SYS_wstrb;
-wire            AXI_EXP_SYS_wlast;
-wire            AXI_EXP_SYS_wvalid;
-wire            AXI_EXP_SYS_wready;
-wire            AXI_EXP_SYS_bid;
-wire [1:0]      AXI_EXP_SYS_bresp;
-wire            AXI_EXP_SYS_bvalid;
-wire            AXI_EXP_SYS_bready;
-wire            AXI_EXP_SYS_arid;
-wire  [31:0]    AXI_EXP_SYS_araddr;
-wire  [7:0]     AXI_EXP_SYS_arlen;
-wire  [2:0]     AXI_EXP_SYS_arsize;
-wire  [1:0]     AXI_EXP_SYS_arburst;
-wire            AXI_EXP_SYS_arlock;
-wire  [3:0]     AXI_EXP_SYS_arcache;
-wire  [2:0]     AXI_EXP_SYS_arprot;
-wire            AXI_EXP_SYS_arvalid;
-wire            AXI_EXP_SYS_arready;
-wire            AXI_EXP_SYS_rid;
-wire [63:0]     AXI_EXP_SYS_rdata;
-wire [1:0]      AXI_EXP_SYS_rresp;
-wire            AXI_EXP_SYS_rlast;
-wire            AXI_EXP_SYS_rvalid;
-wire            AXI_EXP_SYS_rready;
+axi4 #(.DATA_W(64), .ID_W(7), .ADDR_W(32)) EXP_M_AXI();
+axi4 #(.DATA_W(64), .ID_W(3), .ADDR_W(32)) EXP_S_AXI();
 
 megasoc_tech_wrapper u_megasoc_tech_wrapper(
     .SYS_CLK(CLK_IN),
@@ -207,80 +137,10 @@ megasoc_tech_wrapper u_megasoc_tech_wrapper(
     .SYS_RESETn(nRESET),
 
     // Millisoc system AXI Manager
-    .AXI_SYS_EXP_awid(AXI_SYS_EXP_awid),
-    .AXI_SYS_EXP_awaddr(AXI_SYS_EXP_awaddr),
-    .AXI_SYS_EXP_awlen(AXI_SYS_EXP_awlen),
-    .AXI_SYS_EXP_awsize(AXI_SYS_EXP_awsize),
-    .AXI_SYS_EXP_awburst(AXI_SYS_EXP_awburst),
-    .AXI_SYS_EXP_awlock(AXI_SYS_EXP_awlock),
-    .AXI_SYS_EXP_awcache(AXI_SYS_EXP_awcache),
-    .AXI_SYS_EXP_awprot(AXI_SYS_EXP_awprot),
-    .AXI_SYS_EXP_awvalid(AXI_SYS_EXP_awvalid),
-    .AXI_SYS_EXP_awready(AXI_SYS_EXP_awready),
-    .AXI_SYS_EXP_wdata(AXI_SYS_EXP_wdata),
-    .AXI_SYS_EXP_wstrb(AXI_SYS_EXP_wstrb),
-    .AXI_SYS_EXP_wlast(AXI_SYS_EXP_wlast),
-    .AXI_SYS_EXP_wvalid(AXI_SYS_EXP_wvalid),
-    .AXI_SYS_EXP_wready(AXI_SYS_EXP_wready),
-    .AXI_SYS_EXP_bid(AXI_SYS_EXP_bid),
-    .AXI_SYS_EXP_bresp(AXI_SYS_EXP_bresp),
-    .AXI_SYS_EXP_bvalid(AXI_SYS_EXP_bvalid),
-    .AXI_SYS_EXP_bready(AXI_SYS_EXP_bready),
-    .AXI_SYS_EXP_arid(AXI_SYS_EXP_arid),
-    .AXI_SYS_EXP_araddr(AXI_SYS_EXP_araddr),
-    .AXI_SYS_EXP_arlen(AXI_SYS_EXP_arlen),
-    .AXI_SYS_EXP_arsize(AXI_SYS_EXP_arsize),
-    .AXI_SYS_EXP_arburst(AXI_SYS_EXP_arburst),
-    .AXI_SYS_EXP_arlock(AXI_SYS_EXP_arlock),
-    .AXI_SYS_EXP_arcache(AXI_SYS_EXP_arcache),
-    .AXI_SYS_EXP_arprot(AXI_SYS_EXP_arprot),
-    .AXI_SYS_EXP_arvalid(AXI_SYS_EXP_arvalid),
-    .AXI_SYS_EXP_arready(AXI_SYS_EXP_arready),
-    .AXI_SYS_EXP_rid(AXI_SYS_EXP_rid),
-    .AXI_SYS_EXP_rdata(AXI_SYS_EXP_rdata),
-    .AXI_SYS_EXP_rresp(AXI_SYS_EXP_rresp),
-    .AXI_SYS_EXP_rlast(AXI_SYS_EXP_rlast),
-    .AXI_SYS_EXP_rvalid(AXI_SYS_EXP_rvalid),
-    .AXI_SYS_EXP_rready(AXI_SYS_EXP_rready),
-    
+    .EXP_M_AXI(EXP_M_AXI),
 
     // Millisoc system AXI Subordinate
-    .AXI_EXP_SYS_awid(AXI_EXP_SYS_awid),
-    .AXI_EXP_SYS_awaddr(AXI_EXP_SYS_awaddr),
-    .AXI_EXP_SYS_awlen(AXI_EXP_SYS_awlen),
-    .AXI_EXP_SYS_awsize(AXI_EXP_SYS_awsize),
-    .AXI_EXP_SYS_awburst(AXI_EXP_SYS_awburst),
-    .AXI_EXP_SYS_awlock(AXI_EXP_SYS_awlock),
-    .AXI_EXP_SYS_awcache(AXI_EXP_SYS_awcache),
-    .AXI_EXP_SYS_awprot(AXI_EXP_SYS_awprot),
-    .AXI_EXP_SYS_awvalid(AXI_EXP_SYS_awvalid),
-    .AXI_EXP_SYS_awready(AXI_EXP_SYS_awready),
-    .AXI_EXP_SYS_wdata(AXI_EXP_SYS_wdata),
-    .AXI_EXP_SYS_wstrb(AXI_EXP_SYS_wstrb),
-    .AXI_EXP_SYS_wlast(AXI_EXP_SYS_wlast),
-    .AXI_EXP_SYS_wvalid(AXI_EXP_SYS_wvalid),
-    .AXI_EXP_SYS_wready(AXI_EXP_SYS_wready),
-    .AXI_EXP_SYS_bid(AXI_EXP_SYS_bid),
-    .AXI_EXP_SYS_bresp(AXI_EXP_SYS_bresp),
-    .AXI_EXP_SYS_bvalid(AXI_EXP_SYS_bvalid),
-    .AXI_EXP_SYS_bready(AXI_EXP_SYS_bready),
-    .AXI_EXP_SYS_arid(AXI_EXP_SYS_arid),
-    .AXI_EXP_SYS_araddr(AXI_EXP_SYS_araddr),
-    .AXI_EXP_SYS_arlen(AXI_EXP_SYS_arlen),
-    .AXI_EXP_SYS_arsize(AXI_EXP_SYS_arsize),
-    .AXI_EXP_SYS_arburst(AXI_EXP_SYS_arburst),
-    .AXI_EXP_SYS_arlock(AXI_EXP_SYS_arlock),
-    .AXI_EXP_SYS_arcache(AXI_EXP_SYS_arcache),
-    .AXI_EXP_SYS_arprot(AXI_EXP_SYS_arprot),
-    .AXI_EXP_SYS_arvalid(AXI_EXP_SYS_arvalid),
-    .AXI_EXP_SYS_arready(AXI_EXP_SYS_arready),
-    .AXI_EXP_SYS_rid(AXI_EXP_SYS_rid),
-    .AXI_EXP_SYS_rdata(AXI_EXP_SYS_rdata),
-    .AXI_EXP_SYS_rresp(AXI_EXP_SYS_rresp),
-    .AXI_EXP_SYS_rlast(AXI_EXP_SYS_rlast),
-    .AXI_EXP_SYS_rvalid(AXI_EXP_SYS_rvalid),
-    .AXI_EXP_SYS_rready(AXI_EXP_SYS_rready),
-
+    .EXP_S_AXI(EXP_S_AXI),
 
     .PADDR_DMA_CTRL(PADDR_DMA_CTRL),
     .PWDATA_DMA_CTRL(PWDATA_DMA_CTRL),
@@ -389,7 +249,7 @@ megasoc_tech_system_wrapper u_megasoc_tech_system_wrapper(
     .DMA350_PENABLE(PENABLE_DMA_CTRL),
     .DMA350_PPROT(PPROT_DMA_CTRL),
     .DMA350_PWRITE(PWRITE_DMA_CTRL),
-    .DMA350_PADDR(PADDR_DMA_CTRL),
+    .DMA350_PADDR(PADDR_DMA_CTRL[12:0]),
     .DMA350_PWDATA(PWDATA_DMA_CTRL),
     .DMA350_PSTRB(PSTRB_DMA_CTRL),
     .DMA350_PREADY(PREADY_DMA_CTRL),
@@ -450,95 +310,95 @@ megasoc_tech_system_wrapper u_megasoc_tech_system_wrapper(
 
 `ifdef INC_EXP
 expansion_subsystem_wrapper u_megasoc_expansion_wrapper(
-    .sys_clk(),
-    .resetn(),
-    .exp_clk(),
-    .exp_clken(),
-    .expresetn(),
+    .sys_clk(CLK_IN),
+    .resetn(nRESET),
+    .exp_clk(CLK_IN),
+    .exp_clken(1'b1),
+    .expresetn(nRESET),
 
     // System Clock domain control
-    .CSYSREQ_CD_sys(),
+    .CSYSREQ_CD_sys(1'b1),
     .CSYSACK_CD_sys(),
     .CACTIVE_CD_sys(),
 
     // Expansion Clock domain control
-    .CSYSREQ_CD_exp(),
+    .CSYSREQ_CD_exp(1'b1),
     .CSYSACK_CD_exp(),
     .CACTIVE_CD_exp(),
 
     // AXI Expansion input port 
-    .AXI_EXP_SS_awid(AXI_SYS_EXP_awid),
-    .AXI_EXP_SS_awaddr(AXI_SYS_EXP_awaddr),
-    .AXI_EXP_SS_awlen(AXI_SYS_EXP_awlen),
-    .AXI_EXP_SS_awsize(AXI_SYS_EXP_awsize),
-    .AXI_EXP_SS_awburst(AXI_SYS_EXP_awburst),
-    .AXI_EXP_SS_awlock(AXI_SYS_EXP_awlock),
-    .AXI_EXP_SS_awcache(AXI_SYS_EXP_awcache),
-    .AXI_EXP_SS_awprot(AXI_SYS_EXP_awprot),
-    .AXI_EXP_SS_awvalid(AXI_SYS_EXP_awvalid),
-    .AXI_EXP_SS_awready(AXI_SYS_EXP_awready),
-    .AXI_EXP_SS_wdata(AXI_SYS_EXP_wdata),
-    .AXI_EXP_SS_wstrb(AXI_SYS_EXP_wstrb),
-    .AXI_EXP_SS_wlast(AXI_SYS_EXP_wlast),
-    .AXI_EXP_SS_wvalid(AXI_SYS_EXP_wvalid),
-    .AXI_EXP_SS_wready(AXI_SYS_EXP_wready),
-    .AXI_EXP_SS_bid(AXI_SYS_EXP_bid),
-    .AXI_EXP_SS_bresp(AXI_SYS_EXP_bresp),
-    .AXI_EXP_SS_bvalid(AXI_SYS_EXP_bvalid),
-    .AXI_EXP_SS_bready(AXI_SYS_EXP_bready),
-    .AXI_EXP_SS_arid(AXI_SYS_EXP_arid),
-    .AXI_EXP_SS_araddr(AXI_SYS_EXP_araddr),
-    .AXI_EXP_SS_arlen(AXI_SYS_EXP_arlen),
-    .AXI_EXP_SS_arsize(AXI_SYS_EXP_arsize),
-    .AXI_EXP_SS_arburst(AXI_SYS_EXP_arburst),
-    .AXI_EXP_SS_arlock(AXI_SYS_EXP_arlock),
-    .AXI_EXP_SS_arcache(AXI_SYS_EXP_arcache),
-    .AXI_EXP_SS_arprot(AXI_SYS_EXP_arprot),
-    .AXI_EXP_SS_arvalid(AXI_SYS_EXP_arvalid),
-    .AXI_EXP_SS_arready(AXI_SYS_EXP_arready),
-    .AXI_EXP_SS_rid(AXI_SYS_EXP_rid),
-    .AXI_EXP_SS_rdata(AXI_SYS_EXP_rdata),
-    .AXI_EXP_SS_rresp(AXI_SYS_EXP_rresp),
-    .AXI_EXP_SS_rlast(AXI_SYS_EXP_rlast),
-    .AXI_EXP_SS_rvalid(AXI_SYS_EXP_rvalid),
-    .AXI_EXP_SS_rready(AXI_SYS_EXP_rready),
+    .AXI_EXP_SS_awid(EXP_M_AXI.AWID), // 7 bits
+    .AXI_EXP_SS_awaddr(EXP_M_AXI.AWADDR),
+    .AXI_EXP_SS_awlen(EXP_M_AXI.AWLEN),
+    .AXI_EXP_SS_awsize(EXP_M_AXI.AWSIZE),
+    .AXI_EXP_SS_awburst(EXP_M_AXI.AWBURST),
+    .AXI_EXP_SS_awlock(EXP_M_AXI.AWLOCK),
+    .AXI_EXP_SS_awcache(EXP_M_AXI.AWCACHE),
+    .AXI_EXP_SS_awprot(EXP_M_AXI.AWPROT),
+    .AXI_EXP_SS_awvalid(EXP_M_AXI.AWVALID),
+    .AXI_EXP_SS_awready(EXP_M_AXI.AWREADY),
+    .AXI_EXP_SS_wdata(EXP_M_AXI.WDATA),
+    .AXI_EXP_SS_wstrb(EXP_M_AXI.WSTRB),
+    .AXI_EXP_SS_wlast(EXP_M_AXI.WLAST),
+    .AXI_EXP_SS_wvalid(EXP_M_AXI.WVALID),
+    .AXI_EXP_SS_wready(EXP_M_AXI.WREADY),
+    .AXI_EXP_SS_bid(EXP_M_AXI.BID),
+    .AXI_EXP_SS_bresp(EXP_M_AXI.BRESP),
+    .AXI_EXP_SS_bvalid(EXP_M_AXI.BVALID),
+    .AXI_EXP_SS_bready(EXP_M_AXI.BREADY),
+    .AXI_EXP_SS_arid(EXP_M_AXI.ARID),
+    .AXI_EXP_SS_araddr(EXP_M_AXI.ARADDR),
+    .AXI_EXP_SS_arlen(EXP_M_AXI.ARLEN),
+    .AXI_EXP_SS_arsize(EXP_M_AXI.ARSIZE),
+    .AXI_EXP_SS_arburst(EXP_M_AXI.ARBURST),
+    .AXI_EXP_SS_arlock(EXP_M_AXI.ARLOCK),
+    .AXI_EXP_SS_arcache(EXP_M_AXI.ARCACHE),
+    .AXI_EXP_SS_arprot(EXP_M_AXI.ARPROT),
+    .AXI_EXP_SS_arvalid(EXP_M_AXI.ARVALID),
+    .AXI_EXP_SS_arready(EXP_M_AXI.ARREADY),
+    .AXI_EXP_SS_rid(EXP_M_AXI.RID),
+    .AXI_EXP_SS_rdata(EXP_M_AXI.RDATA),
+    .AXI_EXP_SS_rresp(EXP_M_AXI.RRESP),
+    .AXI_EXP_SS_rlast(EXP_M_AXI.RLAST),
+    .AXI_EXP_SS_rvalid(EXP_M_AXI.RVALID),
+    .AXI_EXP_SS_rready(EXP_M_AXI.RREADY),
 
     // AXI System output port
-    .AXI_SYS_awid(AXI_EXP_SYS_awid),
-    .AXI_SYS_awaddr(AXI_EXP_SYS_awaddr),
-    .AXI_SYS_awlen(AXI_EXP_SYS_awlen),
-    .AXI_SYS_awsize(AXI_EXP_SYS_awsize),
-    .AXI_SYS_awburst(AXI_EXP_SYS_awburst),
-    .AXI_SYS_awlock(AXI_EXP_SYS_awlock),
-    .AXI_SYS_awcache(AXI_EXP_SYS_awcache),
-    .AXI_SYS_awprot(AXI_EXP_SYS_awprot),
-    .AXI_SYS_awvalid(AXI_EXP_SYS_awvalid),
-    .AXI_SYS_awready(AXI_EXP_SYS_awready),
-    .AXI_SYS_wdata(AXI_EXP_SYS_wdata),
-    .AXI_SYS_wstrb(AXI_EXP_SYS_wstrb),
-    .AXI_SYS_wlast(AXI_EXP_SYS_wlast),
-    .AXI_SYS_wvalid(AXI_EXP_SYS_wvalid),
-    .AXI_SYS_wready(AXI_EXP_SYS_wready),
-    .AXI_SYS_bid(AXI_EXP_SYS_bid),
-    .AXI_SYS_bresp(AXI_EXP_SYS_bresp),
-    .AXI_SYS_bvalid(AXI_EXP_SYS_bvalid),
-    .AXI_SYS_bready(AXI_EXP_SYS_bready),
-    .AXI_SYS_arid(AXI_EXP_SYS_arid),
-    .AXI_SYS_araddr(AXI_EXP_SYS_araddr),
-    .AXI_SYS_arlen(AXI_EXP_SYS_arlen),
-    .AXI_SYS_arsize(AXI_EXP_SYS_arsize),
-    .AXI_SYS_arburst(AXI_EXP_SYS_arburst),
-    .AXI_SYS_arlock(AXI_EXP_SYS_arlock),
-    .AXI_SYS_arcache(AXI_EXP_SYS_arcache),
-    .AXI_SYS_arprot(AXI_EXP_SYS_arprot),
-    .AXI_SYS_arvalid(AXI_EXP_SYS_arvalid),
-    .AXI_SYS_arready(AXI_EXP_SYS_arready),
-    .AXI_SYS_rid(AXI_EXP_SYS_rid),
-    .AXI_SYS_rdata(AXI_EXP_SYS_rdata),
-    .AXI_SYS_rresp(AXI_EXP_SYS_rresp),
-    .AXI_SYS_rlast(AXI_EXP_SYS_rlast),
-    .AXI_SYS_rvalid(AXI_EXP_SYS_rvalid),
-    .AXI_SYS_rready(AXI_EXP_SYS_rready),
+    .AXI_SYS_awid(EXP_S_AXI.AWID),
+    .AXI_SYS_awaddr(EXP_S_AXI.AWADDR),
+    .AXI_SYS_awlen(EXP_S_AXI.AWLEN),
+    .AXI_SYS_awsize(EXP_S_AXI.AWSIZE),
+    .AXI_SYS_awburst(EXP_S_AXI.AWBURST),
+    .AXI_SYS_awlock(EXP_S_AXI.AWLOCK),
+    .AXI_SYS_awcache(EXP_S_AXI.AWCACHE),
+    .AXI_SYS_awprot(EXP_S_AXI.AWPROT),
+    .AXI_SYS_awvalid(EXP_S_AXI.AWVALID),
+    .AXI_SYS_awready(EXP_S_AXI.AWREADY),
+    .AXI_SYS_wdata(EXP_S_AXI.WDATA),
+    .AXI_SYS_wstrb(EXP_S_AXI.WSTRB),
+    .AXI_SYS_wlast(EXP_S_AXI.WLAST),
+    .AXI_SYS_wvalid(EXP_S_AXI.WVALID),
+    .AXI_SYS_wready(EXP_S_AXI.WREADY),
+    .AXI_SYS_bid(EXP_S_AXI.BID),
+    .AXI_SYS_bresp(EXP_S_AXI.BRESP),
+    .AXI_SYS_bvalid(EXP_S_AXI.BVALID),
+    .AXI_SYS_bready(EXP_S_AXI.BREADY),
+    .AXI_SYS_arid(EXP_S_AXI.ARID),
+    .AXI_SYS_araddr(EXP_S_AXI.ARADDR),
+    .AXI_SYS_arlen(EXP_S_AXI.ARLEN),
+    .AXI_SYS_arsize(EXP_S_AXI.ARSIZE),
+    .AXI_SYS_arburst(EXP_S_AXI.ARBURST),
+    .AXI_SYS_arlock(EXP_S_AXI.ARLOCK),
+    .AXI_SYS_arcache(EXP_S_AXI.ARCACHE),
+    .AXI_SYS_arprot(EXP_S_AXI.ARPROT),
+    .AXI_SYS_arvalid(EXP_S_AXI.ARVALID),
+    .AXI_SYS_arready(EXP_S_AXI.ARREADY),
+    .AXI_SYS_rid(EXP_S_AXI.RID),
+    .AXI_SYS_rdata(EXP_S_AXI.RDATA),
+    .AXI_SYS_rresp(EXP_S_AXI.RRESP),
+    .AXI_SYS_rlast(EXP_S_AXI.RLAST),
+    .AXI_SYS_rvalid(EXP_S_AXI.RVALID),
+    .AXI_SYS_rready(EXP_S_AXI.RREADY),
 
     // Interrupts
     .irq_dma_channel(),

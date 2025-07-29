@@ -30,6 +30,6 @@
 
 $(SOCLABS_PROJECT_DIR)/megasoc_chip/chip/logical/megasoc_chip.v
 
-$(SOCLABS_PROJECT_DIR)/megasoc_system/logical/megasoc_system.v
+$(SOCLABS_PROJECT_DIR)/megasoc_system/logical/megasoc_system.sv
 
 

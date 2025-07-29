@@ -101,10 +101,10 @@ endif
 	  echo Compile done ;\
 	  ls > /dev/null ;\
 	  echo Copy $(TESTNAME).hex ;\
-	  if [ -e  $(TESTNAME).hex ] ; then \
+	  if [ -e  $(TESTCODES_DIR)/../build/$(TESTNAME)/host0/app_flash.v8-a.hex/EXEC_ROM ] ; then \
 	    mkdir -p $(SIM_DIR) ; \
-	    cp $(TESTNAME).hex $(SIM_DIR)/image.hex ; \
-	    cp adp.cmd $(SIM_DIR)/adp.cmd ; \
+	    cp $(TESTCODES_DIR)/../build/$(TESTNAME)/host0/app_flash.v8-a.hex/EXEC_ROM $(SIM_DIR)/app_flash.v8-a.hex ; \
+	    cp $(TESTCODES_DIR)/../build/$(TESTNAME)/host0/app_ram.v8-a.hex $(SIM_DIR)/app_ram.v8-a.hex ; \
 	  else \
 	    while [ ! -e $(TESTNAME).hex ] ; do \
 	      echo Wait for $(TESTNAME).hex file ...; \

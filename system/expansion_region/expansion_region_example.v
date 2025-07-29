@@ -50,5 +50,16 @@ module expansion_region(
 
 );
 
+assign AWREADY_AXI_EXPANSION=1'b1;
+assign WREADY_AXI_EXPANSION = 1'b1;
+assign BID_AXI_EXPANSION = 3'h0;
+assign BRESP_AXI_EXPANSION = 2'h0;
+assign BVALID_AXI_EXPANSION = 1'b1;
+assign ARREADY_AXI_EXPANSION = 1'b1;
+assign RID_AXI_EXPANSION = 3'h0;
+assign RDATA_AXI_EXPANSION = 128'd0;
+assign RRESP_AXI_EXPANSION = 2'h0;
+assign RLAST_AXI_EXPANSION = 1'b1;
+
 
 endmodule
