@@ -316,7 +316,7 @@ BUFG uBUFG_SMBM        (.I(SMBM_CLK),     .O(iSMBMCLK));    //Micro SMB
         .QSPI_SCLK_0(QSPI_SCLK),
         .QSPI_nCS_0(QSPI_nCS),
 
-        .UARTRXD_0(1'b0),
+        .UARTRXD_0(UART_RX_F[1]),
         .UARTTXD_0(UART_TX_F[1]),
 
         .SWCLKTCK_0(CS_TCK),

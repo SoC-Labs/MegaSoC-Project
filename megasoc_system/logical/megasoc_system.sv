@@ -127,6 +127,8 @@ wire            RREADY_DMA350;
 wire [3:0]      DMA350_irq_channel;
 wire            DMA350_irq_comb_nonsec;
 
+wire [7:0]      EXP_IRQs;
+
 axi4 #(.DATA_W(64), .ID_W(7), .ADDR_W(32)) EXP_M_AXI();
 axi4 #(.DATA_W(64), .ID_W(3), .ADDR_W(32)) EXP_S_AXI();
 
@@ -141,6 +143,8 @@ megasoc_tech_wrapper u_megasoc_tech_wrapper(
 
     // Millisoc system AXI Subordinate
     .EXP_S_AXI(EXP_S_AXI),
+
+    .EXP_IRQs(EXP_IRQs),
 
     .PADDR_DMA_CTRL(PADDR_DMA_CTRL),
     .PWDATA_DMA_CTRL(PWDATA_DMA_CTRL),
@@ -401,8 +405,9 @@ expansion_subsystem_wrapper u_megasoc_expansion_wrapper(
     .AXI_SYS_rready(EXP_S_AXI.RREADY),
 
     // Interrupts
-    .irq_dma_channel(),
-    .irq_dma_comb_nonsec()
+    .irq_dma_channel(EXP_IRQs[3:0]),
+    .irq_dma_comb_nonsec(EXP_IRQs[4]),
+    .acc_irqs(EXP_IRQs[7:5])
 );
 `else 
     assign AXI_EXP_SYS_rready=1'b0;

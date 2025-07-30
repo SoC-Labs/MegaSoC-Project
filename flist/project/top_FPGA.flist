@@ -29,6 +29,8 @@
 -f $(SOCLABS_MEGASOC_TECH_DIR)/flist/megasoc_tech_BEHAV.flist
 
 $(SOCLABS_PROJECT_DIR)/megasoc_chip/chip/logical/megasoc_chip.v
+$(SOCLABS_PROJECT_DIR)/megasoc_chip/chip/logical/megasoc_chip_pin_mux.v
+$(SOCLABS_PROJECT_DIR)/megasoc_chip/chip/logical/FPGA/megasoc_clock_ctrl.v
 
 $(SOCLABS_PROJECT_DIR)/megasoc_system/logical/megasoc_system.sv
 

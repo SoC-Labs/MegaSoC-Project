@@ -46,7 +46,9 @@ module expansion_region(
     output wire [1:0]   RRESP_AXI_EXPANSION,
     output wire         RLAST_AXI_EXPANSION,
     output wire         RVALID_AXI_EXPANSION,
-    input  wire         RREADY_AXI_EXPANSION
+    input  wire         RREADY_AXI_EXPANSION,
+
+    output wire [2:0]   acc_irqs
 
 );
 
@@ -61,5 +63,6 @@ assign RDATA_AXI_EXPANSION = 128'd0;
 assign RRESP_AXI_EXPANSION = 2'h0;
 assign RLAST_AXI_EXPANSION = 1'b1;
 
+assign acc_irqs = 3'h0;
 
 endmodule
