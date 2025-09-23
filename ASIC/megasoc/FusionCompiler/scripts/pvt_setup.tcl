@@ -2,225 +2,154 @@ remove_modes -all
 remove_corners -all
 remove_scenarios -all
 
-set TLU_cbest $TLU_dir/cbest.tluplus
-set TLU_cbest_T $TLU_dir/cbest_T.tluplus
-set TLU_cworst_T $TLU_dir/cworst_T.tluplus
-set TLU_cworst $TLU_dir/cworst.tluplus
-set TLU_rcbest_T $TLU_dir/rcbest_T.tluplus
-set TLU_rcbest $TLU_dir/rcbest.tluplus
-set TLU_rcworst_T $TLU_dir/rcworst_T.tluplus
-set TLU_rcworst $TLU_dir/rcworst.tluplus
-set TLU_typical $TLU_dir/typical.tluplus
-set TLU_map /home/dwn1c21/SoC-Labs/phys_ip/TSMC/28/CMOS/HPC+/util/ULL/Reference/MAP/star.map_icc_crn28hpc+_1p9m_5x1y1z1u_ut-alrdl
+set TLU_cbest_CCbest    $TLU_dir/cbest_CCbest.tluplus
+set TLU_cbest_CCbest_T  $TLU_dir/cbest_CCbest_T.tluplus
+set TLU_cbest           $TLU_dir/cbest.tluplus
+set TLU_cworst_CCworst  $TLU_dir/cworst_CCworst.tluplus
+set TLU_cworst_CCworst_T $TLU_dir/cworst_CCworst_T.tluplus
+set TLU_cworst          $TLU_dir/cworst.tluplus
+set TLU_rcbest_CCbest   $TLU_dir/rcbest_CCbest.tluplus
+set TLU_rcbest_CCbest_T $TLU_dir/rcbest_CCbest_T.tluplus
+set TLU_rcbest          $TLU_dir/rcbest.tluplus
+set TLU_rcworst_CCworst $TLU_dir/rcworst_CCworst.tluplus
+set TLU_rcworst_CCworst_T $TLU_dir/rcworst_CCworst_T.tluplus
+set TLU_rcworst         $TLU_dir/rcworst.tluplus
+set TLU_typical_CCbest  $TLU_dir/typical_CCbest.tluplus
+set TLU_typical_CCworst $TLU_dir/typical_CCworst.tluplus
+set TLU_typical         $TLU_dir/typical.tluplus
+set TLU_map $TLU_dir/tluplus.map
 
-read_parasitic_tech -name cbest -tlup $TLU_cbest -layermap $TLU_map -sanity_check advanced
-read_parasitic_tech -name cbest_T -tlup $TLU_cbest_T -layermap $TLU_map -sanity_check advanced
-read_parasitic_tech -name cworst_T -tlup $TLU_cworst_T -layermap $TLU_map -sanity_check advanced
-read_parasitic_tech -name cworst -tlup $TLU_cworst -layermap $TLU_map -sanity_check advanced
-read_parasitic_tech -name rcbest_T -tlup $TLU_rcbest_T -layermap $TLU_map -sanity_check advanced
-read_parasitic_tech -name rcbest -tlup $TLU_rcbest -layermap $TLU_map -sanity_check advanced
-read_parasitic_tech -name rcworst_T -tlup $TLU_rcworst_T -layermap $TLU_map -sanity_check advanced
-read_parasitic_tech -name rcworst -tlup $TLU_rcworst -layermap $TLU_map -sanity_check advanced
-read_parasitic_tech -name typical -tlup $TLU_typical -layermap $TLU_map -sanity_check advanced
+read_parasitic_tech -name cbest_CCbest      -tlup $TLU_cbest_CCbest     -layermap $TLU_map
+read_parasitic_tech -name cbest_CCbest_T    -tlup $TLU_cbest_CCbest_T   -layermap $TLU_map
+read_parasitic_tech -name cbest             -tlup $TLU_cbest            -layermap $TLU_map
+read_parasitic_tech -name cworst_CCworst    -tlup $TLU_cworst_CCworst   -layermap $TLU_map
+read_parasitic_tech -name cworst_CCworst_T  -tlup $TLU_cworst_CCworst_T -layermap $TLU_map
+read_parasitic_tech -name cworst            -tlup $TLU_cworst           -layermap $TLU_map
+read_parasitic_tech -name rcbest_CCbest     -tlup $TLU_rcbest_CCbest    -layermap $TLU_map
+read_parasitic_tech -name rcbest_CCbest_T   -tlup $TLU_rcbest_CCbest_T  -layermap $TLU_map
+read_parasitic_tech -name rcbest            -tlup $TLU_rcbest           -layermap $TLU_map
+read_parasitic_tech -name rcworst_CCworst   -tlup $TLU_rcworst_CCworst  -layermap $TLU_map
+read_parasitic_tech -name rcworst_CCworst_T -tlup $TLU_rcworst_CCworst_T -layermap $TLU_map
+read_parasitic_tech -name rcworst           -tlup $TLU_rcworst          -layermap $TLU_map
+read_parasitic_tech -name typical_CCbest    -tlup $TLU_typical_CCbest   -layermap $TLU_map
+read_parasitic_tech -name typical_CCworst   -tlup $TLU_typical_CCworst  -layermap $TLU_map
+read_parasitic_tech -name typical           -tlup $TLU_typical          -layermap $TLU_map
 
-set_technology -node 28
+set_technology -node 16
 
-## Setup scenarios as below
-create_mode hold_mode_ffgnp
-create_corner hold_corner_ffgnp
-create_scenario -name hold_scenario_ffgnp -mode hold_mode_ffgnp -corner hold_corner_ffgnp
-set_scenario_status hold_scenario_ffgnp -none -setup false -hold true -leakage_power true -dynamic_power false -max_transition true -max_capacitance false -min_capacitance true -active true
+## Setup Scenarios as below
+create_corner ffgnp_0p88
+create_corner ssgnp_0p72
+create_corner tt_0p80
+create_corner tt_0p72
+create_corner ffg_0p80
 
-current_corner hold_corner_ffgnp
-read_sdc ../inputs/constraints_hold_ffg.sdc
+create_mode hold
+create_mode setup
+create_mode max_tran
+create_mode typ_power
+create_mode max_IR
+create_mode em
 
-create_mode hold_mode_ssgnp
-create_corner hold_corner_ssgnp
-create_scenario -name hold_scenario_ssgnp -mode hold_mode_ssgnp -corner hold_corner_ssgnp 
-set_scenario_status hold_scenario_ssgnp -none -setup false -hold true -leakage_power true -dynamic_power false -max_transition true -max_capacitance false -min_capacitance true -active true
+create_scenario -name hold_ffgnp -mode hold -corner ffgnp_0p88
+create_scenario -name hold_ssgnp -mode hold -corner ssgnp_0p72
+create_scenario -name setup_ssgnp -mode setup -corner ssgnp_0p72
+create_scenario -name setup_tt -mode setup -corner tt_0p72
+create_scenario -name max_tran_ssgnp -mode max_tran -corner ssgnp_0p72
+create_scenario -name typ_power_tt -mode typ_power -corner tt_0p80
+create_scenario -name max_IR_ffg -mode max_IR -corner ffg_0p80
+create_scenario -name em_ffg -mode em -corner ffg_0p80
 
-current_corner hold_corner_ssgnp
-read_sdc ../inputs/constraints_hold_ssg.sdc
+set_scenario_status setup_ssgnp    -none -setup true  -hold false -leakage_power true -dynamic_power true  -max_transition true -max_capacitance true  -min_capacitance false -active true
+set_scenario_status setup_tt       -none -setup true  -hold false -leakage_power true -dynamic_power true  -max_transition true -max_capacitance true  -min_capacitance false -active true 
+set_scenario_status hold_ffgnp     -none -setup false -hold true  -leakage_power true -dynamic_power false -max_transition true -max_capacitance false -min_capacitance true  -active true
+set_scenario_status hold_ssgnp     -none -setup false -hold true  -leakage_power true -dynamic_power false -max_transition true -max_capacitance false -min_capacitance true  -active true
 
+set_scenario_status max_tran_ssgnp -none -setup false -hold false -leakage_power true -dynamic_power false -max_transition true -max_capacitance false -min_capacitance true  -cell_em false -signal_em false -active true
+set_scenario_status typ_power_tt   -none -setup false -hold false -leakage_power true -dynamic_power false -max_transition true -max_capacitance false -min_capacitance true  -cell_em false -signal_em false -active true
+set_scenario_status max_IR_ffg     -none -setup false -hold false -leakage_power true -dynamic_power true  -max_transition true -max_capacitance false -min_capacitance true  -cell_em false -signal_em false -active true
+set_scenario_status em_ffg         -none -setup false -hold false -leakage_power true -dynamic_power false -max_transition true -max_capacitance false -min_capacitance true  -cell_em true  -signal_em true  -active true
 
-create_mode setup_mode
-create_corner setup_corner
-create_scenario -name setup_scenario -mode setup_mode -corner setup_corner
-set_scenario_status setup_scenario -none -setup true -hold false -leakage_power true -dynamic_power true -max_transition true -max_capacitance true -min_capacitance false -active true
+# ---------------------------------------------------------------
+# Purporse      Hold            Hold            Setup               Setup               Max Transition      Typical Power   Max IR Drop     Signal EM
+# Process       FFGNP           SSGNP           SSGNP               TT                  SSGNP               TT              FFG             FFG
+# Voltage       0.88V           0.72V           0.72V               0.72V               0.72V               0.8V            0.8V            0.8V
+# Temperature   -40 & 125C      -40 & 125C      -40C                85C                 -40                 85C             125C            125C
+# Parasitics    Cworst_Ccworst  Cworst_Ccworst  Cworst_Ccworst_T    Cworst_Ccworst_T    Cworst_Ccworst_T    typical         typical         Cworst_Ccworst_T
+#               Cbest_Ccbest    Rcworst_Ccworst Rcworst_Ccworst_T   Rcworst_Ccworst_T   Rcworst_Ccworst_T
+#               Rcworst_Ccworst 
+#               Rcbest_Ccbest
+# Max clk trans 87      96      90      101     90
+# V Derate      9.1     8.5     8.6     6.5     8.6
+# max dyn V drp 0.123           0.05            0.05
+# W derate      (r)cworst,-10%  early,-10%      +/-7%               +/-7%     
+#               (r)cbest, +10%
+# W Uncertainty 3ps             3ps             5ps                 5ps
+# Log Uncertain 4ps             10ps            0ps                 0ps
+# Jitter        0               0               Consult PLL Spec    Consult PLL Spec
 
-current_corner setup_corner 
-read_sdc ../inputs/constraints_setup.sdc
+current_scenario hold_ffgnp
+current_corner ffgnp_0p88
+set_parasitic_parameters -early_spec rcbest_CCbest -early_temperature 125 -late_spec rcworst_CCworst -late_temperature -40 -library cortexa53.dlib
+set_voltage 0.88 -corners ffgnp_0p88
+read_sdc ../inputs/constraints_hold_ffgnp.sdc
 
-create_mode em_mode
-create_corner em_corner
-create_scenario -name em_scenario -mode em_mode -corner em_corner
-set_scenario_status em_scenario -none -setup false -hold false -leakage_power false -dynamic_power false -max_transition false -max_capacitance false -min_capacitance false -cell_em false -signal_em true -active true 
+current_scenario hold_ssgnp
+current_corner ssgnp_0p72
+set_parasitic_parameters -early_spec cworst_CCworst -early_temperature 125 -late_spec rcworst_CCworst -late_temperature -40 -library cortexa53.dlib
+set_voltage 0.72 -corners ssgnp_0p72
+read_sdc ../inputs/constraints_hold_ssgnp.sdc 
 
-current_corner em_corner 
-read_sdc ../inputs/constraints_hold_ffg.sdc
+current_scenario setup_ssgnp
+current_corner ssgnp_0p72
+set_parasitic_parameters -early_spec cworst_CCworst_T -early_temperature -40 -late_spec rcworst_CCworst_T -late_temperature -40 -library cortexa53.dlib
+set_voltage 0.72 -corners ssgnp_0p72
+read_sdc ../inputs/constraints_setup_ssgnp.sdc
 
-create_mode max_tran_mode
-create_corner max_tran_corner
-create_scenario -name max_tran_scenario -mode max_tran_mode -corner max_tran_corner
-set_scenario_status max_tran_scenario -none -setup false -hold false -leakage_power false -dynamic_power false -max_transition true -max_capacitance false -min_capacitance false -active true 
+current_scenario setup_tt
+current_corner tt_0p72
+set_parasitic_parameters -early_spec cworst_CCworst_T -early_temperature 0 -late_spec rcworst_CCworst_T -late_temperature 0 -library cortexa53.dlib
+set_voltage 0.72 -corners tt_0p72
+read_sdc ../inputs/constraints_setup_tt.sdc
 
-current_corner max_tran_corner 
-read_sdc ../inputs/constraints_setup.sdc
+current_scenario max_tran_ssgnp
+current_corner ssgnp_0p72
+set_parasitic_parameters -early_spec cworst_CCworst_T -early_temperature -40 -late_spec rcworst_CCworst_T -late_temperature -40 -library cortexa53.dlib
+set_voltage 0.72 -corners ssgnp_0p72
+read_sdc ../inputs/constraints_setup_ssgnp.sdc
 
-create_mode typical_mode
-create_corner typical_corner
-create_scenario -name typical_scenario -mode typical_mode -corner typical_corner
-set_scenario_status typical_scenario -none -setup true -hold true -leakage_power true -dynamic_power true -max_transition false -max_capacitance false -min_capacitance false -active true
+current_scenario typ_power_tt
+current_corner tt_0p80
+set_parasitic_parameters -early_spec typical -early_temperature 85 -late_spec typical -late_temperature 85 -library cortexa53.dlib
+set_voltage 0.80 -corners tt_0p80
+read_sdc ../inputs/constraints_setup_tt.sdc
 
-current_corner typical_corner
-read_sdc ../inputs/constraints_typical.sdc
+current_scenario max_IR_ffg
+current_corner ffg_0p80
+set_parasitic_parameters -early_spec typical -early_temperature 125 -late_spec typical -late_temperature 125 -library cortexa53.dlib
+set_voltage 0.80 -corners ffg_0p80
+read_sdc ../inputs/constraints_ffg.sdc
 
-## hold - FFGNP V=+10% T=-40 and 125, parasitics cworst cbest rcworst rcbest
-#         SSSGNP V=-10%, T=-40 and 125, parasitics cworst and rcworst
-current_corner hold_corner_ffgnp
-set_parasitic_parameters -early_spec cbest -early_temperature 125 -late_spec cworst -late_temperature -40 -library nanosoc_chip_pads.dlib
-set_operating_conditions -max_library cln28ht_pmk -max ffg_cbestt_min_0p99v_m40c -min_library cln28ht_pmk -min ffg_cbestt_min_0p99v_125c
-set_operating_conditions -max_library cln28ht_hpk -max ffg_cbestt_min_0p99v_m40c -min_library cln28ht_hpk -min ffg_cbestt_min_0p99v_125c
-#set_operating_conditions -max_library cln28ht_ret -max ffg_cbestt_min_0p99v_125c -min_library cln28ht_ret -min ffg_cbestt_min_0p99v_125c
-set_operating_conditions -max_library sram_16k -max ffg_cbestt_0p99v_0p99v_m40c -min_library sram_16k -min ffg_cbestt_0p99v_0p99v_125c
-set_operating_conditions -max_library rom_via -max ffg_cbestt_0p99v_0p99v_m40c -min_library rom_via -min ffg_cbestt_0p99v_0p99v_125c
-set_operating_conditions -max_library io_lib -max ffg0p99v1p98vm40c -min_library io_lib -min ffg0p99v1p98v125c
-set_operating_conditions -max_library cln28ht -max ffg_cbestt_min_0p99v_m40c -min_library cln28ht -min ffg_cbestt_min_0p99v_125c
-set_temperature -40 -min 125 -corners hold_corner_ffgnp
-set_voltage 0.99 -min 0.99 -corners hold_corner_ffgnp
-
-set_voltage -corners hold_corner_ffgnp -object_list [get_supply_nets {VDD}] 0.99
-set_voltage -corners hold_corner_ffgnp -object_list [get_supply_nets {VDDACC}] 0.99
-set_voltage -corners hold_corner_ffgnp -object_list [get_supply_nets {AVDDHV}] 1.98
-set_voltage -corners hold_corner_ffgnp -object_list [get_supply_nets {AVDD}] 0.99
-set_voltage -corners hold_corner_ffgnp -object_list [get_supply_nets {VSS}] 0.0
-set_voltage -corners hold_corner_ffgnp -object_list [get_supply_nets {AGND}] 0.0
-set_voltage -corners hold_corner_ffgnp -object_list [get_supply_nets {VSSIO}] 0.0
-set_voltage -corners hold_corner_ffgnp -object_list [get_supply_nets {VDDIO}] 1.98
-
-
-current_corner hold_corner_ssgnp
-set_parasitic_parameters -early_spec cworst -early_temperature 125 -late_spec rcworst -late_temperature -40 -library nanosoc_chip_pads.dlib
-set_operating_conditions -max_library cln28ht_pmk -max ssg_cworstt_max_0p81v_m40c -min_library cln28ht_pmk -min ssg_cworstt_max_0p81v_125c
-set_operating_conditions -max_library cln28ht_hpk -max ssg_cworstt_max_0p81v_m40c -min_library cln28ht_hpk -min ssg_cworstt_max_0p81v_125c
-#set_operating_conditions -max_library cln28ht_ret -max ssg_cworstt_max_0p81v_m40c -min_library cln28ht_ret -min ssg_cworstt_max_0p81v_125c
-set_operating_conditions -max_library sram_16k -max ssg_cworstt_0p81v_0p81v_m40c -min_library sram_16k -min ssg_cworstt_0p81v_0p81v_125c
-set_operating_conditions -max_library rom_via -max ssg_cworstt_0p81v_0p81v_m40c -min_library rom_via -min ssg_cworstt_0p81v_0p81v_125c
-set_operating_conditions -max_library io_lib -max ssg0p81v1p62vm40c -min_library io_lib -min ssg0p81v1p62v125c
-set_operating_conditions -max_library cln28ht -max ssg_cworstt_max_0p81v_m40c -min_library cln28ht -min ssg_cworstt_max_0p81v_125c
-set_temperature -40 -min 125 -corners hold_corner_ssgnp
-set_voltage 0.81 -min 0.81 -corners hold_corner_ssgnp
-
-set_voltage -corners hold_corner_ssgnp -object_list [get_supply_nets {VDD}] 0.81
-set_voltage -corners hold_corner_ssgnp -object_list [get_supply_nets {VDDACC}] 0.81
-set_voltage -corners hold_corner_ssgnp -object_list [get_supply_nets {AVDDHV}] 1.62
-set_voltage -corners hold_corner_ssgnp -object_list [get_supply_nets {AVDD}] 0.81
-set_voltage -corners hold_corner_ssgnp -object_list [get_supply_nets {VSS}] 0.0
-set_voltage -corners hold_corner_ssgnp -object_list [get_supply_nets {AGND}] 0.0
-set_voltage -corners hold_corner_ssgnp -object_list [get_supply_nets {VSSIO}] 0.0
-set_voltage -corners hold_corner_ssgnp -object_list [get_supply_nets {VDDIO}] 1.62
-
-
-## setup SSGNP V=-10%, T=-40 parasitics cworst_t rcworst_t
-#        TT V=-10%, T=85C parasitics cworst_t rcworst_t
-#set_parasitic_parameters -early_spec cworst_T -early_temperature -40 -late_spec rcworst_T -late_temperature 25 -library nanosoc_chip_pads.dlib
-#set_operating_conditions -max_library cln28ht -max ssg_cworstt_max_0p81v_125c -min_library cln28ht -min tt_ctypical_max_0p90v_25c
-#set_temperature -40 -min 25 -corners setup_corner
-#set_voltage 0.81 -corners setup_corner
-current_corner setup_corner
-set_parasitic_parameters -early_spec cworst_T -early_temperature -40 -late_spec rcworst_T -late_temperature -40 -library nanosoc_chip_pads.dlib
-
-set_operating_conditions -library cln28ht_pmk ssg_cworstt_max_0p81v_m40c
-set_operating_conditions -library cln28ht_hpk ssg_cworstt_max_0p81v_m40c 
-#set_operating_conditions -library cln28ht_ret ssg_cworstt_max_0p81v_m40c 
-set_operating_conditions -library sram_16k ssg_cworstt_0p81v_0p81v_m40c 
-set_operating_conditions -library rom_via ssg_cworstt_0p81v_0p81v_m40c 
-set_operating_conditions -library io_lib ssg0p81v1p62vm40c 
-set_operating_conditions -library cln28ht ssg_cworstt_max_0p81v_m40c 
-set_temperature -40 -corners setup_corner
-set_voltage 0.81 -corners setup_corner
-
-set_voltage -corners setup_corner -object_list [get_supply_nets {VDD}] 0.81
-set_voltage -corners setup_corner -object_list [get_supply_nets {VDDACC}] 0.81
-set_voltage -corners setup_corner -object_list [get_supply_nets {AVDDHV}] 1.62
-set_voltage -corners setup_corner -object_list [get_supply_nets {AVDD}] 0.81
-set_voltage -corners setup_corner -object_list [get_supply_nets {VSS}] 0.0
-set_voltage -corners setup_corner -object_list [get_supply_nets {AGND}] 0.0
-set_voltage -corners setup_corner -object_list [get_supply_nets {VSSIO}] 0.0
-set_voltage -corners setup_corner -object_list [get_supply_nets {VDDIO}] 1.62
+current_scenario em_ffg
+current_corner ffg_0p80
+set_parasitic_parameters -early_spec cworst_CCworst_T -early_temperature 125 -late_spec cworst_CCworst_T -late_temperature 125 -library cortexa53.dlib
+set_voltage 0.80 -corners ffg_0p80
+read_sdc ../inputs/constraints_ffg.sdc
 
 
-## max transition - SSGNP V=-10% T=-40 P=cworst_t rcworst_t
-current_corner max_tran_corner 
-set_parasitic_parameters -early_spec cworst_T -early_temperature -40 -late_spec rcworst_T -late_temperature -40 -library nanosoc_chip_pads.dlib
-set_operating_conditions -library cln28ht_pmk ssg_cworstt_max_0p81v_m40c
-set_operating_conditions -library cln28ht_hpk ssg_cworstt_max_0p81v_m40c
-#set_operating_conditions -library cln28ht_ret ssg_cworstt_max_0p81v_m40c
-set_operating_conditions -library sram_16k ssg_cworstt_0p81v_0p81v_m40c
-set_operating_conditions -library rom_via ssg_cworstt_0p81v_0p81v_m40c
-set_operating_conditions -library io_lib ssg0p81v1p62vm40c
-set_operating_conditions -library cln28ht ssg_cworstt_max_0p81v_m40c
-set_temperature -40 -corners max_tran_corner
-set_voltage 0.81 -corners max_tran_corner 
+# Set Supply voltages
+ 
+set_voltage -corners ffgnp_0p88 -object_list [get_supply_nets VDD] 0.88 
+set_voltage -corners ffgnp_0p88 -object_list [get_supply_nets VSS] 0.0 
 
-set_voltage -corners max_tran_corner -object_list [get_supply_nets {VDD}] 0.81
-set_voltage -corners max_tran_corner -object_list [get_supply_nets {VDDACC}] 0.81
-set_voltage -corners max_tran_corner -object_list [get_supply_nets {AVDDHV}] 1.62
-set_voltage -corners max_tran_corner -object_list [get_supply_nets {AVDD}] 0.81
-set_voltage -corners max_tran_corner -object_list [get_supply_nets {VSS}] 0.0
-set_voltage -corners max_tran_corner -object_list [get_supply_nets {AGND}] 0.0
-set_voltage -corners max_tran_corner -object_list [get_supply_nets {VSSIO}] 0.0
-set_voltage -corners max_tran_corner -object_list [get_supply_nets {VDDIO}] 1.62
+set_voltage -corners ssgnp_0p72 -object_list [get_supply_nets VDD] 0.72
+set_voltage -corners ssgnp_0p72 -object_list [get_supply_nets VSS] 0.0
 
-## typical power - TT V=V T=85C P=ctypical
-current_corner typical_corner
-set_parasitic_parameters -early_spec typical -early_temperature 85 -late_spec typical -late_temperature 85 -library nanosoc_chip_pads.dlib
-set_operating_conditions -library cln28ht_pmk tt_ctypical_max_0p90v_85c
-set_operating_conditions -library cln28ht_hpk tt_ctypical_max_0p90v_85c 
-#set_operating_conditions -library cln28ht_ret  tt_ctypical_max_0p90v_85c 
-set_operating_conditions -library sram_16k  tt_ctypical_0p90v_0p90v_85c 
-set_operating_conditions -library rom_via  tt_ctypical_0p90v_0p90v_85c 
-set_operating_conditions -library io_lib  tt0p9v1p8v85c 
-set_operating_conditions -library cln28ht  tt_ctypical_max_0p90v_85c 
-set_temperature 125 -corners typical_corner
-set_voltage 0.9 -corners typical_corner 
+set_voltage -corners tt_0p80 -object_list [get_supply_nets VDD] 0.80
+set_voltage -corners tt_0p80 -object_list [get_supply_nets VSS] 0.0
 
-set_voltage -corners typical_corner -object_list [get_supply_nets {VDD}] 0.9
-set_voltage -corners typical_corner -object_list [get_supply_nets {VDDACC}] 0.9
-set_voltage -corners typical_corner -object_list [get_supply_nets {AVDDHV}] 1.8
-set_voltage -corners typical_corner -object_list [get_supply_nets {AVDD}] 0.9
-set_voltage -corners typical_corner -object_list [get_supply_nets {VSS}] 0.0
-set_voltage -corners typical_corner -object_list [get_supply_nets {AGND}] 0.0
-set_voltage -corners typical_corner -object_list [get_supply_nets {VSSIO}] 0.0
-set_voltage -corners typical_corner -object_list [get_supply_nets {VDDIO}] 1.8
+set_voltage -corners tt_0p72 -object_list [get_supply_nets VDD] 0.72 
+set_voltage -corners tt_0p72 -object_list [get_supply_nets VSS] 0.0 
 
-# Max IR drop - FFG V=V T=125 P=cworst
-
-# Signal EM - FFG V=V T=125 P=rcworst_c cworst_T
-current_corner em_corner
-set_parasitic_parameters -early_spec cworst_T -early_temperature 125 -late_spec rcworst_T -late_temperature 125 -library nanosoc_chip_pads.dlib
-set_operating_conditions -library cln28ht_pmk ffg_cbestt_min_0p99v_125c
-set_operating_conditions -library cln28ht_hpk ffg_cbestt_min_0p99v_125c 
-#set_operating_conditions -library cln28ht_ret  ffg_cbestt_min_0p99v_125c 
-set_operating_conditions -library sram_16k  ffg_cbestt_0p99v_0p99v_125c 
-set_operating_conditions -library rom_via  ffg_cbestt_0p99v_0p99v_125c 
-set_operating_conditions -library io_lib  ffg0p99v1p98v125c 
-set_operating_conditions -library cln28ht  ffg_cbestt_min_0p99v_125c 
-set_temperature 125 -corners em_corner
-set_voltage 0.9 -corners em_corner 
-
-set_voltage -corners em_corner -object_list [get_supply_nets {VDD}] 0.9
-set_voltage -corners em_corner -object_list [get_supply_nets {VDDACC}] 0.9
-set_voltage -corners em_corner -object_list [get_supply_nets {AVDDHV}] 1.8
-set_voltage -corners em_corner -object_list [get_supply_nets {AVDD}] 0.9
-set_voltage -corners em_corner -object_list [get_supply_nets {VSS}] 0.0
-set_voltage -corners em_corner -object_list [get_supply_nets {AGND}] 0.0
-set_voltage -corners em_corner -object_list [get_supply_nets {VSSIO}] 0.0
-set_voltage -corners em_corner -object_list [get_supply_nets {VDDIO}] 1.8
-
-redirect -file ../reports/design_setup.report_scenarios.rpt {report_scenarios} 
-redirect -file ../reports/design_setup.report_pvt.rpt {report_pvt} 
-redirect -file ../reports/design_setup.report_corners.rpt {report_corners} 
-
-current_corner setup_corner
-
+set_voltage -corners ffg_0p80 -object_list [get_supply_nets VDD] 0.80 
+set_voltage -corners ffg_0p80 -object_list [get_supply_nets VSS] 0.0

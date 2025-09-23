@@ -5,6 +5,7 @@ megaSoC is a system on chip reference design targetted for the integration of cu
 1. [First Time Setup](#first-time-setup)
 2. [Repository Structure](#repository-structure)
 3. [Simulation](#simulation)
+4. [FPGA](#fpga)
 
 ## First Time Setup
 Follow these steps to setup the MegaSoC Project.
@@ -57,3 +58,7 @@ To get a list of the valid values for TESTNAME run:
 make list_tests
 ```
 
+## FPGA
+So far limited testing in FPGA has been achieved. We have attempted to build for the Arm MPS3 but the design does not fit the Kintex 115 part. 
+
+Support is being developed for the Arm MPS4 board and HAPS-SX

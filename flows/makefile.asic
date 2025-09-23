@@ -34,6 +34,13 @@ ASIC_OUTPUT_DIR 	    := $(MEGASOC_ASIC_IMP_DIR)/outputs
 ASIC_WORK_DIR 			:= $(MEGASOC_ASIC_IMP_DIR)/work
 ASIC_LIBS_DIR 			:= $(MEGASOC_ASIC_IMP_DIR)/libs
 
+A53_REPORTS_FOLDER		:= $(CA53_IMP_DIR)/reports
+A53_SYN_LOGS			:= $(CA53_IMP_DIR)/logs
+A53_NETLIST_FOLDER		:= $(CA53_IMP_DIR)/netlist/
+A53_ASIC_OUTPUT_DIR 	:= $(CA53_IMP_DIR)/outputs
+A53_ASIC_WORK_DIR 		:= $(CA53_IMP_DIR)/work
+A53_ASIC_LIBS_DIR 		:= $(CA53_IMP_DIR)/libs
+
 
 flist_fc_ca53:
 	@mkdir -p $(CA53_FLIST_DIR)
@@ -74,5 +81,25 @@ megasoc_fusion_setup_dirs:
 
 megasoc_fusion_setup_libs: megasoc_fusion_setup_dirs
 	@if [ ! -d $(ASIC_LIBS_DIR)/cln16* ] ; then \
-		cd $(ASIC_LIBS_DIR); lc_shell -f ../scripts/synopsys_lib_conversion.tcl
+		cd $(ASIC_LIBS_DIR); lc_shell -f ../scripts/synopsys_lib_conversion.tcl ; \
 	fi
+
+a53_fusion_setup_dirs:
+	@mkdir -p $(A53_REPORTS_FOLDER)
+	@mkdir -p $(A53_SYN_LOGS)	
+	@mkdir -p $(A53_NETLIST_FOLDER)
+	@mkdir -p $(A53_ASIC_OUTPUT_DIR) 	 
+	@mkdir -p $(A53_ASIC_WORK_DIR) 
+	@mkdir -p $(A53_ASIC_LIBS_DIR) 
+	cp -rf $(SOCLABS_PROJECT_DIR)/ASIC/CA53/FusionCompiler/scripts $(CA53_IMP_DIR)/
+	cp -rf $(SOCLABS_PROJECT_DIR)/ASIC/CA53/FusionCompiler/inputs $(CA53_IMP_DIR)/
+	cp -rf $(SOCLABS_PROJECT_DIR)/ASIC/CA53/FusionCompiler/floorplan $(CA53_IMP_DIR)/
+
+a53_fusion_setup_libs: a53_fusion_setup_dirs
+	@if [ ! -d $(A53_ASIC_LIBS_DIR)/cln16* ] ; then \
+		cd $(A53_ASIC_LIBS_DIR); lc_shell -f ../scripts/synopsys_library_setup.tcl ; \
+	fi
+
+a53_fusion_clean_libs:
+	rm -rf $(A53_ASIC_LIBS_DIR)
+	@mkdir -p $(A53_ASIC_LIBS_DIR)

@@ -1,0 +1,108 @@
+#-------------------------------------------------------------------------------
+# The confidential and proprietary information contained in this file may
+# only be used by a person authorised under and to the extent permitted
+# by a subsisting licensing agreement from ARM Limited.
+#
+#                 (C) COPYRIGHT 2013-2015 ARM Limited.
+#                       ALL RIGHTS RESERVED
+#
+# This entire notice must be reproduced on all copies of this file
+# and copies of this file may only be made by a person if such person is
+# permitted to do so under the terms of a subsisting license agreement
+# from ARM Limited.
+#
+#      SVN Information
+#
+#      Checked In          : $Date: 2012-09-28 11:48:18 +0100 (Fri, 28 Sep 2012) $
+#
+#      Revision            : $Revision: 224055 $
+#
+#      Release Information : CORTEXA53-r0p4-52rel0
+#
+#-------------------------------------------------------------------------------
+# Description:
+#  This UPF describes the constraints for CortexA53, it must always be used in any
+#  simulation or implementation when power aware is required.
+#  The unconfigured version needs to be rendered before it can be used.
+#  The configured version expects to be called with a scope set to CortexA53 
+#
+
+#
+# elements
+#
+		
+
+
+
+#-------------------------------------------------------------------------------
+# Isolation Elements
+#-------------------------------------------------------------------------------
+
+set_port_attributes {-domains PDCORTEXA53 -applies_to outputs}  -clamp_value 0
+set_port_attributes  -ports "$CA53_CLAMP1" -clamp_value 1
+
+set_port_attributes {-domains PDL2 -applies_to outputs} -clamp_value 0
+
+set_port_attributes {-domains PDCPU0 -applies_to outputs}   -clamp_value 0
+set_port_attributes  -ports "$CPU0_CLAMP1" -clamp_value 1
+
+set_port_attributes {-domains PDCPUADVSIMD0 -applies_to outputs} -clamp_value 0
+
+
+#-------------------------------------------------------------------------------
+# Power State
+#-------------------------------------------------------------------------------
+
+add_power_state PDCORTEXA53 \
+  -state RUN         {-logic_expr {primary == ON  && PDL2 == RUN}} \
+  -state L2_RET      {-logic_expr {primary == ON  && PDL2 == RET}} \
+  -state DMT         {-logic_expr {primary == OFF && PDL2 != SHD && PDCPU0 == SHD}} \
+  -state SHD         {-logic_expr {primary == OFF && PDL2 == SHD && PDCPU0 == SHD}}
+
+add_power_state PDCORTEXA53.primary \
+  -state ON  {-simstate NORMAL} \
+  -state OFF {-simstate NOT_NORMAL}
+  
+add_power_state PDCORTEXA53.default_isolation \
+  -state ON  {-simstate NORMAL} \
+  -state OFF {-simstate NOT_NORMAL}   
+
+add_power_state PDL2 \
+  -state RUN {-logic_expr {primary == ON  && default_retention == ON}} \
+  -state RET {-logic_expr {primary == OFF && default_retention == ON}} \
+  -state SHD {-logic_expr {primary == OFF && default_retention == OFF}}
+
+add_power_state PDL2.primary \
+  -state ON  {-simstate NORMAL} \
+  -state OFF {-simstate NOT_NORMAL}
+  
+add_power_state PDL2.default_retention \
+  -state ON  {-simstate NORMAL} \
+  -state OFF {-simstate NOT_NORMAL}  
+
+add_power_state PDCPU0 \
+  -state RUN {-logic_expr {primary == ON  && default_retention == ON && PDCPUADVSIMD0 != SHD}} \
+  -state RET {-logic_expr {primary == OFF && default_retention == ON && PDCPUADVSIMD0 == RET}} \
+  -state SHD {-logic_expr {primary == OFF && default_retention == OFF && PDCPUADVSIMD0 == SHD}}
+
+add_power_state PDCPU0.primary \
+  -state ON  {-simstate NORMAL} \
+  -state OFF {-simstate NOT_NORMAL}
+  
+add_power_state PDCPU0.default_retention \
+  -state ON  {-simstate NORMAL} \
+  -state OFF {-simstate NOT_NORMAL} 
+   
+
+add_power_state PDCPUADVSIMD0 \
+  -state RUN {-logic_expr {primary == ON  && default_retention == ON}} \ 
+  -state RET {-logic_expr {primary == OFF && default_retention == ON}} \
+  -state SHD {-logic_expr {primary == OFF && default_retention == OFF}}
+
+add_power_state PDCPUADVSIMD0.primary \
+  -state ON  {-simstate NORMAL} \
+  -state OFF {-simstate NOT_NORMAL}
+  
+add_power_state PDCPUADVSIMD0.default_retention \
+  -state ON  {-simstate NORMAL} \
+  -state OFF {-simstate NOT_NORMAL}  

@@ -59,7 +59,6 @@ endfunction
    integer        ch;
    
    integer        flen;
-   integer        clen;
    reg [31:0]     codesize;
    integer        fp;
 
@@ -83,7 +82,7 @@ localparam BUFSIZE = (64 * 1024);
           $write("** %m : input file <%s> failed to open **\n", TXDFILENAME);
        else begin
          while (!$feof(fd)) begin
-           adpbuf[clen+25+1 + flen] =  $fgetc(fd);
+           adpbuf[flen] =  $fgetc(fd);
            flen = flen +1;
            end
          $write("** %m : file closed after stream TX completed **\n");
@@ -92,10 +91,6 @@ localparam BUFSIZE = (64 * 1024);
     $write("** %m : input file length measured as: %d **\n", flen); 
        if (flen > 0) flen=flen-1; // correct for extra char count(???)
        // now output the entire adp buffer to the stream
-       if (FAST_LOAD==0)
-           flen = flen + clen+25;
-       else
-           flen = flen + clen+17;
        fp = 0;
        valid <= 0;
        begin

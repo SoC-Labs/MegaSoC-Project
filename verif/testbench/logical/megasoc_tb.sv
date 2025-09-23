@@ -29,6 +29,7 @@ wire         nRESET_early;
 wire [15:0]   P0;
 wire [15:0]   P1;
 
+
 megasoc_clkreset u_megasoc_clkreset(
     .CLK(EXT_CLK),
     .CLK_RT(RT_CLK),
@@ -272,9 +273,21 @@ assign axis_rx1_tvalid = 1'b0;
     .rxd8_data    (axis_tx1_tdata8)
   );
 
+  reg ADP_nRESET;
+  initial
+    begin
+      ADP_nRESET <= 1'b0;
+    end
+
+  always @(COM_CLK) begin
+    if(QSPI_nCS==1'b0)
+      ADP_nRESET<=1'b1;
+  end
+
+
   megasoc_axi_stream_io_8_txd_from_file u_megasoc_axi_stream_io_8_txd_from_file(
     .aclk(COM_CLK),
-    .aresetn(nRESET),
+    .aresetn(ADP_nRESET),
     .txd8_ready(axis_rx0_tready),
     .txd8_valid(axis_rx0_tvalid),
     .txd8_data(axis_rx0_tdata8)

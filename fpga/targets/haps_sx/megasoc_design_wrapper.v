@@ -14,7 +14,7 @@ module megasoc_design_wrapper(
   input  wire   CLK_IN_P,
   input  wire   CLK_IN_N,
   input  wire   nRESET_0,
-  inout  wire [7:0] PMOD1_IO    
+  inout  wire [7:0] PMOD1_IO
 );
 
   wire [3:0]QSPI_IO_e_0;

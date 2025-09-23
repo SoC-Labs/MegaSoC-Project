@@ -1,0 +1,103 @@
+#-------------------------------------------------------------------------------
+# The confidential and proprietary information contained in this file may
+# only be used by a person authorised under and to the extent permitted
+# by a subsisting licensing agreement from ARM Limited.
+#
+#                 (C) COPYRIGHT 2012-2015 ARM Limited.
+#                       ALL RIGHTS RESERVED
+#
+# This entire notice must be reproduced on all copies of this file
+# and copies of this file may only be made by a person if such person is
+# permitted to do so under the terms of a subsisting license agreement
+# from ARM Limited.
+#
+#      SVN Information
+#
+#      Checked In          : $Date: 2012-09-28 11:48:18 +0100 (Fri, 28 Sep 2012) $
+#
+#      Revision            : $Revision: 224055 $
+#
+#      Release Information : CORTEXA53-r0p4-52rel0
+#
+#-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+# Function: UPF file for Configuration
+#-------------------------------------------------------------------------------
+# This UPF is an unconfigured multi switched power domain with isolated outputs
+
+#-------------------------------------------------------------------------------
+# Supply Sets
+#-------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------
+# Isolation Strategy
+#-------------------------------------------------------------------------------
+
+            
+#-------------------------------------------------------------------------------
+# Power State
+#-------------------------------------------------------------------------------
+
+# -------- Domain Update based on Pwrup signals ---------
+
+#------CPU0-------
+add_power_state PDCPU0 -update \
+  -state RUN {-logic_expr {nPWRUPCPU0 == 0 && nPWRUPRetnCPU0 == 0}} \
+  -state RET {-logic_expr {nPWRUPCPU0 == 1 && nPWRUPRetnCPU0 == 0 && nRETNCPU0 == 0 && nISOLATECPU0 == 0}} \
+  -state SHD {-logic_expr {nPWRUPCPU0 == 1 && nPWRUPRetnCPU0 == 1}} \
+  
+add_power_state PDCPUADVSIMD0 -update \
+  -state RUN {-logic_expr {nPWRUPCPU0ADVSIMD == 0 && nPWRUPRetnCPU0ADVSIMD == 0}} \
+  -state RET {-logic_expr {nPWRUPCPU0ADVSIMD == 1 && nPWRUPRetnCPU0ADVSIMD == 0 && nRETNCPU0ADVSIMD == 0 && nISOLATECPU0ADVSIMD == 0}} \
+  -state SHD {-logic_expr {nPWRUPCPU0ADVSIMD == 1 && nPWRUPRetnCPU0ADVSIMD == 1}}  
+      
+#------L2 & CA53-------   
+  add_power_state PDL2 -update \
+  -state RUN {-logic_expr {nPWRUPL2 == 0 && nPWRUPRetnL2 == 0}} \
+  -state RET {-logic_expr {nPWRUPL2 == 1 && nPWRUPRetnL2 == 0 && nRETNL2 == 0 && nISOLATEL2 == 0}} \
+  -state SHD {-logic_expr {nPWRUPL2 == 1 && nPWRUPRetnL2 == 1}}   
+
+add_power_state PDCORTEXA53 -update \
+  -state RUN	    {-logic_expr {nPWRUPCORTEXA53 == 0 && nISOLATECORTEXA53 == 1}} \
+  -state L2_RET     {-logic_expr {nPWRUPCORTEXA53 == 0 && nISOLATECORTEXA53 == 1}} \
+  -state DMT	    {-logic_expr {nPWRUPCORTEXA53 == 1 && nISOLATECORTEXA53 == 0}} \
+  -state SHD	    {-logic_expr {nPWRUPCORTEXA53 == 1 }}  
+  
+# -------- Supply Update with supply expressions ---------
+  
+#------CPU0-------
+add_power_state PDCPU0.primary -update \
+  -state ON  {-supply_expr {power == FULL_ON && ground == FULL_ON} -logic_expr {nPWRUPCPU0 == 0}} \
+  -state OFF {-supply_expr {power == OFF     || ground == OFF}     -logic_expr {nPWRUPCPU0 == 1}}
+  
+add_power_state PDCPU0.default_retention -update \
+  -state ON  {-supply_expr {power == FULL_ON && ground == FULL_ON} -logic_expr {nPWRUPRetnCPU0 == 0}} \
+  -state OFF {-supply_expr {power == OFF     || ground == OFF}     -logic_expr {nPWRUPRetnCPU0 == 1}}
+    
+add_power_state PDCPUADVSIMD0.primary -update \
+  -state ON  {-supply_expr {power == FULL_ON && ground == FULL_ON} -logic_expr {nPWRUPCPU0ADVSIMD == 0}} \
+  -state OFF {-supply_expr {power == OFF     || ground == OFF}     -logic_expr {nPWRUPCPU0ADVSIMD == 1}} 
+  
+add_power_state PDCPUADVSIMD0.default_retention -update \
+  -state ON  {-supply_expr {power == FULL_ON && ground == FULL_ON} -logic_expr {nPWRUPRetnCPU0ADVSIMD == 0}} \
+  -state OFF {-supply_expr {power == OFF    || ground == OFF}	   -logic_expr {nPWRUPRetnCPU0ADVSIMD == 1}}	   
+    
+#------L2 & CA53-------   
+add_power_state PDL2.primary -update \
+  -state ON  {-supply_expr {power == FULL_ON && ground == FULL_ON} -logic_expr {nPWRUPL2 == 0}} \
+  -state OFF {-supply_expr {power == OFF    || ground == OFF}	   -logic_expr {nPWRUPL2 == 1}} 
+  
+add_power_state PDL2.default_retention -update \
+  -state ON  {-supply_expr {power == FULL_ON && ground == FULL_ON} -logic_expr {nPWRUPRetnL2 == 0}} \
+  -state OFF {-supply_expr {power == OFF    || ground == OFF}	   -logic_expr {nPWRUPRetnL2 == 1}}	   
+
+add_power_state PDCORTEXA53.primary -update \
+  -state ON  {-supply_expr {power == FULL_ON && ground == FULL_ON} -logic_expr {nPWRUPCORTEXA53 == 0}} \
+  -state OFF {-supply_expr {power == OFF     || ground == OFF}     -logic_expr {nPWRUPCORTEXA53 == 1}} 
+  
+add_power_state PDCORTEXA53.default_isolation -update \
+  -state ON  {-supply_expr {power == FULL_ON && ground == FULL_ON}} \
+  -state OFF {-supply_expr {power == OFF     || ground == OFF}} 
+  

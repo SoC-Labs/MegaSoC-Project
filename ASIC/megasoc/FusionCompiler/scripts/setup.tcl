@@ -3,25 +3,22 @@ set via_map_file    /home/dwn1c21/SoC-Labs/phys_ip/TSMC/28/CMOS/util/PRTF_ICC_28
 set_app_options -list {signoff.check_drc.runset {/home/dwn1c21/SoC-Labs/phys_ip/TSMC/28/CMOS/util/LOGIC_TopMz+Mu_DRC/ICVLN28HP_9M_5X1Y1Z1U_002.22a.encrypt}}
 set_app_options -list {signoff.physical.layer_map_file {/home/dwn1c21/SoC-Labs/phys_ip/TSMC/28/CMOS/util/PRTF_ICC_28nm_Syn_V19_1a/PR_tech/Synopsys/GdsOutMap/gdsout_5X1Y1Z1U.map}}
 set_app_options -list {signoff.check_drc_live.runset {/home/dwn1c21/SoC-Labs/phys_ip/TSMC/28/CMOS/util/LOGIC_TopMz+Mu_DRC/ICVLN28HP_9M_5X1Y1Z1U_002.22a.encrypt}}
-set TLU_dir /home/dwn1c21/SoC-Labs/phys_ip/TSMC/28/CMOS/HPC+/util/ULL/TLUplus/1p9m_5x1y1z1u_ut-alrdl
+set TLU_dir /research/AAA/phys_ip_library/arm/tsmc/cln16fcll001/arm_tech/r3p0/synopsys_tluplus/9m_2xa1xd3xe2z_utrdl
 
-
-# Removed ../libs/cln28ht_ret/ from lib for now
 
 set PG_NETS [list VDD VDDACC VSS]
-set CORE_VOLTAGE 0.9
-set tie_hi_cells cln28ht/TIEHI_X1M_A7PP140ZTS_C30
-set tie_lo_cells cln28ht/TIELO_X1M_A7PP140ZTS_C30
+set CORE_VOLTAGE 0.8
+set tie_hi_cells cln16fcll/TIEHI_X1N_A9PP96CTS_C24
+set tie_lo_cells cln16fcll/TIELO_X1N_A9PP96CTS_C24
 
-set fill_cells  {FILL128_A7PP140ZTS_C30 \
- FILL32_A7PP140ZTS_C30 \
- FILL16_A7PP140ZTS_C30 \
- FILL4_A7PP140ZTS_C30\
- FILL3_A7PP140ZTS_C30 \
- FILL2_A7PP140ZTS_C30 \
- FILL1_A7PP140ZTS_C30 \
+set fill_cells  {FILL128_A9PP96CTS_C24 \
+ FILL64_A9PP96CTS_C24 \
+ FILL32_A9PP96CTS_C24 \
+ FILL16_A9PP96CTS_C24\
+ FILL8_A9PP96CTS_C24 \
+ FILL4_A9PP96CTS_C24 \
+ FILL3_A9PP96CTS_C24 \
+ FILL2_A9PP96CTS_C24 \
+ FILL1_A9PP96CTS_C24 \
  }
 
-set_app_options -name place.coarse.congestion_driven_max_util -value 0.7
-set_app_options -name compile.final_place.placement_congestion_effort -value high
-set_app_options -name compile.initial_opto.placement_congestion_effort -value high

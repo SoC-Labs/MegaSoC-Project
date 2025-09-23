@@ -12,14 +12,42 @@
 //  megasoc_chip
 
 module megasoc_chip_pads(
-
     // Clocks and Reset
     input  wire         REF_CLK_XTAL1,
     output wire         REF_CLK_XTAL2,
     input  wire         RT_CLK_XTAL1,
     output wire         RT_CLK_XTAL2,
     input  wire         PORESTn,
-    input  wire         nSRST, 
+    input  wire         nSRST,
+
+    // SWD/JTAG TRACE - for Mictor 38
+    output wire         TDO_SWO, 
+    input  wire         RTCK,
+    input  wire         TDI,
+    input  wire         TCK_SWCLK, 
+    inout  wire         TMS_SWDIO, 
+    input  wire         nTRST,
+    output wire [15:0]  TRACEDATA,
+    input  wire         TRACECLK,
+    input  wire         TRACECTL,
+    input  wire         DBGRQ,
+    output wire         DBGACK,
+
+    // QSPI Interface
+    output wire         QSPI_SCLK,
+    inout  wire [3:0]   QSPI_IO,
+    output wire         QSPI_nCS,
+
+    // GPIO
+    inout [15:0]        P0,
+    inout [15:0]        P1
+
+    // Ethernet
+
+    // DDR
+
+    // USB
+
 
 );
 
