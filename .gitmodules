@@ -7,3 +7,6 @@
 [submodule "asic_flow"]
 	path = asic_flow
 	url = https://git.soton.ac.uk/soclabs/asic_flow.git
+[submodule "fpga/vhdl-axis-uart"]
+	path = fpga/vhdl-axis-uart
+	url = https://github.com/fcayci/vhdl-axis-uart.git

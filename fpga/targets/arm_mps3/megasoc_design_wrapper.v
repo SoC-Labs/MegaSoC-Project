@@ -271,19 +271,8 @@ BUFG uBUFG_SMBM        (.I(SMBM_CLK),     .O(iSMBMCLK));    //Micro SMB
   assign SMBM_nWAIT    = 1'b1;
   assign CFG_DATAOUT   = 1'b0;
   wire nRST;
-  reg  rst_sync0, rst_sync1, rst_sync2;
-  assign nRST_in = CB_nRST || CS_nSRST;
-  assign nRST = rst_sync2;
-
-  always @(posedge ACLK)
-    if (~nRST_in) begin
-      rst_sync0 <= 1'b0;
-      rst_sync1 <= 1'b0;
-    end else begin
-      rst_sync0 <= 1'b1;
-      rst_sync1 <= rst_sync0;
-      rst_sync2 <= rst_sync1;
-    end
+  assign nRST = USER_nPB[0];
+  assign USER_nLED[0] = nRST;
 
     wire SWDITMS_0;
     wire SWDOEN_0;
@@ -306,26 +295,88 @@ BUFG uBUFG_SMBM        (.I(SMBM_CLK),     .O(iSMBMCLK));    //Micro SMB
     assign QSPI_IO_i[2] = QSPI_D2;
     assign QSPI_IO_i[3] = QSPI_D3;
 
-  megasoc_design megasoc_design_i
-       (.CLK_IN_0(ACLK),
-        .nRESET_0(nRST),
+wire [3:0] iodata4_i;
+wire [3:0] iodata4_o;
+wire [3:0] iodata4_e;
+wire [3:0] iodata4_t;
+wire       ioreq1_a;
+wire       ioreq2_a;
+wire       ioack_o;
+  megasoc_tech_top megasoc_design_i
+       (.CLK_IN(ACLK),
+        .nRESET(nRST),
 
-        .QSPI_IO_e_0(QSPI_IO_e),
-        .QSPI_IO_i_0(QSPI_IO_i),
-        .QSPI_IO_o_0(QSPI_IO_o),
-        .QSPI_SCLK_0(QSPI_SCLK),
-        .QSPI_nCS_0(QSPI_nCS),
+        .QSPI_IO_e(QSPI_IO_e),
+        .QSPI_IO_i(QSPI_IO_i),
+        .QSPI_IO_o(QSPI_IO_o),
+        .QSPI_SCLK(QSPI_SCLK),
+        .QSPI_nCS(QSPI_nCS),
 
-        .UARTRXD_0(UART_RX_F[1]),
-        .UARTTXD_0(UART_TX_F[1]),
+        .UARTRXD0(UART_RX_F[1]),
+        .UARTTXD0(UART_TX_F[1]),
 
-        .SWCLKTCK_0(CS_TCK),
-        .SWDITMS_0(SWDITMS_0),
-        .SWDOEN_0(SWDOEN_0),
-        .SWDO_0(SWDO_0),
-        .TDI_0(CS_TDI),
-        .TDO_0(CS_TDO),
-        .nTDOEN_0(),
-        .nTRST_0(CS_nTRST));
+        .SWCLKTCK(CS_TCK),
+        .SWDITMS(SWDITMS_0),
+        .SWDOEN(SWDOEN_0),
+        .SWDO(SWDO_0),
+        .TDI(CS_TDI),
+        .TDO(CS_TDO),
+        .nTDOEN(),
+        .nTRST(CS_nTRST),
+        
+        .iodata4_i(iodata4_o),
+        .iodata4_o(iodata4_i),
+        .iodata4_e(),
+        .iodata4_t(),
+        .ioreq1_o(ioreq1_a),
+        .ioreq2_o(ioreq2_a),
+        .ioack_i(ioack_o)
+    );
 
+    wire m_axis_tready;
+    wire [7:0] m_axis_tdata;
+    wire m_axis_tvalid;
+    
+    wire s_axis_tvalid;
+    wire [7:0] s_axis_tdata;
+    wire s_axis_tready;
+
+    uart u_uart(
+        .clk(ACLK),
+        .rxd(UART_RX_F[2]),
+        .txd(UART_TX_F[2]),
+        .m_axis_tready(m_axis_tready),
+        .m_axis_tdata(m_axis_tdata),
+        .m_axis_tvalid(m_axis_tvalid),
+        .s_axis_tvalid(s_axis_tvalid),
+        .s_axis_tdata(s_axis_tdata),
+        .s_axis_tready(s_axis_tready)
+    );
+    
+    extio8x4_axis_target u_extio_target(
+        .clk(ACLK),
+        .resetn(nRST),
+        .testmode(1'b0),
+ 
+        .axis_rx0_tready(m_axis_tready),
+        .axis_rx0_tvalid(m_axis_tvalid),
+        .axis_rx0_tdata8(m_axis_tdata),
+        .axis_rx1_tready(),
+        .axis_rx1_tvalid(1'b0),
+        .axis_rx1_tdata8(8'h00),
+        .axis_tx0_tready(s_axis_tready),
+        .axis_tx0_tvalid(s_axis_tvalid),
+        .axis_tx0_tdata8(s_axis_tdata),
+        .axis_tx1_tready(1'b0),
+        .axis_tx1_tvalid(),
+        .axis_tx1_tdata8(),
+
+        .iodata4_i(iodata4_i),
+        .iodata4_o(iodata4_o),
+        .iodata4_e(),
+        .iodata4_t(),
+        .ioreq1_a(ioreq1_a),
+        .ioreq2_a(ioreq2_a),
+        .ioack_o(ioack_o)
+    );
 endmodule

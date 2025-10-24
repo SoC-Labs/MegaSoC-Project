@@ -29,6 +29,18 @@ wire         nRESET_early;
 wire [15:0]   P0;
 wire [15:0]   P1;
 
+wire         SDIO_CK;
+wire         SDIO_DS;
+wire         SDIO_CMD;
+wire [3:0]   SDIO_DAT;
+wire         SD_O_1P8V;
+
+// Loopback PL011
+wire         PL011_UARTTXRX;
+wire         PL011_nUARTRTSCTS;
+wire         PL011_nUARTOut1DCD;
+wire         PL011_nUARTDTRDSR;
+wire         PL011_nUARTOut2TRI;
 
 megasoc_clkreset u_megasoc_clkreset(
     .CLK(EXT_CLK),
@@ -75,8 +87,31 @@ megasoc_chip_pads u_megasoc_chip_pads(
 
     .QSPI_SCLK(QSPI_SCLK),
     .QSPI_IO(QSPI_IO),
-    .QSPI_nCS(QSPI_nCS)
+    .QSPI_nCS(QSPI_nCS),
+
+    .PL011_nUARTCTS(PL011_nUARTRTSCTS),
+    .PL011_nUARTDCD(PL011_nUARTOut1DCD),
+    .PL011_nUARTDSR(PL011_nUARTDTRDSR),
+    .PL011_nUARTRI(PL011_nUARTOut2TRI),
+    .PL011_UARTRXD(PL011_UARTTXRX),
+    .PL011_UARTTXD(PL011_UARTTXRX),
+    .PL011_nUARTOut2(PL011_nUARTOut2TRI),
+    .PL011_nUARTOut1(PL011_nUARTOut1DCD),
+    .PL011_nUARTRTS(PL011_nUARTRTSCTS),
+    .PL011_nUARTDTR(PL011_nUARTDTRDSR),
+
+    .SDIO_CK(SDIO_CK),
+    .SDIO_CMD(SDIO_CMD),
+    .SDIO_DAT(SDIO_DAT),
+    .SD_O_1P8V(SD_O_1P8V)
 );
+
+pullup(SDIO_CMD);
+pullup(SDIO_DAT[0]);
+pullup(SDIO_DAT[1]);
+pullup(SDIO_DAT[2]);
+pullup(SDIO_DAT[3]);
+
 
 //sst26vf064b FLASH(
 //    .SCK(QSPI_SCLK),
@@ -95,6 +130,16 @@ N25Qxxx FLASH(
   .Vcc('d1800)
 );
 
+mdl_sdio #(
+  .OPT_HIGH_CAPACITY(1),
+  .LGMEMSZ(35),
+  .OPT_DUAL_VOLTAGE(1)
+  ) u_sd_card_model (
+  .sd_clk(SDIO_CK),
+  .sd_cmd(SDIO_CMD),
+  .sd_dat(SDIO_DAT),
+  .i_1p8v(SD_O_1P8V)
+);
 
 // GPIO P0 Loop
 tran P0_0(P0[0],P0[8]);

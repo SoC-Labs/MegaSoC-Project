@@ -39,3 +39,4 @@ $(SOCLABS_PROJECT_DIR)/megasoc_chip/pads/glib/logical/megasoc_chip_pads.v
 $(SOCLABS_PROJECT_DIR)/megasoc_system/logical/megasoc_system.sv
 
 
+$(SOCLABS_MEGASOC_TECH_DIR)/logical/sdspi/rtl/sdfrontend.v

@@ -18,6 +18,7 @@
 
 stages:          # List of stages for jobs, and their order of execution
   - build
+  - simulate
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
@@ -37,3 +38,9 @@ build-job:       # This job runs in the build stage, which runs first.
     - echo "building complete."
 
 
+regression_vcs:
+  stage: simulate
+  script:
+    - echo "Running regression"
+    - source set_env.sh
+    - make regression

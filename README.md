@@ -2,10 +2,35 @@
 megaSoC is a system on chip reference design targetted for the integration of custom hardware acceleration in a Linux capable SoC. The system includes the Arm Cortex A53, DMA350, GIC400, NIC400 bus interconnect plus many other pieces of Arm IP from the Arm Academic Access Program (AAA)
 
 ## README contents
+1. [Prerequisites](#prerequisites)
 1. [First Time Setup](#first-time-setup)
 2. [Repository Structure](#repository-structure)
 3. [Simulation](#simulation)
 4. [FPGA](#fpga)
+
+## Prerequisites
+You will first need to setup the environment. This includes downloading all the IP, having tools installed and setup correctly.
+
+### Arm IP
+You will need to download from Arm the following IP
+- Cortex A53
+- Cortex A53 FPU and NEON extension
+- NIC-400
+- GIC-400
+- DMA350
+- Corstone-101
+- PCK600
+- PL011
+- PL022
+- PL031
+- SIE300
+- CG092
+
+You may need to do some additional unpacking of these IPs (particularly the A53) Please see the release notes from the downloaded IP.
+
+In order for the project to find the required files. You can use this repo (https://git.soton.ac.uk/soclabs/soclabs-arm-ip-environment) to setup the IP environment.
+
+Once you have set this up, you should set up an environment variable $ARM_IP_LIBRARY_PATH that points to the Arm IP directory.
 
 ## First Time Setup
 Follow these steps to setup the MegaSoC Project.

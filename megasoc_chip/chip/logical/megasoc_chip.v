@@ -5,7 +5,7 @@
 // Contributors
 //
 // Daniel Newbrook (d.newbrook@soton.ac.uk)
-// 
+//
 // Copyright � 2021-4, SoC Labs (www.soclabs.org)
 //-----------------------------------------------------------------------------
 // Modules instantiated:
@@ -41,6 +41,18 @@ module megasoc_chip(
     output wire [15:0]  PAD_P1_OUT,
     output wire [15:0]  PAD_P1_EN,
 
+    // PL011 UART
+    input  wire             PL011_nUARTCTS,
+    input  wire             PL011_nUARTDCD,
+    input  wire             PL011_nUARTDSR,
+    input  wire             PL011_nUARTRI,
+    input  wire             PL011_UARTRXD,
+    output wire             PL011_UARTTXD,
+    output wire             PL011_nUARTOut2,
+    output wire             PL011_nUARTOut1,
+    output wire             PL011_nUARTRTS,
+    output wire             PL011_nUARTDTR,
+
     // DDR4 signals
     output wire             DDR4_CK_T,
     output wire             DDR4_CK_C,
@@ -63,7 +75,16 @@ module megasoc_chip(
     output wire             DDR4_RESET_N,
 
     input  wire             DDR_nALERT,
-    input  wire             DDR_nEVENT
+    input  wire             DDR_nEVENT,
+
+    output wire             SDIO_CK,
+    output wire             SDIO_CMD_tri,
+    output wire             SDIO_CMD_o,
+    input  wire             SDIO_CMD_i,
+    output wire [3:0]       SDIO_DAT_tri,
+    output wire [3:0]       SDIO_DAT_o,
+    input  wire [3:0]       SDIO_DAT_i,
+    output wire             SD_O_1P8V
 
 );
 
@@ -124,6 +145,31 @@ wire [3:0]  iodata4_t;
 wire        ioreq1_o;
 wire        ioreq2_o;
 wire        ioack_i;
+
+wire        SDIO_o_cfg_ddr;
+wire        SDIO_o_cfg_ds;
+wire        SDIO_o_cfg_dscmd;
+wire [4:0]  SDIO_o_cfg_sample_shift;
+wire [7:0]  SDIO_o_sdclk;
+wire        SDIO_o_cmd_en;
+wire        SDIO_o_cmd_tristate;
+wire [1:0]  SDIO_o_cmd_data;
+wire        SDIO_o_data_en;
+wire        SDIO_o_data_tristate;
+wire        SDIO_o_rx_en;
+wire [31:0] SDIO_o_tx_data;
+wire [1:0]  SDIO_i_cmd_strb;
+wire [1:0]  SDIO_i_cmd_data;
+wire        SDIO_i_cmd_collision;
+wire        SDIO_i_card_busy;
+wire [1:0]  SDIO_i_rx_strb;
+wire [15:0] SDIO_i_rx_data;
+wire        SDIO_i_crcack;
+wire        SDIO_i_crcnak;
+wire        SDIO_AC_VALID;
+wire [1:0]  SDIO_AC_DATA;
+wire        SDIO_AD_VALID;
+wire [31:0] SDIO_AD_DATA;
 
 // UART0 RX to P1[0]
 assign UARTRXD0 = SOC_P1_ALT_IN[0];
@@ -218,6 +264,17 @@ megasoc_system u_megasoc_system(
     .UARTTXD1(UARTTXD1),
     .UARTTXEN1(UARTTXEN1),
 
+    .PL011_nUARTCTS(PL011_nUARTCTS),
+    .PL011_nUARTDCD(PL011_nUARTDCD),
+    .PL011_nUARTDSR(PL011_nUARTDSR),
+    .PL011_nUARTRI(PL011_nUARTRI),
+    .PL011_UARTRXD(PL011_UARTRXD),
+    .PL011_UARTTXD(PL011_UARTTXD),
+    .PL011_nUARTOut2(PL011_nUARTOut2),
+    .PL011_nUARTOut1(PL011_nUARTOut1),
+    .PL011_nUARTRTS(PL011_nUARTRTS),
+    .PL011_nUARTDTR(PL011_nUARTDTR),
+
     .iodata4_i(iodata4_i),
     .iodata4_o(iodata4_o),
     .iodata4_e(iodata4_e),
@@ -265,8 +322,33 @@ megasoc_system u_megasoc_system(
     .DDR4_DQS_C(DDR4_DQS_C),
     .DDR4_RESET_N(DDR4_RESET_N),
     .DDR_nALERT(DDR_nALERT),
-    .DDR_nEVENT(DDR_nEVENT)
+    .DDR_nEVENT(DDR_nEVENT),
 
+    .SDIO_o_cfg_ddr(SDIO_o_cfg_ddr),
+    .SDIO_o_cfg_ds(SDIO_o_cfg_ds),
+    .SDIO_o_cfg_dscmd(SDIO_o_cfg_dscmd),
+    .SDIO_o_cfg_sample_shift(SDIO_o_cfg_sample_shift),
+    .SDIO_o_sdclk(SDIO_o_sdclk),
+    .SDIO_o_cmd_en(SDIO_o_cmd_en),
+    .SDIO_o_cmd_tristate(SDIO_o_cmd_tristate),
+    .SDIO_o_cmd_data(SDIO_o_cmd_data),
+    .SDIO_o_data_en(SDIO_o_data_en),
+    .SDIO_o_data_tristate(SDIO_o_data_tristate),
+    .SDIO_o_rx_en(SDIO_o_rx_en),
+    .SDIO_o_tx_data(SDIO_o_tx_data),
+    .SDIO_i_cmd_strb(SDIO_i_cmd_strb),
+    .SDIO_i_cmd_data(SDIO_i_cmd_data),
+    .SDIO_i_cmd_collision(SDIO_i_cmd_collision),
+    .SDIO_i_card_busy(SDIO_i_card_busy),
+    .SDIO_i_rx_strb(SDIO_i_rx_strb),
+    .SDIO_i_rx_data(SDIO_i_rx_data),
+    .SDIO_i_crcack(SDIO_i_crcack),
+    .SDIO_i_crcnak(SDIO_i_crcnak),
+    .SD_O_1P8V(SD_O_1P8V),
+    .SDIO_AC_VALID(SDIO_AC_VALID),
+    .SDIO_AC_DATA(SDIO_AC_DATA),
+    .SDIO_AD_VALID(SDIO_AD_VALID),
+    .SDIO_AD_DATA(SDIO_AD_DATA)
 );
 
 megasoc_chip_pin_mux u_pin_mux(
@@ -293,6 +375,54 @@ megasoc_chip_pin_mux u_pin_mux(
     .PAD_P1_IN(PAD_P1_IN),
     .PAD_P1_OUT(PAD_P1_OUT),
     .PAD_P1_EN(PAD_P1_EN)
+);
+
+`define VERILATOR
+sdfrontend #(
+    .OPT_SERDES(1'b0),
+    .OPT_DDR(1'b0),
+    .OPT_COLLISION(1'b0),
+    .OPT_CRCTOKEN(1'b1),
+    .NUMIO(4)
+) u_sdio_frontend (
+    .i_clk(CPU_CLK),
+    .i_hsclk(CPU_CLK),
+    .i_reset(~nRESET),
+    .i_cfg_ddr(SDIO_o_cfg_ddr),
+    .i_cfg_ds(SDIO_o_cfg_ds),
+    .i_cfg_dscmd(SDIO_o_cfg_dscmd),
+    .i_sample_shift(SDIO_o_cfg_sample_shift),
+    .i_sdclk(SDIO_o_sdclk),
+    .i_cmd_en(SDIO_o_cmd_en),
+    .i_cmd_tristate(SDIO_o_cmd_tristate),
+    .i_cmd_data(SDIO_o_cmd_data),
+    .i_data_en(SDIO_o_data_en),
+    .i_rx_en(SDIO_o_rx_en),
+    .i_data_tristate(SDIO_o_data_tristate),
+    .i_tx_data(SDIO_o_tx_data),
+    .o_data_busy(SDIO_i_card_busy),
+    .o_cmd_strb(SDIO_i_cmd_strb),
+    .o_cmd_data(SDIO_i_cmd_data),
+    .o_cmd_collision(SDIO_i_cmd_collision),
+    .o_crcack(SDIO_i_crcack),
+    .o_crcnak(SDIO_i_crcnak),
+    .o_rx_strb(SDIO_i_rx_strb),
+    .o_rx_data(SDIO_i_rx_data),
+    .MAC_VALID(SDIO_AC_VALID),
+    .MAC_DATA(SDIO_AC_DATA),
+    .MAD_VALID(SDIO_AD_VALID),
+    .MAD_DATA(SDIO_AD_DATA),
+
+    .o_ck(SDIO_CK),
+    .i_ds(1'b0),
+    .io_cmd_tristate(SDIO_CMD_tri),
+    .o_cmd(SDIO_CMD_o),
+    .i_cmd(SDIO_CMD_i),
+    .io_dat_tristate(SDIO_DAT_tri),
+    .o_dat(SDIO_DAT_o),
+    .i_dat(SDIO_DAT_i),
+
+    .o_debug()
 );
 
 endmodule

@@ -5,7 +5,7 @@
 // Contributors
 //
 // Daniel Newbrook (d.newbrook@soton.ac.uk)
-// 
+//
 // Copyright � 2021-4, SoC Labs (www.soclabs.org)
 //-----------------------------------------------------------------------------
 // Modules instantiated:
@@ -33,6 +33,18 @@ module megasoc_system(
     input  wire         UARTRXD1,
     output wire         UARTTXD1,
     output wire         UARTTXEN1,
+
+    // PL011 UART
+    input  wire             PL011_nUARTCTS,
+    input  wire             PL011_nUARTDCD,
+    input  wire             PL011_nUARTDSR,
+    input  wire             PL011_nUARTRI,
+    input  wire             PL011_UARTRXD,
+    output wire             PL011_UARTTXD,
+    output wire             PL011_nUARTOut2,
+    output wire             PL011_nUARTOut1,
+    output wire             PL011_nUARTRTS,
+    output wire             PL011_nUARTDTR,
 
     // FT1248 Signals
     input  wire [3:0]   iodata4_i,
@@ -91,70 +103,96 @@ module megasoc_system(
     output wire             DDR4_RESET_N,
 
     input  wire             DDR_nALERT,
-    input  wire             DDR_nEVENT
+    input  wire             DDR_nEVENT,
 
+    // SDIO PHY to MAC Signals
+    output wire             SDIO_o_cfg_ddr,
+    output wire             SDIO_o_cfg_ds,
+    output wire             SDIO_o_cfg_dscmd,
+    output wire [4:0]       SDIO_o_cfg_sample_shift,
+    output wire [7:0]       SDIO_o_sdclk,
+    output wire             SDIO_o_cmd_en,
+    output wire             SDIO_o_cmd_tristate,
+    output wire [1:0]       SDIO_o_cmd_data,
+    output wire             SDIO_o_data_en,
+    output wire             SDIO_o_data_tristate,
+    output wire             SDIO_o_rx_en,
+    output wire [31:0]      SDIO_o_tx_data,
+    input  wire [1:0]       SDIO_i_cmd_strb,
+    input  wire [1:0]       SDIO_i_cmd_data,
+    input  wire             SDIO_i_cmd_collision,
+    input  wire             SDIO_i_card_busy,
+    input  wire [1:0]       SDIO_i_rx_strb,
+    input  wire [15:0]      SDIO_i_rx_data,
+    input  wire             SDIO_i_crcack,
+    input  wire             SDIO_i_crcnak,
+    output wire             SD_O_1P8V,
+    input  wire             SDIO_AC_VALID,
+    input  wire [1:0]       SDIO_AC_DATA,
+    input  wire             SDIO_AD_VALID,
+    input  wire [31:0]      SDIO_AD_DATA
 );
 
+// Update 24/09/2025 No "system" DMA needed as not yet getting ethernet or PCIe added
+// // DMA 350 APB Interface Wires
+// wire [31:0]     PADDR_DMA_CTRL;
+// wire [31:0]     PWDATA_DMA_CTRL;
+// wire            PWRITE_DMA_CTRL;
+// wire [2:0]      PPROT_DMA_CTRL;
+// wire [3:0]      PSTRB_DMA_CTRL;
+// wire            PENABLE_DMA_CTRL;
+// wire            PSELx_DMA_CTRL;
+// wire [31:0]     PRDATA_DMA_CTRL;
+// wire            PSLVERR_DMA_CTRL;
+// wire            PREADY_DMA_CTRL;
 
-// DMA 350 APB Interface Wires
-wire [31:0]     PADDR_DMA_CTRL;
-wire [31:0]     PWDATA_DMA_CTRL;
-wire            PWRITE_DMA_CTRL;
-wire [2:0]      PPROT_DMA_CTRL;
-wire [3:0]      PSTRB_DMA_CTRL;
-wire            PENABLE_DMA_CTRL;
-wire            PSELx_DMA_CTRL;
-wire [31:0]     PRDATA_DMA_CTRL;
-wire            PSLVERR_DMA_CTRL;
-wire            PREADY_DMA_CTRL;
+// // DMA 350 AXI Interface Wires
+// wire [1:0]      AWID_DMA350;
+// wire [43:0]     AWADDR_DMA350;
+// wire [7:0]      AWLEN_DMA350;
+// wire [2:0]      AWSIZE_DMA350;
+// wire [1:0]      AWBURST_DMA350;
+// wire            AWLOCK_DMA350;
+// wire [3:0]      AWCACHE_DMA350;
+// wire [2:0]      AWPROT_DMA350;
+// wire            AWVALID_DMA350;
+// wire            AWREADY_DMA350;
 
-// DMA 350 AXI Interface Wires
-wire [1:0]      AWID_DMA350;
-wire [43:0]     AWADDR_DMA350;
-wire [7:0]      AWLEN_DMA350;
-wire [2:0]      AWSIZE_DMA350;
-wire [1:0]      AWBURST_DMA350;
-wire            AWLOCK_DMA350;
-wire [3:0]      AWCACHE_DMA350;
-wire [2:0]      AWPROT_DMA350;
-wire            AWVALID_DMA350;
-wire            AWREADY_DMA350;
+// wire [127:0]    WDATA_DMA350;
+// wire [15:0]     WSTRB_DMA350;
+// wire            WLAST_DMA350;
+// wire            WVALID_DMA350;
+// wire            WREADY_DMA350;
 
-wire [127:0]    WDATA_DMA350;
-wire [15:0]     WSTRB_DMA350;
-wire            WLAST_DMA350;
-wire            WVALID_DMA350;
-wire            WREADY_DMA350;
+// wire [1:0]      BID_DMA350;
+// wire [1:0]      BRESP_DMA350;
+// wire            BVALID_DMA350;
+// wire            BREADY_DMA350;
 
-wire [1:0]      BID_DMA350;
-wire [1:0]      BRESP_DMA350;
-wire            BVALID_DMA350;
-wire            BREADY_DMA350;
+// wire [1:0]      ARID_DMA350;
+// wire [43:0]     ARADDR_DMA350;
+// wire [7:0]      ARLEN_DMA350;
+// wire [2:0]      ARSIZE_DMA350;
+// wire [1:0]      ARBURST_DMA350;
+// wire            ARLOCK_DMA350;
+// wire [3:0]      ARCACHE_DMA350;
+// wire [2:0]      ARPROT_DMA350;
+// wire            ARVALID_DMA350;
+// wire            ARREADY_DMA350;
 
-wire [1:0]      ARID_DMA350;
-wire [43:0]     ARADDR_DMA350;
-wire [7:0]      ARLEN_DMA350;
-wire [2:0]      ARSIZE_DMA350;
-wire [1:0]      ARBURST_DMA350;
-wire            ARLOCK_DMA350;
-wire [3:0]      ARCACHE_DMA350;
-wire [2:0]      ARPROT_DMA350;
-wire            ARVALID_DMA350;
-wire            ARREADY_DMA350;
+// wire [1:0]      RID_DMA350;
+// wire [127:0]    RDATA_DMA350;
+// wire [1:0]      RRESP_DMA350;
+// wire            RLAST_DMA350;
+// wire            RVALID_DMA350;
+// wire            RREADY_DMA350;
 
-wire [1:0]      RID_DMA350;
-wire [127:0]    RDATA_DMA350;
-wire [1:0]      RRESP_DMA350;
-wire            RLAST_DMA350;
-wire            RVALID_DMA350;
-wire            RREADY_DMA350;
-
-wire [3:0]      DMA350_irq_channel;
-wire            DMA350_irq_comb_nonsec;
+// wire [3:0]      DMA350_irq_channel;
+// wire            DMA350_irq_comb_nonsec;
 
 wire [7:0]      EXP_IRQs;
 
-axi4 #(.DATA_W(64), .ID_W(7), .ADDR_W(32)) EXP_M_AXI();
+axi4 #(.DATA_W(64), .ID_W(9), .ADDR_W(32)) EXP_M_AXI();
 axi4 #(.DATA_W(64), .ID_W(3), .ADDR_W(32)) EXP_S_AXI();
 
 megasoc_tech_wrapper u_megasoc_tech_wrapper(
@@ -171,55 +209,56 @@ megasoc_tech_wrapper u_megasoc_tech_wrapper(
 
     .EXP_IRQs(EXP_IRQs),
 
-    .PADDR_DMA_CTRL(PADDR_DMA_CTRL),
-    .PWDATA_DMA_CTRL(PWDATA_DMA_CTRL),
-    .PWRITE_DMA_CTRL(PWRITE_DMA_CTRL),
-    .PPROT_DMA_CTRL(PPROT_DMA_CTRL),
-    .PSTRB_DMA_CTRL(PSTRB_DMA_CTRL),
-    .PENABLE_DMA_CTRL(PENABLE_DMA_CTRL),
-    .PSELx_DMA_CTRL(PSELx_DMA_CTRL),
-    .PRDATA_DMA_CTRL(PRDATA_DMA_CTRL),
-    .PSLVERR_DMA_CTRL(PSLVERR_DMA_CTRL),
-    .PREADY_DMA_CTRL(PREADY_DMA_CTRL),
+    // Update 24/09/2025 No "system" DMA needed as not yet getting ethernet or PCIe added
+    // .PADDR_DMA_CTRL(PADDR_DMA_CTRL),
+    // .PWDATA_DMA_CTRL(PWDATA_DMA_CTRL),
+    // .PWRITE_DMA_CTRL(PWRITE_DMA_CTRL),
+    // .PPROT_DMA_CTRL(PPROT_DMA_CTRL),
+    // .PSTRB_DMA_CTRL(PSTRB_DMA_CTRL),
+    // .PENABLE_DMA_CTRL(PENABLE_DMA_CTRL),
+    // .PSELx_DMA_CTRL(PSELx_DMA_CTRL),
+    // .PRDATA_DMA_CTRL(PRDATA_DMA_CTRL),
+    // .PSLVERR_DMA_CTRL(PSLVERR_DMA_CTRL),
+    // .PREADY_DMA_CTRL(PREADY_DMA_CTRL),
 
-    .AWID_DMA350(AWID_DMA350),
-    .AWADDR_DMA350(AWADDR_DMA350),
-    .AWLEN_DMA350(AWLEN_DMA350),
-    .AWSIZE_DMA350(AWSIZE_DMA350),
-    .AWBURST_DMA350(AWBURST_DMA350),
-    .AWLOCK_DMA350(AWLOCK_DMA350),
-    .AWCACHE_DMA350(AWCACHE_DMA350),
-    .AWPROT_DMA350(AWPROT_DMA350),
-    .AWVALID_DMA350(AWVALID_DMA350),
-    .AWREADY_DMA350(AWREADY_DMA350),
-    .WDATA_DMA350(WDATA_DMA350),
-    .WSTRB_DMA350(WSTRB_DMA350),
-    .WLAST_DMA350(WLAST_DMA350),
-    .WVALID_DMA350(WVALID_DMA350),
-    .WREADY_DMA350(WREADY_DMA350),
-    .BID_DMA350(BID_DMA350),
-    .BRESP_DMA350(BRESP_DMA350),
-    .BVALID_DMA350(BVALID_DMA350),
-    .BREADY_DMA350(BREADY_DMA350),
-    .ARID_DMA350(ARID_DMA350),
-    .ARADDR_DMA350(ARADDR_DMA350),
-    .ARLEN_DMA350(ARLEN_DMA350),
-    .ARSIZE_DMA350(ARSIZE_DMA350),
-    .ARBURST_DMA350(ARBURST_DMA350),
-    .ARLOCK_DMA350(ARLOCK_DMA350),
-    .ARCACHE_DMA350(ARCACHE_DMA350),
-    .ARPROT_DMA350(ARPROT_DMA350),
-    .ARVALID_DMA350(ARVALID_DMA350),
-    .ARREADY_DMA350(ARREADY_DMA350),
-    .RID_DMA350(RID_DMA350),
-    .RDATA_DMA350(RDATA_DMA350),
-    .RRESP_DMA350(RRESP_DMA350),
-    .RLAST_DMA350(RLAST_DMA350),
-    .RVALID_DMA350(RVALID_DMA350),
-    .RREADY_DMA350(RREADY_DMA350),
+    // .AWID_DMA350(AWID_DMA350),
+    // .AWADDR_DMA350(AWADDR_DMA350),
+    // .AWLEN_DMA350(AWLEN_DMA350),
+    // .AWSIZE_DMA350(AWSIZE_DMA350),
+    // .AWBURST_DMA350(AWBURST_DMA350),
+    // .AWLOCK_DMA350(AWLOCK_DMA350),
+    // .AWCACHE_DMA350(AWCACHE_DMA350),
+    // .AWPROT_DMA350(AWPROT_DMA350),
+    // .AWVALID_DMA350(AWVALID_DMA350),
+    // .AWREADY_DMA350(AWREADY_DMA350),
+    // .WDATA_DMA350(WDATA_DMA350),
+    // .WSTRB_DMA350(WSTRB_DMA350),
+    // .WLAST_DMA350(WLAST_DMA350),
+    // .WVALID_DMA350(WVALID_DMA350),
+    // .WREADY_DMA350(WREADY_DMA350),
+    // .BID_DMA350(BID_DMA350),
+    // .BRESP_DMA350(BRESP_DMA350),
+    // .BVALID_DMA350(BVALID_DMA350),
+    // .BREADY_DMA350(BREADY_DMA350),
+    // .ARID_DMA350(ARID_DMA350),
+    // .ARADDR_DMA350(ARADDR_DMA350),
+    // .ARLEN_DMA350(ARLEN_DMA350),
+    // .ARSIZE_DMA350(ARSIZE_DMA350),
+    // .ARBURST_DMA350(ARBURST_DMA350),
+    // .ARLOCK_DMA350(ARLOCK_DMA350),
+    // .ARCACHE_DMA350(ARCACHE_DMA350),
+    // .ARPROT_DMA350(ARPROT_DMA350),
+    // .ARVALID_DMA350(ARVALID_DMA350),
+    // .ARREADY_DMA350(ARREADY_DMA350),
+    // .RID_DMA350(RID_DMA350),
+    // .RDATA_DMA350(RDATA_DMA350),
+    // .RRESP_DMA350(RRESP_DMA350),
+    // .RLAST_DMA350(RLAST_DMA350),
+    // .RVALID_DMA350(RVALID_DMA350),
+    // .RREADY_DMA350(RREADY_DMA350),
 
-    .DMA350_irq_channel(DMA350_irq_channel),
-    .DMA350_irq_comb_nonsec(DMA350_irq_comb_nonsec),
+    // .DMA350_irq_channel(DMA350_irq_channel),
+    // .DMA350_irq_comb_nonsec(DMA350_irq_comb_nonsec),
 
     .QSPI_SCLK(QSPI_SCLK),
     .QSPI_nCS(QSPI_nCS),
@@ -235,6 +274,19 @@ megasoc_tech_wrapper u_megasoc_tech_wrapper(
     .UARTTXD1(UARTTXD1),
     .UARTTXEN1(UARTTXEN1),
 
+    .PL011_nUARTCTS(PL011_nUARTCTS),
+    .PL011_nUARTDCD(PL011_nUARTDCD),
+    .PL011_nUARTDSR(PL011_nUARTDSR),
+    .PL011_nUARTRI(PL011_nUARTRI),
+    .PL011_UARTRXD(PL011_UARTRXD),
+    .PL011_SIRIN(1'b0),
+    .PL011_UARTTXD(PL011_UARTTXD),
+    .PL011_nSIROUT(),
+    .PL011_nUARTOut2(PL011_nUARTOut2),
+    .PL011_nUARTOut1(PL011_nUARTOut1),
+    .PL011_nUARTRTS(PL011_nUARTRTS),
+    .PL011_nUARTDTR(PL011_nUARTDTR),
+
     .iodata4_i(iodata4_i),
     .iodata4_o(iodata4_o),
     .iodata4_e(iodata4_e),
@@ -242,7 +294,7 @@ megasoc_tech_wrapper u_megasoc_tech_wrapper(
     .ioreq1_o(ioreq1_o),
     .ioreq2_o(ioreq2_o),
     .ioack_i(ioack_i),
-    
+
     .SPI_SSn(SPI_SSn),
     .SPI_SCLK(SPI_SCLK),
     .SPI_MOSI(SPI_MOSI),
@@ -282,78 +334,104 @@ megasoc_tech_wrapper u_megasoc_tech_wrapper(
     .DDR4_DQS_C(DDR4_DQS_C),
     .DDR4_RESET_N(DDR4_RESET_N),
     .DDR_nALERT(DDR_nALERT),
-    .DDR_nEVENT(DDR_nEVENT)
+    .DDR_nEVENT(DDR_nEVENT),
+
+    .SDIO_o_cfg_ddr(SDIO_o_cfg_ddr),
+    .SDIO_o_cfg_ds(SDIO_o_cfg_ds),
+    .SDIO_o_cfg_dscmd(SDIO_o_cfg_dscmd),
+    .SDIO_o_cfg_sample_shift(SDIO_o_cfg_sample_shift),
+    .SDIO_o_sdclk(SDIO_o_sdclk),
+    .SDIO_o_cmd_en(SDIO_o_cmd_en),
+    .SDIO_o_cmd_tristate(SDIO_o_cmd_tristate),
+    .SDIO_o_cmd_data(SDIO_o_cmd_data),
+    .SDIO_o_data_en(SDIO_o_data_en),
+    .SDIO_o_data_tristate(SDIO_o_data_tristate),
+    .SDIO_o_rx_en(SDIO_o_rx_en),
+    .SDIO_o_tx_data(SDIO_o_tx_data),
+    .SDIO_i_cmd_strb(SDIO_i_cmd_strb),
+    .SDIO_i_cmd_data(SDIO_i_cmd_data),
+    .SDIO_i_cmd_collision(SDIO_i_cmd_collision),
+    .SDIO_i_card_busy(SDIO_i_card_busy),
+    .SDIO_i_rx_strb(SDIO_i_rx_strb),
+    .SDIO_i_rx_data(SDIO_i_rx_data),
+    .SDIO_i_crcack(SDIO_i_crcack),
+    .SDIO_i_crcnak(SDIO_i_crcnak),
+    .SD_O_1P8V(SD_O_1P8V),
+    .SDIO_AC_VALID(SDIO_AC_VALID),
+    .SDIO_AC_DATA(SDIO_AC_DATA),
+    .SDIO_AD_VALID(SDIO_AD_VALID),
+    .SDIO_AD_DATA(SDIO_AD_DATA)
 
 );
 
+// Update 24/09/2025 No "system" DMA needed as not yet getting ethernet or PCIe added
+// megasoc_tech_system_wrapper u_megasoc_tech_system_wrapper(
+//     .CLK(CLK_IN),
+//     .RESETn(nRESET),
 
-megasoc_tech_system_wrapper u_megasoc_tech_system_wrapper(
-    .CLK(CLK_IN),
-    .RESETn(nRESET),
+//     .DMA350_PWAKEUP(1'b1),
+//     .DMA350_PDEBUG(1'b0),
+//     .DMA350_PSEL(PSELx_DMA_CTRL),
+//     .DMA350_PENABLE(PENABLE_DMA_CTRL),
+//     .DMA350_PPROT(PPROT_DMA_CTRL),
+//     .DMA350_PWRITE(PWRITE_DMA_CTRL),
+//     .DMA350_PADDR(PADDR_DMA_CTRL[12:0]),
+//     .DMA350_PWDATA(PWDATA_DMA_CTRL),
+//     .DMA350_PSTRB(PSTRB_DMA_CTRL),
+//     .DMA350_PREADY(PREADY_DMA_CTRL),
+//     .DMA350_PSLVERR(PSLVERR_DMA_CTRL),
+//     .DMA350_PRDATA(PRDATA_DMA_CTRL),
 
-    .DMA350_PWAKEUP(1'b1),
-    .DMA350_PDEBUG(1'b0),
-    .DMA350_PSEL(PSELx_DMA_CTRL),
-    .DMA350_PENABLE(PENABLE_DMA_CTRL),
-    .DMA350_PPROT(PPROT_DMA_CTRL),
-    .DMA350_PWRITE(PWRITE_DMA_CTRL),
-    .DMA350_PADDR(PADDR_DMA_CTRL[12:0]),
-    .DMA350_PWDATA(PWDATA_DMA_CTRL),
-    .DMA350_PSTRB(PSTRB_DMA_CTRL),
-    .DMA350_PREADY(PREADY_DMA_CTRL),
-    .DMA350_PSLVERR(PSLVERR_DMA_CTRL),
-    .DMA350_PRDATA(PRDATA_DMA_CTRL),
+//     .DMA350_AWAKEUP_M0(),
+//     .DMA350_AWVALID_M0(AWVALID_DMA350),
+//     .DMA350_AWADDR_M0(AWADDR_DMA350),
+//     .DMA350_AWBURST_M0(AWBURST_DMA350),
+//     .DMA350_AWID_M0(AWID_DMA350),
+//     .DMA350_AWLEN_M0(AWLEN_DMA350),
+//     .DMA350_AWSIZE_M0(AWSIZE_DMA350),
+//     .DMA350_AWQOS_M0(),
+//     .DMA350_AWPROT_M0(AWPROT_DMA350),
+//     .DMA350_AWREADY_M0(AWREADY_DMA350),
+//     .DMA350_AWCACHE_M0(AWCACHE_DMA350),
+//     .DMA350_AWINNER_M0(),
+//     .DMA350_AWDOMAIN_M0(),
 
-    .DMA350_AWAKEUP_M0(),
-    .DMA350_AWVALID_M0(AWVALID_DMA350),
-    .DMA350_AWADDR_M0(AWADDR_DMA350),
-    .DMA350_AWBURST_M0(AWBURST_DMA350),
-    .DMA350_AWID_M0(AWID_DMA350),
-    .DMA350_AWLEN_M0(AWLEN_DMA350),
-    .DMA350_AWSIZE_M0(AWSIZE_DMA350),
-    .DMA350_AWQOS_M0(),
-    .DMA350_AWPROT_M0(AWPROT_DMA350),
-    .DMA350_AWREADY_M0(AWREADY_DMA350),
-    .DMA350_AWCACHE_M0(AWCACHE_DMA350),
-    .DMA350_AWINNER_M0(),
-    .DMA350_AWDOMAIN_M0(),
+//     .DMA350_ARVALID_M0(ARVALID_DMA350),
+//     .DMA350_ARADDR_M0(ARADDR_DMA350),
+//     .DMA350_ARBURST_M0(ARBURST_DMA350),
+//     .DMA350_ARID_M0(ARID_DMA350),
+//     .DMA350_ARLEN_M0(ARLEN_DMA350),
+//     .DMA350_ARSIZE_M0(ARSIZE_DMA350),
+//     .DMA350_ARQOS_M0(),
+//     .DMA350_ARPROT_M0(ARPROT_DMA350),
+//     .DMA350_ARREADY_M0(ARREADY_DMA350),
+//     .DMA350_ARCACHE_M0(ARCACHE_DMA350),
+//     .DMA350_ARINNER_M0(),
+//     .DMA350_ARDOMAIN_M0(),
+//     .DMA350_ARCMDLINK_M0(),
 
-    .DMA350_ARVALID_M0(ARVALID_DMA350),
-    .DMA350_ARADDR_M0(ARADDR_DMA350),
-    .DMA350_ARBURST_M0(ARBURST_DMA350),
-    .DMA350_ARID_M0(ARID_DMA350),
-    .DMA350_ARLEN_M0(ARLEN_DMA350),
-    .DMA350_ARSIZE_M0(ARSIZE_DMA350),
-    .DMA350_ARQOS_M0(),
-    .DMA350_ARPROT_M0(ARPROT_DMA350),
-    .DMA350_ARREADY_M0(ARREADY_DMA350),
-    .DMA350_ARCACHE_M0(ARCACHE_DMA350),
-    .DMA350_ARINNER_M0(),
-    .DMA350_ARDOMAIN_M0(),
-    .DMA350_ARCMDLINK_M0(),
+//     .DMA350_WVALID_M0(WVALID_DMA350),
+//     .DMA350_WLAST_M0(WLAST_DMA350),
+//     .DMA350_WSTRB_M0(WSTRB_DMA350),
+//     .DMA350_WDATA_M0(WDATA_DMA350),
+//     .DMA350_WREADY_M0(WREADY_DMA350),
 
-    .DMA350_WVALID_M0(WVALID_DMA350),
-    .DMA350_WLAST_M0(WLAST_DMA350),
-    .DMA350_WSTRB_M0(WSTRB_DMA350),
-    .DMA350_WDATA_M0(WDATA_DMA350),
-    .DMA350_WREADY_M0(WREADY_DMA350),
+//     .DMA350_RVALID_M0(RVALID_DMA350),
+//     .DMA350_RID_M0(RID_DMA350),
+//     .DMA350_RLAST_M0(RLAST_DMA350),
+//     .DMA350_RDATA_M0(RDATA_DMA350),
+//     .DMA350_RPOISON_M0(2'b00),
+//     .DMA350_RRESP_M0(RRESP_DMA350),
+//     .DMA350_RREADY_M0(RREADY_DMA350),
 
-    .DMA350_RVALID_M0(RVALID_DMA350),
-    .DMA350_RID_M0(RID_DMA350),
-    .DMA350_RLAST_M0(RLAST_DMA350),
-    .DMA350_RDATA_M0(RDATA_DMA350),
-    .DMA350_RPOISON_M0(2'b00),
-    .DMA350_RRESP_M0(RRESP_DMA350),
-    .DMA350_RREADY_M0(RREADY_DMA350),
+//     .DMA350_BVALID_M0(BVALID_DMA350),
+//     .DMA350_BID_M0(BID_DMA350),
+//     .DMA350_BRESP_M0(BRESP_DMA350),
+//     .DMA350_BREADY_M0(BREADY_DMA350),
 
-    .DMA350_BVALID_M0(BVALID_DMA350),
-    .DMA350_BID_M0(BID_DMA350),
-    .DMA350_BRESP_M0(BRESP_DMA350),
-    .DMA350_BREADY_M0(BREADY_DMA350),
-
-    .DMA350_irq_channel(DMA350_irq_channel),
-    .DMA350_irq_comb_nonsec(DMA350_irq_comb_nonsec)
-);
+//     .DMA350_irq_channel(DMA350_irq_channel),
+//     .DMA350_irq_comb_nonsec(DMA350_irq_comb_nonsec)
+// );
 
 
 `ifdef INC_EXP
@@ -374,7 +452,7 @@ expansion_subsystem_wrapper u_megasoc_expansion_wrapper(
     .CSYSACK_CD_exp(),
     .CACTIVE_CD_exp(),
 
-    // AXI Expansion input port 
+    // AXI Expansion input port
     .AXI_EXP_SS_awid(EXP_M_AXI.AWID), // 7 bits
     .AXI_EXP_SS_awaddr(EXP_M_AXI.AWADDR),
     .AXI_EXP_SS_awlen(EXP_M_AXI.AWLEN),
@@ -453,7 +531,7 @@ expansion_subsystem_wrapper u_megasoc_expansion_wrapper(
     .irq_dma_comb_nonsec(EXP_IRQs[4]),
     .acc_irqs(EXP_IRQs[7:5])
 );
-`else 
+`else
     assign AXI_EXP_SYS_rready=1'b0;
 `endif
 endmodule

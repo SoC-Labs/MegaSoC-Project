@@ -40,15 +40,27 @@ module megasoc_chip_pads(
 
     // GPIO
     inout [15:0]        P0,
-    inout [15:0]        P1
+    inout [15:0]        P1,
 
-    // Ethernet
+    // PL011 UART
+    input  wire             PL011_nUARTCTS,
+    input  wire             PL011_nUARTDCD,
+    input  wire             PL011_nUARTDSR,
+    input  wire             PL011_nUARTRI,
+    input  wire             PL011_UARTRXD,
+    output wire             PL011_UARTTXD,
+    output wire             PL011_nUARTOut2,
+    output wire             PL011_nUARTOut1,
+    output wire             PL011_nUARTRTS,
+    output wire             PL011_nUARTDTR,
 
     // DDR
 
-    // USB
-
-
+    // SDIO
+    output wire         SDIO_CK,
+    inout  wire         SDIO_CMD,
+    inout  wire [3:0]   SDIO_DAT,
+    output wire         SD_O_1P8V
 );
 
 // QSPI
@@ -65,6 +77,27 @@ assign QSPI_IO_i[0] = QSPI_IO[0];
 assign QSPI_IO_i[1] = QSPI_IO[1];
 assign QSPI_IO_i[2] = QSPI_IO[2];
 assign QSPI_IO_i[3] = QSPI_IO[3];
+
+// SDIO
+wire         SDIO_CMD_tri;
+wire         SDIO_CMD_o;
+wire         SDIO_CMD_i;
+wire [7:0]   SDIO_DAT_tri;
+wire [7:0]   SDIO_DAT_o;
+wire [7:0]   SDIO_DAT_i;
+
+assign SDIO_CMD = SDIO_CMD_tri ? 1'bz : SDIO_CMD_o;
+assign SDIO_CMD_i = SDIO_CMD;
+
+assign SDIO_DAT[0] = SDIO_DAT_tri[0] ? 1'bz: SDIO_DAT_o[0] ;
+assign SDIO_DAT[1] = SDIO_DAT_tri[1] ? 1'bz: SDIO_DAT_o[1] ;
+assign SDIO_DAT[2] = SDIO_DAT_tri[2] ? 1'bz: SDIO_DAT_o[2] ;
+assign SDIO_DAT[3] = SDIO_DAT_tri[3] ? 1'bz: SDIO_DAT_o[3] ;
+
+assign SDIO_DAT_i[0] = SDIO_DAT[0];
+assign SDIO_DAT_i[1] = SDIO_DAT[1];
+assign SDIO_DAT_i[2] = SDIO_DAT[2];
+assign SDIO_DAT_i[3] = SDIO_DAT[3];
 
 // GPIO
 wire [15:0]  PAD_P0_IN;
@@ -118,7 +151,27 @@ megasoc_chip u_megasoc_chip(
 
     .PAD_P1_IN(PAD_P1_IN),
     .PAD_P1_OUT(PAD_P1_OUT),
-    .PAD_P1_EN(PAD_P1_EN)
+    .PAD_P1_EN(PAD_P1_EN),
+
+    .PL011_nUARTCTS(PL011_nUARTCTS),
+    .PL011_nUARTDCD(PL011_nUARTDCD),
+    .PL011_nUARTDSR(PL011_nUARTDSR),
+    .PL011_nUARTRI(PL011_nUARTRI),
+    .PL011_UARTRXD(PL011_UARTRXD),
+    .PL011_UARTTXD(PL011_UARTTXD),
+    .PL011_nUARTOut2(PL011_nUARTOut2),
+    .PL011_nUARTOut1(PL011_nUARTOut1),
+    .PL011_nUARTRTS(PL011_nUARTRTS),
+    .PL011_nUARTDTR(PL011_nUARTDTR),
+
+    .SDIO_CK(SDIO_CK),
+    .SDIO_CMD_tri(SDIO_CMD_tri),
+    .SDIO_CMD_o(SDIO_CMD_o),
+    .SDIO_CMD_i(SDIO_CMD_i),
+    .SDIO_DAT_tri(SDIO_DAT_tri),
+    .SDIO_DAT_o(SDIO_DAT_o),
+    .SDIO_DAT_i(SDIO_DAT_i),
+    .SD_O_1P8V(SD_O_1P8V)
 );
 
 

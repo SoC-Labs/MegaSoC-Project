@@ -40,6 +40,17 @@ $(SOCLABS_MEGASOC_EXP_TECH_DIR)/logical/dma350/logical/shared/verilog/ada_gen_co
 $(SOCLABS_MEGASOC_EXP_TECH_DIR)/logical/dma350/logical/shared/verilog/ada_gen_addrmap_dmach_sldma350.sv
 $(SOCLABS_MEGASOC_EXP_TECH_DIR)/logical/dma350/logical/shared/verilog/ada_interface_sldma350_pkg.sv
 $(SOCLABS_MEGASOC_EXP_TECH_DIR)/logical/dma350/logical/shared/verilog/ada_gen_regif_dmainfo_sldma350_pkg.sv
+$(SOCLABS_MEGASOC_EXP_TECH_DIR)/logical/dma350/logical/shared/verilog/ada_or_tree/verilog/ada_or_tree.sv
+
+$(SOCLABS_MEGASOC_EXP_TECH_DIR)/logical/dma350/logical/models/cells/generic/ada_arm_flop.sv
+$(SOCLABS_MEGASOC_EXP_TECH_DIR)/logical/dma350/logical/models/cells/generic/ada_arm_sync.sv
+$(SOCLABS_MEGASOC_EXP_TECH_DIR)/logical/dma350/logical/models/cells/generic/ada_arm_mux2.sv
+$(SOCLABS_MEGASOC_EXP_TECH_DIR)/logical/dma350/logical/models/cells/generic/ada_arm_or.sv
+$(SOCLABS_MEGASOC_EXP_TECH_DIR)/logical/dma350/logical/shared/verilog/ada_ecorevnum.sv
+$(SOCLABS_MEGASOC_EXP_TECH_DIR)/logical/dma350/logical/shared/verilog/ada_flop_en/verilog/ada_flop_en.sv
+
+$(SOCLABS_MEGASOC_EXP_TECH_DIR)/logical/dma350/logical/models/cells/generic/ada_arm_idbit_v1.sv
+
 $(SOCLABS_MEGASOC_EXP_TECH_DIR)/logical/dma350/logical/ada_top_sldma350/verilog/ada_top_sldma350.sv
 
 $(SOCLABS_MEGASOC_EXP_TECH_DIR)/logical/dma350/logical/ada_channel_0_sldma350/verilog/ada_gen_regif_dmach_0_sldma350_pkg.sv
