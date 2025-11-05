@@ -27,7 +27,7 @@ ASIC ?= no
 FAST_SIM ?= yes
 
 # Include the expansion subsystem?
-INC_EXP ?= yes
+INC_EXP ?= no
 
 ASIC_MEMS ?= no 
 

@@ -532,6 +532,46 @@ expansion_subsystem_wrapper u_megasoc_expansion_wrapper(
     .acc_irqs(EXP_IRQs[7:5])
 );
 `else
-    assign AXI_EXP_SYS_rready=1'b0;
+    // EXP_M_AXI Tie off's
+    assign EXP_M_AXI.AWREADY = 1'b1;
+    assign EXP_M_AXI.WREADY = 1'b1;
+    assign EXP_M_AXI.BID = 9'd0;
+    assign EXP_M_AXI.BRESP = 2'b11;
+    assign EXP_M_AXI.BVALID = 1'b1;
+    assign EXP_M_AXI.ARREADY = 1'b1;
+    assign EXP_M_AXI.RID = 9'd0;
+    assign EXP_M_AXI.RDATA = 64'hDEAFBEEFDEADBEED;
+    assign EXP_M_AXI.RRESP = 2'b11;
+    assign EXP_M_AXI.RLAST = 1'b0;
+    assign EXP_M_AXI.RVALID = 1'b0;
+
+    // EXP_S_AXI Tie off's
+    assign EXP_S_AXI.AWID = 3'h0;
+    assign EXP_S_AXI.AWADDR = 32'd0;
+    assign EXP_S_AXI.AWLEN = 8'd0;
+    assign EXP_S_AXI.AWSIZE = 3'h0;
+    assign EXP_S_AXI.AWBURST = 2'h0;
+    assign EXP_S_AXI.AWLOCK = 1'b0;
+    assign EXP_S_AXI.AWCACHE = 4'h0;
+    assign EXP_S_AXI.AWPROT = 3'h0;
+    assign EXP_S_AXI.AWVALID = 1'b0;
+
+    assign EXP_S_AXI.WDATA = 64'd0;
+    assign EXP_S_AXI.WSTRB = 8'd0;
+    assign EXP_S_AXI.WLAST = 1'b0;
+    assign EXP_S_AXI.WVALID = 1'b0;
+
+    assign EXP_S_AXI.BREADY = 1'b0;
+
+    assign EXP_S_AXI.ARID = 3'h0;
+    assign EXP_S_AXI.ARADDR = 32'd0;
+    assign EXP_S_AXI.ARLEN = 8'd0;
+    assign EXP_S_AXI.ARSIZE = 3'h0;
+    assign EXP_S_AXI.ARBURST = 2'h0;
+    assign EXP_S_AXI.ARLOCK = 1'b0;
+    assign EXP_S_AXI.ARCACHE = 4'h0;
+    assign EXP_S_AXI.ARPROT = 3'h0;
+    assign EXP_S_AXI.ARVALID = 1'b0;
+    assign EXP_S_AXI.RREADY = 1'b0;
 `endif
 endmodule

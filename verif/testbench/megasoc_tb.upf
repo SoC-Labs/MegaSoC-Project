@@ -76,8 +76,8 @@ create_power_domain PD_SRAM_SMC -supply {primary SS_SRAM_SMC}\
 # create_power_domain PD_SRAM -supply {primary SS_SRAM} \
 #     -elements u_megasoc_chip/u_megasoc_system/u_megasoc_tech_wrapper/u_SRAM_wrapper/u_SRAM
 
-create_power_domain PD_EXP -supply {primary SS_EXP} \
-    -elements u_megasoc_chip/u_megasoc_system/u_megasoc_expansion_wrapper
+# create_power_domain PD_EXP -supply {primary SS_EXP} \
+#     -elements u_megasoc_chip/u_megasoc_system/u_megasoc_expansion_wrapper
 
 #######################################
 # Create Switches
