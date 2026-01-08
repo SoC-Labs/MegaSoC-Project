@@ -32,6 +32,17 @@ In order for the project to find the required files. You can use this repo (http
 
 Once you have set this up, you should set up an environment variable $ARM_IP_LIBRARY_PATH that points to the Arm IP directory.
 
+### Socrates
+You need Socrates installed on your system. This will allow the configuration of the Arm IP in the project. 
+
+You will also need to associate the IP (i.e. tell socrates where the IP is stored)
+
+- Open Socrates GUI
+- In toolbar go to "IP Catalog"->"Associate All IP Bundles"
+- Navigate to IP stored location, this should be the same as $ARM_IP_LIBRARY_PATH
+- Press Finish
+- This will take some time to run as it searches all the sub-directories
+
 ## First Time Setup
 Follow these steps to setup the MegaSoC Project.
 
