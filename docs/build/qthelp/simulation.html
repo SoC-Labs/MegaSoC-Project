@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Simulation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="_static/nonav.css?v=7ee55c3a" /> 
+  </head><body>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="simulation">
+<h1>Simulation</h1>
+<p>This describes the steps needed to simulate nanoSoC. Supported simulators are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Synopsys VCS</p></li>
+<li><p>Siemens QuestaSim</p></li>
+<li><p>Cadence Xcelium</p></li>
+<li><p>Icarus Verilog</p></li>
+</ul>
+</div></blockquote>
+<section id="running-simulations">
+<h2>Running Simulations</h2>
+<p>You can run make commands from the nanosoc tech directory to run the simulation.</p>
+<p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">run</span> <span class="pre">SIM=x</span> <span class="pre">TESTNAME=y</span> <span class="pre">ACCELERATOR=yes</span></code></p>
+<p>Where x=mti, vcs, xm, or iverilog for QuestaSim, VCS, Xcelium, or Icarus Verilog respectively.
+And y is the name of the test, the default test is hello (a hello world example).</p>
+<p>Or to run the simulation in the GUI you can use:
+<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">sim</span> <span class="pre">SIM=x</span> <span class="pre">TESTNAME=y</span> <span class="pre">ACCELERATOR=yes</span></code></p>
+<p>Whilst the simulation is running, you should see the output from the std out channel in the console/terminal</p>
+</section>
+<section id="debugging-simulations">
+<h2>Debugging Simulations</h2>
+<p><cite>My simulation won’t run</cite></p>
+<p>This may be an environment issue or a design that won’t compile. Please first check the compile_$(SIM).log in the simulate/sim/$(TESTNAME) directory.
+If you don’t see this file, look at the output of the terminal when you run the <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">run</span></code> command, usually it will give you some explaination.</p>
+<p>If the problem is it can’t find files, you may have forgotten to run the <code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">set_env.sh</span></code> command.</p>
+</section>
+<section id="preloading-expansion-memories">
+<h2>Preloading expansion memories</h2>
+<p>You may want to load test vectors directly into the expansion memories to run your tests. Doing this can save space in the instruction memory space as you
+then don’t have to load data in as arrays or vectors in your testcode. Instead you can use the simulator to automatically load these memories at the start of
+simulation.</p>
+<p>To do this, simply add an ”expram l.hex” file and/or ”expram h.hex” file to
+your testcode directory. These files will then be loaded to the EXPRAM L or
+EXPRAM H region repectively. These can then be addressed in your testcode
+from 0x80000000 for EXPRAM L and 0x90000000 for EXPRAM H.
+The expram l.hex files must be ASCII text files with a single byte per line.
+They will look very similar to the .hex files that are used to preload the instruction memory.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>

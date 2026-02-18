@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<QHelpCollectionProject version="1.0">
+    <assistant>
+        <title>nanoSoC Project 1 documentation</title>
+        <homePage>qthelp://org.sphinx.nanosocproject/doc/index.html</homePage>
+        <startPage>qthelp://org.sphinx.nanosocproject/doc/index.html</startPage>
+    </assistant>
+    <docFiles>
+        <generate>
+            <file>
+                <input>nanoSoCProject.qhp</input>
+                <output>nanoSoCProject.qch</output>
+            </file>
+        </generate>
+        <register>
+            <file>nanoSoCProject.qch</file>
+        </register>
+    </docFiles>
+</QHelpCollectionProject>
