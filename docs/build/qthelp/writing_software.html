@@ -31,39 +31,43 @@
 <tbody>
 <tr class="row-even"><td><p>Boot-Rom</p></td>
 <td><p>0x00000000</p></td>
-<td><p>0x0FFFFFFF</p></td>
+<td><p>0x0000FFFF</p></td>
 </tr>
-<tr class="row-odd"><td><p>Instruction Memory (SRAM)</p></td>
-<td><p>0x20000000</p></td>
-<td><p>0x2FFFFFFF</p></td>
+<tr class="row-odd"><td><p>Flash (off chip QSPI)</p></td>
+<td><p>0x00400000</p></td>
+<td><p>0x007FFFFF</p></td>
 </tr>
 <tr class="row-even"><td><p>Data Memory (SRAM)</p></td>
-<td><p>0x30000000</p></td>
-<td><p>0x3FFFFFFF</p></td>
+<td><p>0x00800000</p></td>
+<td><p>0x0080FFFF</p></td>
 </tr>
-<tr class="row-odd"><td><p>System IO</p></td>
+<tr class="row-odd"><td><p>Flash Control</p></td>
+<td><p>0x01000000</p></td>
+<td><p>0x0100FFFF</p></td>
+</tr>
+<tr class="row-even"><td><p>DMA Control</p></td>
+<td><p>0x01010000</p></td>
+<td><p>0x01011FFF</p></td>
+</tr>
+<tr class="row-odd"><td><p>GIC (Interrupt control)</p></td>
+<td><p>0x01100000</p></td>
+<td><p>0x01107FFF</p></td>
+</tr>
+<tr class="row-even"><td><p>PCK Control</p></td>
+<td><p>0x01200000</p></td>
+<td><p>0x01207FFF</p></td>
+</tr>
+<tr class="row-odd"><td><p>Peripherals</p></td>
 <td><p>0x40000000</p></td>
 <td><p>0x5FFFFFFF</p></td>
 </tr>
-<tr class="row-even"><td><p>Expansion IO</p></td>
+<tr class="row-even"><td><p>Debug</p></td>
 <td><p>0x60000000</p></td>
 <td><p>0x7FFFFFFF</p></td>
 </tr>
-<tr class="row-odd"><td><p>Expansion Memory Lo (SRAM)</p></td>
+<tr class="row-odd"><td><p>DRAM</p></td>
 <td><p>0x80000000</p></td>
-<td><p>0x8FFFFFFF</p></td>
-</tr>
-<tr class="row-even"><td><p>Expansion Memory Hi (SRAM)</p></td>
-<td><p>0x90000000</p></td>
-<td><p>0x9FFFFFFF</p></td>
-</tr>
-<tr class="row-odd"><td><p>Expansion IO</p></td>
-<td><p>0xA0000000</p></td>
-<td><p>0xDFFFFFFF</p></td>
-</tr>
-<tr class="row-even"><td><p>System Table ROM</p></td>
-<td><p>0xF0000000</p></td>
-<td><p>0xF0003FFF</p></td>
+<td><p>0xFFFFFFFF</p></td>
 </tr>
 </tbody>
 </table>
@@ -90,47 +94,35 @@ maps for each peripheral</p>
 </tr>
 <tr class="row-even"><td><p>Dual Timer</p></td>
 <td><p>0x40002000</p></td>
+<td><p>0x40002FFF</p></td>
+</tr>
+<tr class="row-odd"><td><p>USRT 0</p></td>
+<td><p>0x40003000</p></td>
 <td><p>0x40003FFF</p></td>
 </tr>
-<tr class="row-odd"><td><p>UART 0</p></td>
+<tr class="row-even"><td><p>USRT 1</p></td>
 <td><p>0x40004000</p></td>
 <td><p>0x40004FFF</p></td>
 </tr>
-<tr class="row-even"><td><p>UART 1</p></td>
+<tr class="row-odd"><td><p>UART 0</p></td>
 <td><p>0x40005000</p></td>
 <td><p>0x40005FFF</p></td>
 </tr>
-<tr class="row-odd"><td><p>UART 2</p></td>
+<tr class="row-even"><td><p>UART 1</p></td>
 <td><p>0x40006000</p></td>
+<td><p>0x40006FFF</p></td>
+</tr>
+<tr class="row-odd"><td><p>Watchdog Timer</p></td>
+<td><p>0x40007000</p></td>
 <td><p>0x40007FFF</p></td>
 </tr>
-<tr class="row-even"><td><p>Watchdog Timer</p></td>
+<tr class="row-even"><td><p>Real Time Clock</p></td>
 <td><p>0x40008000</p></td>
 <td><p>0x40008FFF</p></td>
 </tr>
-<tr class="row-odd"><td><p>USRT 2</p></td>
-<td><p>0x4000E000</p></td>
-<td><p>0x4000EFFF</p></td>
-</tr>
-<tr class="row-even"><td><p>DMA 0 Base</p></td>
-<td><p>0x4000F000</p></td>
-<td><p>0x4000EFFF</p></td>
-</tr>
-<tr class="row-odd"><td><p>GPIO 0</p></td>
-<td><p>0x40010000</p></td>
-<td><p>0x40010FFF</p></td>
-</tr>
-<tr class="row-even"><td><p>GPIO 1</p></td>
-<td><p>0x40011000</p></td>
-<td><p>0x40011FFF</p></td>
-</tr>
-<tr class="row-odd"><td><p>System Control</p></td>
-<td><p>0x4001F000</p></td>
-<td><p>0x4001FFFF</p></td>
-</tr>
-<tr class="row-even"><td><p>Synopsys PVT (if used)</p></td>
-<td><p>0x40021000</p></td>
-<td><p>0x40021FFF</p></td>
+<tr class="row-odd"><td><p>SPI</p></td>
+<td><p>0x40009000</p></td>
+<td><p>0x40009FFF</p></td>
 </tr>
 </tbody>
 </table>
@@ -151,18 +143,6 @@ you can add these to the accelerator-project/system/testcodes directory.</p>
 <li><p>Add the name of your test to the accelerator-project/system/software list.txt file</p></li>
 </ol>
 </div></blockquote>
-</section>
-<section id="preloading-expansion-memories">
-<h2>Preloading expansion memories</h2>
-<p>You may want to load test vectors directly into the expansion memories to run your tests. Doing this can save space in the instruction memory space as you
-then don’t have to load data in as arrays or vectors in your testcode. Instead you can use the simulator to automatically load these memories at the start of
-simulation.</p>
-<p>To do this, simply add an ”expram l.hex” file and/or ”expram h.hex” file to
-your testcode directory. These files will then be loaded to the EXPRAM L or
-EXPRAM H region repectively. These can then be addressed in your testcode
-from 0x80000000 for EXPRAM L and 0x90000000 for EXPRAM H.
-The expram l.hex files must be ASCII text files with a single byte per line.
-They will look very similar to the .hex files that are used to preload the instruction memory.</p>
 </section>
 </section>
 

@@ -29,11 +29,6 @@
                 </section>
                 <section title="Adding your IP" ref="adding_your_ip.html">
                     <section title="Integrating your IP" ref="adding_your_ip.html#integrating-your-ip"/>
-                    <section title="Configuring nanoSoC" ref="adding_your_ip.html#configuring-nanosoc">
-                        <section title="DMA Configuration" ref="adding_your_ip.html#dma-configuration"/>
-                        <section title="Mixed Signal IP" ref="adding_your_ip.html#mixed-signal-ip"/>
-                        <section title="Synopsys IP" ref="adding_your_ip.html#synopsys-ip"/>
-                    </section>
                 </section>
                 <section title="Writing Software" ref="writing_software.html">
                     <section title="Address Map" ref="writing_software.html#address-map">
@@ -41,16 +36,13 @@
                         <section title="System IO Region" ref="writing_software.html#system-io-region"/>
                     </section>
                     <section title="Adding Tests" ref="writing_software.html#adding-tests"/>
-                    <section title="Preloading expansion memories" ref="writing_software.html#preloading-expansion-memories"/>
                 </section>
                 <section title="Simulation" ref="simulation.html">
                     <section title="Running Simulations" ref="simulation.html#running-simulations"/>
                     <section title="Debugging Simulations" ref="simulation.html#debugging-simulations"/>
                     <section title="Preloading expansion memories" ref="simulation.html#preloading-expansion-memories"/>
                 </section>
-                <section title="FPGA Flow" ref="fpga_build.html">
-                    <section title="Building the FPGA image" ref="fpga_build.html#building-the-fpga-image"/>
-                </section>
+                <section title="FPGA Flow" ref="fpga_build.html"/>
                 <section title="ASIC implementation" ref="asic_implementation.html"/>
             </section>
         </toc>

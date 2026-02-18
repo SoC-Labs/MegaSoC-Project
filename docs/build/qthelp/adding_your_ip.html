@@ -21,8 +21,8 @@
 of your project or as a remote version.</p>
 <blockquote>
 <div><ol class="arabic simple">
-<li><p>Local version: you can just place your IP files into a new directory or in the system/src directory</p></li>
-<li><p>Remote version: you can fork the accelerator-project git to your own git account, this allows you to add your IP either in the system/src directory or as a git submodule.</p></li>
+<li><p>Local version: you can just place your IP files into a new directory or in the system/expansion_region directory</p></li>
+<li><p>Remote version: you can fork the accelerator-project git to your own git account, this allows you to add your IP either in the system/expansion_region directory or as a git submodule.</p></li>
 </ol>
 </div></blockquote>
 <section id="integrating-your-ip">
@@ -30,7 +30,7 @@ of your project or as a remote version.</p>
 <dl class="simple">
 <dt>There are 2 steps to integrating your IP in nanosoc</dt><dd><ol class="arabic simple">
 <li><p>Include your IP in the file list</p></li>
-<li><p>Instantiate your IP in the system/src/accelerator subsystem.v file</p></li>
+<li><p>Instantiate your IP in the system/expansion_region/expansion_region_example.v file</p></li>
 </ol>
 </dd>
 </dl>
@@ -45,49 +45,6 @@ CPU), and some AXI stream interfaces (these are only there if the DMA350 is conf
 <p class="admonition-title">Warning</p>
 <p>Add the option ACCELERATOR=yes to include your accelerator when you run make commands!</p>
 </div>
-</section>
-<section id="configuring-nanosoc">
-<h2>Configuring nanoSoC</h2>
-<p>The nanoSoC reference design allows for some configuration flexibility. Most of these configuration options are in the accelerator-project/nanosoc.config file. In
-order to change this configuration, put a ‘yes’ next to the relevant options to include these options, otherwise leave it blank</p>
-<section id="dma-configuration">
-<h3>DMA Configuration</h3>
-<p>The DMA options are fundamentally:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>1x PL230</p></li>
-<li><p>2x PL230</p></li>
-<li><p>1x DMA350</p></li>
-</ul>
-</div></blockquote>
-<p>More details on these DMA IP’s are available from the Arm website.</p>
-<p>The DMA-350 also has some extra configuration options</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>DMA350 SMALL - Small configuration of DMA, 2 channels, no stream interface, no extended features</p></li>
-<li><p>DMA350 DEFAULT - Default configuration of DMA, 2 channels, stream interface, extended features</p></li>
-<li><p>DMA350 BIG - Big configuration of DMA, 3 channels, stream interface, extended features</p></li>
-</ul>
-</div></blockquote>
-<p>If you use either the SMALL or BIG options for this, you must reconfigure the DMA-350. Follow the below steps:</p>
-<blockquote>
-<div><ol class="arabic simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">accelerator-project/nanosoc_tech/nanosoc/sldma350_tech</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">run</span> <span class="pre">make</span> <span class="pre">clean_ip</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">run</span> <span class="pre">make</span> <span class="pre">config_dma_ahb_small</span></code> or <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">config_dma_ahb_big</span></code></p></li>
-</ol>
-</div></blockquote>
-</section>
-<section id="mixed-signal-ip">
-<h3>Mixed Signal IP</h3>
-<p>! Still under development !
-You can also include mixed signal IP in this design. In order to do this you must also have the relevant IP for this</p>
-</section>
-<section id="synopsys-ip">
-<h3>Synopsys IP</h3>
-<p>! Still under development !
-If you are taping out with a TSMC 28nm node, and also have access to the Synopsys IP</p>
-</section>
 </section>
 </section>
 
