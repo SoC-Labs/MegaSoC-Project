@@ -34,9 +34,9 @@ $(SOCLABS_PROJECT_DIR)/megasoc_tech/logical/socdebug_tech/socket/f232h_ft1248_st
 +incdir+$(SOCLABS_PROJECT_DIR)/verif/models/MT25QU128ABA8E0_VG17
 $(SOCLABS_PROJECT_DIR)/verif/models/MT25QU128ABA8E0_VG17/code/N25Qxxx.v
 
-$(SOCLABS_MEGASOC_TECH_DIR)/logical/sdspi/bench/verilog/mdl_emmc.v
+$(SOCLABS_MEGASOC_TECH_DIR)/logical/sdspi_controller/bench/verilog/mdl_emmc.v
 
-$(SOCLABS_MEGASOC_TECH_DIR)/logical/sdspi/bench/verilog/mdl_sdcmd.v
-$(SOCLABS_MEGASOC_TECH_DIR)/logical/sdspi/bench/verilog/mdl_sdio.v
-$(SOCLABS_MEGASOC_TECH_DIR)/logical/sdspi/bench/verilog/mdl_sdrx.v
-$(SOCLABS_MEGASOC_TECH_DIR)/logical/sdspi/bench/verilog/mdl_sdtx.v
+$(SOCLABS_MEGASOC_TECH_DIR)/logical/sdspi_controller/bench/verilog/mdl_sdcmd.v
+$(SOCLABS_MEGASOC_TECH_DIR)/logical/sdspi_controller/bench/verilog/mdl_sdio.v
+$(SOCLABS_MEGASOC_TECH_DIR)/logical/sdspi_controller/bench/verilog/mdl_sdrx.v
+$(SOCLABS_MEGASOC_TECH_DIR)/logical/sdspi_controller/bench/verilog/mdl_sdtx.v

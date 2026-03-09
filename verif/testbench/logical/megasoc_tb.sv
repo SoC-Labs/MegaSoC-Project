@@ -11,6 +11,7 @@
 // Modules instantiated:
 //  megasoc_chip_pads
 `timescale 1ns/1ps
+`default_nettype wire
 
 module megasoc_tb();
 
@@ -41,6 +42,26 @@ wire         PL011_nUARTRTSCTS;
 wire         PL011_nUARTOut1DCD;
 wire         PL011_nUARTDTRDSR;
 wire         PL011_nUARTOut2TRI;
+
+// DDR Wires
+wire        DDR_RESET_n;
+wire        DDR_CK_t;
+wire        DDR_CK_c;
+wire        DDR_CKE;
+wire        DDR_CS;
+wire [5:0]  DDR_CA;
+wire        DDR_ODT;
+wire [1:0]  DDR_DQS_t;
+wire [1:0]  DDR_DQS_c;
+wire [15:0] DDR_DQ;
+wire [1:0]  DDR_DMI;
+wire        DDR_ALERT_N;
+supply1        DDR_VREF;
+wire        DDR_ZN_SENSE;
+wire        DDR_ZN;
+
+assign DDR_ZN_SENSE=1'b0;
+pullup(DDR_ALERT_N);
 
 megasoc_clkreset u_megasoc_clkreset(
     .CLK(EXT_CLK),
@@ -99,6 +120,22 @@ megasoc_chip_pads u_megasoc_chip_pads(
     .PL011_nUARTOut1(PL011_nUARTOut1DCD),
     .PL011_nUARTRTS(PL011_nUARTRTSCTS),
     .PL011_nUARTDTR(PL011_nUARTDTRDSR),
+
+    .DDR4_RESET_N(DDR_RESET_n),
+    .DDR4_CK_T(DDR_CK_t),
+    .DDR4_CK_C(DDR_CK_c),
+    .DDR4_CKE(DDR_CKE),
+    .DDR4_CS_N(DDR_CS),
+    .DDR4_ADR(DDR_CA),
+    .DDR4_ODT(DDR_ODT),
+    .DDR4_DQS_T(DDR_DQS_t),
+    .DDR4_DQS_C(DDR_DQS_c),
+    .DDR4_DQ(DDR_DQ),
+    .DDR4_DM_DBI_N(DDR_DMI),
+    .DDR4_ALERT_N(DDR_ALERT_N),
+    .DDR4_VREF(DDR_VREF),
+    .DDR4_ZN_SENSE(DDR_ZN_SENSE),
+    .DDR4_ZN(DDR_ZN),
 
     .SDIO_CK(SDIO_CK),
     .SDIO_CMD(SDIO_CMD),
@@ -337,5 +374,34 @@ assign axis_rx1_tvalid = 1'b0;
     .txd8_valid(axis_rx0_tvalid),
     .txd8_data(axis_rx0_tdata8)
   );
+
+// DRAM model instantiation
+`ifdef INC_SYNOPSYS_LPDDR4
+    parameter USE_SYNOPSYS_DDR_CTRL = 1;
+`else
+    parameter USE_SYNOPSYS_DDR_CTRL = 0;
+`endif
+
+generate
+    if(USE_SYNOPSYS_DDR_CTRL) begin : g_ddr_model
+      lpddr4_dram_uvmvlog #("U_lpddr4_dram1") U_lpddr4_dram1 (
+        .RESET_n(DDR_RESET_n),
+        .CK_t_a(DDR_CK_t),
+        .CK_c_a(DDR_CK_c),
+        .CKE_a(DDR_CKE),
+        .CS_a(DDR_CS),
+        .CA_a(DDR_CA),
+        .ODT_a(1'b0),
+        .DQS_t_a(DDR_DQS_t),
+        .DQS_c_a(DDR_DQS_c),
+        .DQ_a(DDR_DQ),
+        .DMI_a(DDR_DMI)
+      );
+    end
+    else begin : g_no_ddr
+
+    end
+endgenerate
+
 
 endmodule

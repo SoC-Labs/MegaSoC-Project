@@ -10,7 +10,6 @@
 # Copyright (C) 2021-4, SoC Labs (www.soclabs.org)
 #-----------------------------------------------------------------------------
 include $(SOCLABS_PROJECT_DIR)/megasoc.config
-
 #-------------------------------------
 # - Commonly Overloaded Variables
 #-------------------------------------
@@ -84,6 +83,25 @@ TEST_LIST         = $(shell cat $(TEST_LIST_FILE) | while read line || [ -n "$$l
 #-------------------------------------
 # Simulator/Lint Defines
 DEFINES_VC  += +define+CORTEX_A53 +define+USE_TARMAC 
+
+export INC_SYNOPSYS_LPDDR4
+export SYNOPSYS_LPDDR4_UMCTL2_DIR
+export SYNOPSYS_LPDDR4_multiPHY_DIR
+export SYNOPSYS_LPDDR4_multiPHY_LIB_DIR
+export CTB_VIP_HOME
+
+ifeq ($(INC_SYNOPSYS_LPDDR4),yes)
+	FLIST_INCLUDES += $(SOCLABS_MEGASOC_TECH_DIR)/flist/IP/Synopsys_uMCTL2.flist
+	FLIST_INCLUDES += $(SOCLABS_MEGASOC_TECH_DIR)/flist/IP/Synopsys_LPDDR4PHY.flist
+	FLIST_INCLUDES += $(SOCLABS_MEGASOC_TECH_DIR)/flist/IP/Synopsys_LPDDR4PHY_BEHAV.flist
+
+	DEFINES_VC += +define+INC_SYNOPSYS_LPDDR4 +define+DWC_DDRPHY_NUM_DBYTES_2 +define+DWC_DDRPHY_NUM_ANIBS_3 
+	DEFINES_VC += +define+DWC_DDRPHY_CUST_PHYREV=0 +define+DWC_DDRPHY_CUST_PUBREV=0 +define+DWC_PUB_RID=9248
+	DEFINES_VC += +define+DWC_DDRPHY_NUM_TOP_SCAN_CHAINS=110 +define+UVM_VERBOSITY=UVM_FULL  +define+UVM_PACKER_MAX_BYTES=24000  +define+SYNOPSYS_SV 
+	DEFINES_VC += +define+DWC_DDRPHY_NO_PG_PINS  +define+DWC_DDRPHY_TECH__CDCBUF__DISABLE_BEHAVIORAL_VERILOG +define+DWC_DDRPHY_FIXED_DFICTLCLK_RATIO
+	DEFINES_VC += +define+DWC_DDRPHY_HWEMUL +define+DWC_DDRPHY_HWEMUL_PLL +define+DWC_DDRPHY_HWEMUL_SIM +define+DWC_DDRPHY_SIMPLE_MODEL
+	DEFINES_VC += +define+DWC_DDRPHY_DRVBE_SIMPLE +define+DWC_DDRPHY_HWEMUL_CGRC +define+DWC_DDRPHY_MODEL_ASYNCMSFLOP_AS_DFF
+endif
 
 # Set Variables depending on whether Expansion subsystem is included
 ifeq ($(INC_EXP),yes)

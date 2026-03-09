@@ -55,6 +55,22 @@ module megasoc_chip_pads(
     output wire             PL011_nUARTDTR,
 
     // DDR
+    // DDR4 signals
+    output wire             DDR4_RESET_N,
+    output wire             DDR4_CK_T,
+    output wire             DDR4_CK_C,
+    output wire             DDR4_CKE,
+    output wire             DDR4_CS_N,
+    output wire [5:0]       DDR4_ADR,
+    output wire             DDR4_ODT,
+    inout  wire [1:0]       DDR4_DQS_T,
+    inout  wire [1:0]       DDR4_DQS_C,
+    inout  wire [15:0]      DDR4_DQ,
+    inout  wire [1:0]       DDR4_DM_DBI_N,
+    inout  wire             DDR4_ALERT_N,
+    inout  wire             DDR4_VREF,
+    input  wire             DDR4_ZN_SENSE,
+    output wire             DDR4_ZN,
 
     // SDIO
     output wire         SDIO_CK,
@@ -163,6 +179,22 @@ megasoc_chip u_megasoc_chip(
     .PL011_nUARTOut1(PL011_nUARTOut1),
     .PL011_nUARTRTS(PL011_nUARTRTS),
     .PL011_nUARTDTR(PL011_nUARTDTR),
+
+    .DDR4_RESET_N(DDR4_RESET_N),
+    .DDR4_CK_T(DDR4_CK_T),
+    .DDR4_CK_C(DDR4_CK_C),
+    .DDR4_CKE(DDR4_CKE),
+    .DDR4_CS_N(DDR4_CS_N),
+    .DDR4_ADR(DDR4_ADR),
+    .DDR4_ODT(DDR4_ODT),
+    .DDR4_DQS_T(DDR4_DQS_T),
+    .DDR4_DQS_C(DDR4_DQS_C),
+    .DDR4_DQ(DDR4_DQ),
+    .DDR4_DM_DBI_N(DDR4_DM_DBI_N),
+    .DDR4_ALERT_N(DDR4_ALERT_N),
+    .DDR4_VREF(DDR4_VREF),
+    .DDR4_ZN_SENSE(DDR4_ZN_SENSE),
+    .DDR4_ZN(DDR4_ZN),
 
     .SDIO_CK(SDIO_CK),
     .SDIO_CMD_tri(SDIO_CMD_tri),

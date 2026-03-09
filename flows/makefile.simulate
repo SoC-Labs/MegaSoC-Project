@@ -21,10 +21,10 @@ MTI_RUN_OPTIONS   = -voptargs=+acc
 MTI_RUN_OPTIONS   += -sv_lib $(CORTEX_A53_IP_LOGICAL_DIR)/ca53univent/build_x86_64/lib/ca53_tarmac_dpi
 
 # VCS options
-VCS_OPTIONS    =  -msg_config=$(SOCLABS_PROJECT_DIR)/verif/testbench/vcs_lint_config +vcs+lic+wait +v2k -sverilog -override_timescale=1ns/1ps +lint=all,noTMR,noVCDE -debug -debug_access+all -upf $(SIM_UPF_FILE)
-VCS_SIM_OPTION = +vcs+lic+wait +vcs+flush+log -assert nopostproc
+VCS_OPTIONS    =  +vcs+initreg+config+$(SOCLABS_PROJECT_DIR)/verif/testbench/vcs_reg_init -msg_config=$(SOCLABS_PROJECT_DIR)/verif/testbench/vcs_lint_config +vcs+lic+wait +v2k -sverilog -override_timescale=1ns/1ps +lint=all,noTMR,noVCDE -debug -debug_access+all -upf $(SIM_UPF_FILE)
+VCS_SIM_OPTION = +vcs+lic+wait +vcs+initreg+config+$(SOCLABS_PROJECT_DIR)/verif/testbench/vcs_reg_init +vcs+flush+log -assert nopostproc
 VCS_VC_OPTIONS = -f $(TBENCH_VC) 
-VCS_OPTIONS   += -sverilog $(CORTEX_A53_IP_LOGICAL_DIR)/ca53univent/build_x86_64/lib/ca53_tarmac_dpi.so
+VCS_OPTIONS   += -ntb_opts uvm -sverilog $(CORTEX_A53_IP_LOGICAL_DIR)/ca53univent/build_x86_64/lib/ca53_tarmac_dpi.so -sverilog $(DESIGNWARE_HOME)/vip/svt/common/latest/C/lib/amd64/libmemserver.so
 CA53_TARMAC_EXECUTABLE = $(CORTEX_A53_IP_LOGICAL_DIR)/ca53univent/build_x86_32/bin/ca53_tarmac_decode --plain 
 export CA53_TARMAC_EXECUTABLE
 
