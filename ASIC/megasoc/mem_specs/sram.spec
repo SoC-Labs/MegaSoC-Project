@@ -46,5 +46,5 @@ site_def = off
 vmin_assist = off
 words = 4096
 wp_size = 1
-write_mask = off
+write_mask = on
 write_thru = off
