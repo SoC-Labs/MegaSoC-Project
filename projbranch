@@ -12,5 +12,5 @@
 # Project Repository Subrepository Branch Index
 # Add your Accelerator Repository here
 asic_flow: main
-megasoc_tech: main
+megasoc_tech: dev_lpddr4_integration
 soctools_flow: main
