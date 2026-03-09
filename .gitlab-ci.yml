@@ -43,6 +43,12 @@ build-job:       # This job runs in the build stage, which runs first.
     paths:
       - ./simulate/*
 
+sim_hello_world:
+  stage: simulate
+  script:
+    - echo "Running hello world simulation"
+    - source set_env.sh
+    - make run_vcs
 
 regression_vcs:
   stage: simulate
