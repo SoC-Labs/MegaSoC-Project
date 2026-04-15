@@ -85,7 +85,7 @@ module megasoc_system(
     output wire             DDR4_RESET_N,
     output wire             DDR4_CK_T,
     output wire             DDR4_CK_C,
-    output wire             DDR4_CKE,
+    output wire [1:0]       DDR4_CKE,
     output wire             DDR4_CS_N,
     output wire [5:0]       DDR4_ADR,
     output wire             DDR4_ODT,

@@ -50,7 +50,6 @@ def generate_pad_instances(input_file, output_file):
                         f'PDDW08DGZ_H_G pad_out_{signal.lower()} (.I({signal.lower()}), .OEN(0), .REN(0), .PAD({signal}), .C());'
                     )
 
-
     # Write to output file
     with open(output_file, 'w') as file:
         for instance in pad_instances:

@@ -73,14 +73,8 @@ megasoc_clkreset u_megasoc_clkreset(
 
 `define MEGASOC_TECH_WRAPPER u_megasoc_chip_pads.u_megasoc_chip.u_megasoc_system.u_megasoc_tech_wrapper
 `define MEGASOC_ROM `MEGASOC_TECH_WRAPPER.u_ROM_wrapper.u_ROM
-`define MEGASOC_SRAM `MEGASOC_TECH_WRAPPER.u_SRAM_wrapper.u_SRAM
 
-initial begin 
-    //$readmemh("bootloader.hex", `MEGASOC_ROM.mem, 32'h0000_0000);
-    $readmemh("app_ram.v8-a.hex", `MEGASOC_SRAM.mem, 32'h0000_0000);
-    //#1 $readmemh("app_flash.v8-a.hex", FLASH.I0.memory);
 
-end
 
 megasoc_chip_pads u_megasoc_chip_pads(
     .REF_CLK_XTAL1(EXT_CLK),
@@ -94,11 +88,11 @@ megasoc_chip_pads u_megasoc_chip_pads(
     .P0(P0),
     .P1(P1),
 
-    .TDO_SWO(), 
+    .TDO_SWO(),
     .RTCK(),
     .TDI(),
-    .TCK_SWCLK(), 
-    .TMS_SWDIO(), 
+    .TCK_SWCLK(),
+    .TMS_SWDIO(),
     .nTRST(),
     .TRACEDATA(),
     .TRACECLK(),
@@ -215,7 +209,7 @@ wire UARTXD_edge = UARTXD_del ^ UARTXD; // edge detect
 
 reg [3:0] pllq;
 always @(negedge nRESET or posedge BAUDx16) begin 
-    if(~nRESET) 
+    if(~nRESET)
         pllq <= 4'h0;
     else begin 
         if (UARTXD_edge)

@@ -33,3 +33,11 @@ $(SOCLABS_PROJECT_DIR)/megasoc_chip/chip/logical/ASIC/megasoc_clock_ctrl.v
 $(SOCLABS_PROJECT_DIR)/megasoc_system/logical/megasoc_system.sv
 
 
+-f $(SOCLABS_MEGASOC_TECH_DIR)/flist/IP/Synopsys_uMCTL2.flist
+-f $(SOCLABS_MEGASOC_TECH_DIR)/flist/IP/Synopsys_LPDDR4PHY.flist
+
+
+$(SOCLABS_MEGASOC_TECH_DIR)/logical/ROM/ASIC/TSMC16nm/ROM_wrapper.sv 
+$(SOCLABS_MEGASOC_TECH_DIR)/logical/SRAM/ASIC/TSMC16nm/SRAM_wrapper.sv
+
+$(SOCLABS_MEGASOC_TECH_DIR)/logical/sdspi_controller/rtl/sdfrontend.v

@@ -57,7 +57,7 @@ bootrom:
 	fi ;\
 	mkdir -p $(BOOTROM_BUILD_DIR)/verilog/ ;\
 	mkdir -p $(BOOTROM_BUILD_DIR)/bintxt/ ;\
-	python3 bootrom_gen.py -a $(BOOTROM_ADDRW) -i $(TESTCODES_DIR)/../build/$(BOOTLOADER)/bootloader.hex/SEC_ROM_BOOT_IMG -v $(BOOTROM_BUILD_DIR)/verilog/bootrom.v -b $(BOOTROM_BUILD_DIR)/bintxt/bootrom.bintxt )
+	python3 bootrom_gen.py -a $(BOOTROM_ADDRW) -i $(TESTCODES_DIR)/../build/$(BOOTLOADER)/bootloader.hex -v $(BOOTROM_BUILD_DIR)/verilog/bootrom.v -b $(BOOTROM_BUILD_DIR)/bintxt/bootrom.bintxt )
 	mkdir -p $(SIM_TOP_DIR)/bootloader
 
 
@@ -73,10 +73,10 @@ endif
 	  echo Compile done ;\
 	  echo cd $(TESTCODES_DIR)/  $(TESTNAME) ;\
 	  ls > /dev/null ;\
-	  echo Copy $(TESTCODES_DIR)/../build/$(TESTNAME)/host0/app_flash.v8-a.hex/EXEC_ROM ;\
-	  if [ -e  $(TESTCODES_DIR)/../build/$(TESTNAME)/host0/app_flash.v8-a.hex/EXEC_ROM ] ; then \
+	  echo Copy $(TESTCODES_DIR)/../build/$(TESTNAME)/host0/app_flash.v8-a.hex ;\
+	  if [ -e  $(TESTCODES_DIR)/../build/$(TESTNAME)/host0/app_flash.v8-a.hex ] ; then \
 	    mkdir -p $(SIM_DIR) ; \
-	    cp $(TESTCODES_DIR)/../build/$(TESTNAME)/host0/app_flash.v8-a.hex/EXEC_ROM $(SIM_DIR)/app_flash.v8-a.hex ; \
+	    cp $(TESTCODES_DIR)/../build/$(TESTNAME)/host0/app_flash.v8-a.hex $(SIM_DIR)/app_flash.v8-a.hex ; \
 		cp $(TESTCODES_DIR)/../build/$(TESTNAME)/host0/app_ram.v8-a.hex $(SIM_DIR)/app_ram.v8-a.hex ; \
 	  else \
 	    while [ ! -e $(TESTNAME).hex ] ; do \
@@ -101,9 +101,9 @@ endif
 	  echo Compile done ;\
 	  ls > /dev/null ;\
 	  echo Copy $(TESTNAME).hex ;\
-	  if [ -e  $(TESTCODES_DIR)/../build/$(TESTNAME)/host0/app_flash.v8-a.hex/EXEC_ROM ] ; then \
+	  if [ -e  $(TESTCODES_DIR)/../build/$(TESTNAME)/host0/app_flash.v8-a.hex ] ; then \
 	    mkdir -p $(SIM_DIR) ; \
-	    cp $(TESTCODES_DIR)/../build/$(TESTNAME)/host0/app_flash.v8-a.hex/EXEC_ROM $(SIM_DIR)/app_flash.v8-a.hex ; \
+	    cp $(TESTCODES_DIR)/../build/$(TESTNAME)/host0/app_flash.v8-a.hex $(SIM_DIR)/app_flash.v8-a.hex ; \
 	    cp $(TESTCODES_DIR)/../build/$(TESTNAME)/host0/app_ram.v8-a.hex $(SIM_DIR)/app_ram.v8-a.hex ; \
 	  else \
 	    while [ ! -e $(TESTNAME).hex ] ; do \

@@ -97,18 +97,24 @@ run_vcs : testcode
 	@if [ ! -d $(SIM_DIR)/logs ] ; then \
 	  mkdir -p $(SIM_DIR)/logs; \
 	fi
-	@if [ $(ASIC_MEMS) -e yes] ; then \
-		cp $(SOCLABS_PROJECT_DIR)/memories/megasoc/bootrom/bootrom_emulation.rcf $(SIM_DIR)/; \
-	fi
+ifeq ($(ASIC_MEMS), yes)
+		cp $(SOCLABS_PROJECT_DIR)/memories/megasoc/bootrom/bootrom_emulation.rcf $(SIM_DIR)/
+endif
 	@if [ -f $(TESTCODES_DIR)/$(TESTNAME)/adp.cmd ] ; then \
 		cp $(TESTCODES_DIR)/$(TESTNAME)/adp.cmd $(SIM_DIR)/; \
 	fi
 	cd $(SIM_DIR); $(SIM_BUILD_DIR)/simv $(VCS_SIM_OPTION) +ca53_tarmac_enable -define ADP_FILE=adp.cmd < quit.do | tee logs/run_$(TESTNAME).log ;
 
 # Run simulation in interactive mode
-sim_vcs : code 
+sim_vcs : testcode 
 	@if [ ! -d $(SIM_DIR)/logs ] ; then \
 	  mkdir -p $(SIM_DIR)/logs; \
+	fi
+ifeq ($(ASIC_MEMS), yes)
+		cp $(SOCLABS_PROJECT_DIR)/memories/megasoc/bootrom/bootrom_emulation.rcf $(SIM_DIR)/
+endif
+	@if [ -f $(TESTCODES_DIR)/$(TESTNAME)/adp.cmd ] ; then \
+		cp $(TESTCODES_DIR)/$(TESTNAME)/adp.cmd $(SIM_DIR)/; \
 	fi
 	cd $(SIM_DIR); $(SIM_BUILD_DIR)/simv -gui +vcs+lic+wait +vcs+flush+log +ca53_tarmac_enable &
 
