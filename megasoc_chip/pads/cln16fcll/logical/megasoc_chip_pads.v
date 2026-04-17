@@ -5,7 +5,7 @@
 // Contributors
 //
 // Daniel Newbrook (d.newbrook@soton.ac.uk)
-// 
+//
 // Copyright � 2021-4, SoC Labs (www.soclabs.org)
 //-----------------------------------------------------------------------------
 // Modules instantiated:
