@@ -1,0 +1,124 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Getting Started</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="_static/nonav.css?v=7ee55c3a" /> 
+  </head><body>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="getting-started">
+<h1>Getting Started</h1>
+<section id="pre-requisites">
+<h2>Pre-requisites</h2>
+<p>The megaSoC repository contains all the wrappers and system integrations of the Arm IP’s. The IP’s themselves are not included in the repository
+as these are licensed by Arm.</p>
+<p>In order to gain access to the Arm IP. If you are part of an academic insitution, you can sign up to <a class="reference external" href="https://www.arm.com/resources/research/enablement/academic-access-inquiry">Arm’s Academic Access program (AAA)</a>
+This program is an agreement between your institution and Arm, so you must be an academic or educator within the institution to make this agreement.
+Your institution may already be signed up, in which case you can contact your internal user manager to gain access to the IP download site.</p>
+<section id="ip">
+<h3>IP</h3>
+<p>Once you have access to the Arm IP library, you will need to download and set up your environment with the IP. Soclabs provide a script for
+unpacking and setting up the IP in a way that can be used with our reference SoC’s (<a class="reference external" href="https://git.soton.ac.uk/soclabs/soclabs-arm-ip-environment">SoCLabs Arm IP Environment</a>)</p>
+<p>The IP that you need from arm is:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Cortex-A53</p></li>
+<li><p>NIC400</p></li>
+<li><p>and more…</p></li>
+</ul>
+</div></blockquote>
+<p>Once you have downloaded and unpacked the IP, you will need to set an environment variable in your system to point to this location, you can do this by
+adding <code class="docutils literal notranslate"><span class="pre">export</span> <span class="pre">ARM_IP_LIBRARY_PATH=/path/to/this</span></code> to your .bashrc file.</p>
+</section>
+<section id="software">
+<h3>Software</h3>
+<section id="simulator">
+<h4>Simulator</h4>
+<p>You will need a simulator in order to develop with nanoSoC. We have developed flows for:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Synopsys VCS</p></li>
+<li><p>Siemens QuestaSim</p></li>
+<li><p>Cadence Xcelium</p></li>
+<li><p>Icarus Verilog</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="firmware-compiler">
+<h4>Firmware Compiler</h4>
+<p>We recommend using the Arm DS-6 compiler as we have found this gives the best results in terms
+of code size (and memory is very limited in nanoSoC to keep area and cost minimized)</p>
+<p>You can download the Arm DS-6 compiler as part of the Hardware Success Kit (available from the Arm IP download site)</p>
+</section>
+<section id="fpga-build">
+<h4>FPGA Build</h4>
+<p>We recommend using xilinx Vivado (v2025)</p>
+</section>
+<section id="asic">
+<h4>ASIC</h4>
+</section>
+</section>
+<section id="repository-structure">
+<h3>Repository Structure</h3>
+<p>Below is the repository structure showing all the dependancies from the top level megaSoC project.</p>
+</section>
+<section id="cloning-the-repository">
+<h3>Cloning the Repository</h3>
+<p>This Repository contains multiple sub-repositories. In order to clone them with this repository, please use the following command:</p>
+<p><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">--recurse</span> <span class="pre">https://git.soton.ac.uk/soclabs/megasoc_project</span></code></p>
+<p>At this stage you can also add your submodule with:</p>
+<p><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">submodule</span> <span class="pre">add</span></code></p>
+<p>After doing this you should update the projbranch file to include your repository name (as it appears in .gitmodules) and the branch. This will allow the set_env.sh script to pull in your repository when updates are made
+At this point you may also like to edit the /env/dependency_env.sh to include your accelerator directory for example:
+export ACCELERATOR_DIR=”$SOCLABS_PROJECT_DIR/accelerator”</p>
+</section>
+<section id="setting-up-the-project-environment">
+<h3>Setting up the Project Environment</h3>
+<p>Every time you wish to run commands in this project, you will need to make sure the set environment script has been run for your current terminal session. This is done by moving to the top-level of the project and running:</p>
+<p><code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">set_env.sh</span></code></p>
+<p>This sets the environment variables related to this project and creates visability to the scripts in the flow directory.</p>
+</section>
+<section id="updating-subrepositories">
+<h3>Updating Subrepositories</h3>
+<p>Once you have run a source set_env.sh in your current terminal, you are then able to update all your repositories to their latest version by running:</p>
+<p><code class="docutils literal notranslate"><span class="pre">socpull</span></code></p>
+<p>This runs a git pull on all repositories in your project.</p>
+</section>
+<section id="first-time-simulation">
+<h3>First-time simulation</h3>
+<p>Before adding your IP to nanoSoC, we recommend that you run a “hello world” simulation to make sure that your environment is setup correctly.
+You can do this by running:</p>
+<p><code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">set_env.sh</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">nanosoc_tech</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">run</span></code></p>
+<p>This will run through the compilation and simulation of nanoSoC. In the following steps:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Compilation the bootrom Software</p></li>
+<li><p>Compilation of the testcode (hello in this case)</p></li>
+<li><p>Compilation of the HDL with the simulator</p></li>
+<li><p>Running the simulation</p></li>
+</ol>
+</div></blockquote>
+<p>The final output from this should be:</p>
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>

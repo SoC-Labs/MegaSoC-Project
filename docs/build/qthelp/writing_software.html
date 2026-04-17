@@ -1,0 +1,156 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Writing Software</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="_static/nonav.css?v=7ee55c3a" /> 
+  </head><body>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="writing-software">
+<h1>Writing Software</h1>
+<section id="address-map">
+<h2>Address Map</h2>
+<section id="summary">
+<h3>Summary</h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Region</p></th>
+<th class="head"><p>Start Address</p></th>
+<th class="head"><p>End Address</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Boot-Rom</p></td>
+<td><p>0x00000000</p></td>
+<td><p>0x0000FFFF</p></td>
+</tr>
+<tr class="row-odd"><td><p>Flash (off chip QSPI)</p></td>
+<td><p>0x00400000</p></td>
+<td><p>0x007FFFFF</p></td>
+</tr>
+<tr class="row-even"><td><p>Data Memory (SRAM)</p></td>
+<td><p>0x00800000</p></td>
+<td><p>0x0080FFFF</p></td>
+</tr>
+<tr class="row-odd"><td><p>Flash Control</p></td>
+<td><p>0x01000000</p></td>
+<td><p>0x0100FFFF</p></td>
+</tr>
+<tr class="row-even"><td><p>DMA Control</p></td>
+<td><p>0x01010000</p></td>
+<td><p>0x01011FFF</p></td>
+</tr>
+<tr class="row-odd"><td><p>GIC (Interrupt control)</p></td>
+<td><p>0x01100000</p></td>
+<td><p>0x01107FFF</p></td>
+</tr>
+<tr class="row-even"><td><p>PCK Control</p></td>
+<td><p>0x01200000</p></td>
+<td><p>0x01207FFF</p></td>
+</tr>
+<tr class="row-odd"><td><p>Peripherals</p></td>
+<td><p>0x40000000</p></td>
+<td><p>0x5FFFFFFF</p></td>
+</tr>
+<tr class="row-even"><td><p>Debug</p></td>
+<td><p>0x60000000</p></td>
+<td><p>0x7FFFFFFF</p></td>
+</tr>
+<tr class="row-odd"><td><p>DRAM</p></td>
+<td><p>0x80000000</p></td>
+<td><p>0xFFFFFFFF</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="system-io-region">
+<h3>System IO Region</h3>
+<p>Below are the address regions for the System IO/Peripherals, detailed address
+maps for each peripheral</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Region</p></th>
+<th class="head"><p>Start Address</p></th>
+<th class="head"><p>End Address</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Timer 0</p></td>
+<td><p>0x40000000</p></td>
+<td><p>0x40000FFF</p></td>
+</tr>
+<tr class="row-odd"><td><p>Timer 1</p></td>
+<td><p>0x40001000</p></td>
+<td><p>0x40001FFF</p></td>
+</tr>
+<tr class="row-even"><td><p>Dual Timer</p></td>
+<td><p>0x40002000</p></td>
+<td><p>0x40002FFF</p></td>
+</tr>
+<tr class="row-odd"><td><p>USRT 0</p></td>
+<td><p>0x40003000</p></td>
+<td><p>0x40003FFF</p></td>
+</tr>
+<tr class="row-even"><td><p>USRT 1</p></td>
+<td><p>0x40004000</p></td>
+<td><p>0x40004FFF</p></td>
+</tr>
+<tr class="row-odd"><td><p>UART 0</p></td>
+<td><p>0x40005000</p></td>
+<td><p>0x40005FFF</p></td>
+</tr>
+<tr class="row-even"><td><p>UART 1</p></td>
+<td><p>0x40006000</p></td>
+<td><p>0x40006FFF</p></td>
+</tr>
+<tr class="row-odd"><td><p>Watchdog Timer</p></td>
+<td><p>0x40007000</p></td>
+<td><p>0x40007FFF</p></td>
+</tr>
+<tr class="row-even"><td><p>Real Time Clock</p></td>
+<td><p>0x40008000</p></td>
+<td><p>0x40008FFF</p></td>
+</tr>
+<tr class="row-odd"><td><p>SPI</p></td>
+<td><p>0x40009000</p></td>
+<td><p>0x40009FFF</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="adding-tests">
+<h2>Adding Tests</h2>
+<p>To add your own testcodes to run on nanosoc in the simulation environment,
+you can add these to the accelerator-project/system/testcodes directory.</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Create a new directory for your testcode</p></li>
+<li><p>Create a .c source file with the same name as the directory</p></li>
+<li><p>Copy the makefile from one of the example testcodes to your test code directory</p></li>
+<li><p>Edit the TESTNAME variable in the new makefile to the name of your test</p></li>
+<li><p>If you want to run any ADP code before your test, add an adp.cmp file (example in the adp v4 cmd tests)</p></li>
+<li><p>If you want to preload expansion memories, add an expram l.hex and/or expram h.hex</p></li>
+<li><p>Add the name of your test to the accelerator-project/system/software list.txt file</p></li>
+</ol>
+</div></blockquote>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>

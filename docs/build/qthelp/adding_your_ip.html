@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Adding your IP</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="_static/nonav.css?v=7ee55c3a" /> 
+  </head><body>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <section id="adding-your-ip">
+<h1>Adding your IP</h1>
+<p>In order to add the files for your IP there are 2 options. Either as a local version
+of your project or as a remote version.</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Local version: you can just place your IP files into a new directory or in the system/expansion_region directory</p></li>
+<li><p>Remote version: you can fork the accelerator-project git to your own git account, this allows you to add your IP either in the system/expansion_region directory or as a git submodule.</p></li>
+</ol>
+</div></blockquote>
+<section id="integrating-your-ip">
+<h2>Integrating your IP</h2>
+<dl class="simple">
+<dt>There are 2 steps to integrating your IP in nanosoc</dt><dd><ol class="arabic simple">
+<li><p>Include your IP in the file list</p></li>
+<li><p>Instantiate your IP in the system/expansion_region/expansion_region_example.v file</p></li>
+</ol>
+</dd>
+</dl>
+<p>For step 1. you can add paths to your files in the flist/project/accelerator.flist file. We recommend that you use the environment variables as mentioned in section 1.4. In order for fpga and asic flows to work properly you
+should split verilog and system verilog files into seperate .flist files. We suggest adding an accelerator sv.flist to the accelerator-project/flist/project directory
+and adding the following to accelerator.flist</p>
+<p><code class="docutils literal notranslate"><span class="pre">-f</span> <span class="pre">$SOCLABS</span> <span class="pre">P</span> <span class="pre">ROJECT</span> <span class="pre">DIR/flist/project/accelerator</span> <span class="pre">sv.flist</span></code></p>
+<p>For step 2. you need to edit the accelerator subsystem.v file (found in accelerator-project/system/src/). The ports of this file are an AHB-lite port,
+2x EXP DRQ (data request from accelerator to DMA), 2x EXP DLAST (last signal from DMA to accelerator), 4x EXP IRQ (Interrupts from accelerator to
+CPU), and some AXI stream interfaces (these are only there if the DMA350 is configured with stream interfaces)</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Add the option ACCELERATOR=yes to include your accelerator when you run make commands!</p>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>
