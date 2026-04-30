@@ -59,8 +59,8 @@ module megasoc_chip_pads(
     output wire             DDR4_RESET_N,
     output wire             DDR4_CK_T,
     output wire             DDR4_CK_C,
-    output wire             DDR4_CKE,
-    output wire             DDR4_CS_N,
+    output wire [1:0]       DDR4_CKE,
+    output wire [1:0]       DDR4_CS_N,
     output wire [5:0]       DDR4_ADR,
     output wire             DDR4_ODT,
     inout  wire [1:0]       DDR4_DQS_T,
@@ -98,9 +98,9 @@ assign QSPI_IO_i[3] = QSPI_IO[3];
 wire         SDIO_CMD_tri;
 wire         SDIO_CMD_o;
 wire         SDIO_CMD_i;
-wire [7:0]   SDIO_DAT_tri;
-wire [7:0]   SDIO_DAT_o;
-wire [7:0]   SDIO_DAT_i;
+wire [3:0]   SDIO_DAT_tri;
+wire [3:0]   SDIO_DAT_o;
+wire [3:0]   SDIO_DAT_i;
 
 assign SDIO_CMD = SDIO_CMD_tri ? 1'bz : SDIO_CMD_o;
 assign SDIO_CMD_i = SDIO_CMD;

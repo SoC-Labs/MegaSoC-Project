@@ -15,6 +15,9 @@ PARALLEL_TESTS = 4
 # Regression Simulation Timeout
 TIMEOUT = 60m
 
+# Enable Coverage for Regression
+COVERAGE = 1
+
 # Create a Directory to Run a Regression in
 $(eval REGRESSION_NAME =$(shell date +%Y_%m_%d_%H_%M_%S))
 $(eval REGRESSION_DIR =  $(SIM_TOP_DIR)/regression_$(REGRESSION_NAME))
@@ -36,7 +39,8 @@ endef
 $(foreach TESTNAME,$(TEST_LIST), $(eval $(call vcs_template,$(TESTNAME))))
 
 regression_test_vcs:
-	@timeout $(TIMEOUT) $(MAKE) run_vcs TESTNAME=$(TESTNAME) > $(REGRESSION)/$(TESTNAME).log || true
+	@timeout $(TIMEOUT) $(MAKE) run_vcs TESTNAME=$(TESTNAME) COVERAGE=$(COVERAGE) > $(REGRESSION)/$(TESTNAME).log || true
+	@if [ $(COVERAGE) = 1 ]; then cp -r $(SIM_DIR)/simv.vdb $(REGRESSION)/$(TESTNAME).vdb 2>/dev/null || true; fi
 
 
 # Target to Display Regression Results on Command Line
@@ -65,5 +69,14 @@ regression_$(SIMULATOR):
 	@echo $(TEST_LIST_VCS)
 	@$(MAKE) -j$(PARALLEL_TESTS) all_tests_$(SIMULATOR) REGRESSION=$(REGRESSION_DIR)
 	@$(MAKE) -j1 regression_results REGRESSION=$(REGRESSION_DIR)
+	@if [ $(COVERAGE) = 1 ]; then $(MAKE) merge_coverage REGRESSION=$(REGRESSION_DIR); fi
+
+merge_coverage:
+	@echo --------------------------------------------
+	@echo Merging Coverage Databases
+	@echo --------------------------------------------
+	@cd $(REGRESSION); urg -dir *.vdb -dbname merged.vdb
+	@cd $(REGRESSION); urg -dir merged.vdb -report coverage_report
+	@echo Coverage report generated in $(REGRESSION)/coverage_report
 
 all_tests_vcs : $(TEST_LIST_VCS)

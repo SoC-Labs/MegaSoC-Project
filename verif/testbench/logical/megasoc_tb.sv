@@ -47,8 +47,8 @@ wire         PL011_nUARTOut2TRI;
 wire        DDR_RESET_n;
 wire        DDR_CK_t;
 wire        DDR_CK_c;
-wire        DDR_CKE;
-wire        DDR_CS;
+wire [1:0]  DDR_CKE;
+wire [1:0]  DDR_CS;
 wire [5:0]  DDR_CA;
 wire        DDR_ODT;
 wire [1:0]  DDR_DQS_t;
@@ -376,21 +376,60 @@ assign axis_rx1_tvalid = 1'b0;
     parameter USE_SYNOPSYS_DDR_CTRL = 0;
 `endif
 
+`define MEGASOC_DDR_SUBSYSTEM `MEGASOC_TECH_WRAPPER.u_megasoc_dram_wrapper
+
 generate
     if(USE_SYNOPSYS_DDR_CTRL) begin : g_ddr_model
-      lpddr4_dram_uvmvlog #("U_lpddr4_dram1") U_lpddr4_dram1 (
+/*       lpddr4_dram_uvmvlog #("U_lpddr4_dram1") U_lpddr4_dram1 (
         .RESET_n(DDR_RESET_n),
         .CK_t_a(DDR_CK_t),
         .CK_c_a(DDR_CK_c),
-        .CKE_a(DDR_CKE),
-        .CS_a(DDR_CS),
+        .CKE_a(DDR_CKE[0]),
+        .CS_a(DDR_CS[0]),
         .CA_a(DDR_CA),
         .ODT_a(1'b0),
         .DQS_t_a(DDR_DQS_t),
         .DQS_c_a(DDR_DQS_c),
         .DQ_a(DDR_DQ),
-        .DMI_a(DDR_DMI)
+        .DMI_a(DDR_DMI),
+
+        .CK_t_b(DDR_CK_t),
+        .CK_c_b(DDR_CK_c),
+        .CKE_b(DDR_CKE[1]),
+        .CS_b(DDR_CS[1]),
+        .CA_b(DDR_CA),
+        .ODT_b(1'b0),
+        .DQS_t_b(DDR_DQS_t),
+        .DQS_c_b(DDR_DQS_c),
+        .DQ_b(DDR_DQ),
+        .DMI_b(DDR_DMI)
+
       );
+ */
+    lpddr4_16 u_lpddr4_dram1 (
+        .CK_t(DDR_CK_t),
+        .CK_c(DDR_CK_c),
+        .CKE(DDR_CKE[0]),
+        .CS(DDR_CS[0]),
+        .CA(DDR_CA),
+        .ODT_CA(1'b0),
+        .DQ(DDR_DQ),
+        .DQS_t(DDR_DQS_t),
+        .DQS_c(DDR_DQS_c),
+        .DMI(DDR_DMI),
+        .RESET_n(DDR_RESET_n),
+        .ZQ()
+    );
+
+
+//      dfi_monitor u_dfi_monitor(
+//        .dfi_clk(`MEGASOC_DDR_SUBSYSTEM.ACLK),
+//        .phy_clk(`MEGASOC_DDR_SUBSYSTEM.ACLK),
+//        .dfi_address_p(`MEGASOC_DDR_SUBSYSTEM.g_snps_ddr_ctrl.u_dram_PHY.dfi0_address_P0),
+//        .dfi_address_p1(`MEGASOC_DDR_SUBSYSTEM.g_snps_ddr_ctrl.u_dram_PHY.dfi0_address_P1),
+//        .dfi_address_p2(`MEGASOC_DDR_SUBSYSTEM.g_snps_ddr_ctrl.u_dram_PHY.dfi0_address_P2),
+//        .dfi_address_p3(`MEGASOC_DDR_SUBSYSTEM.g_snps_ddr_ctrl.u_dram_PHY.dfi0_address_P3)
+//      );
     end
     else begin : g_no_ddr
 
