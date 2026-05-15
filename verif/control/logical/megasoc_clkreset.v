@@ -34,7 +34,7 @@
 //-----------------------------------------------------------------------------
 // Abstract : Simple clock and power on reset generator
 //-----------------------------------------------------------------------------
-`timescale 1ns/1ps
+`timescale  1ns / 100fs
 
 module megasoc_clkreset(
   output wire CLK,

@@ -10,7 +10,7 @@
 //-----------------------------------------------------------------------------
 // Modules instantiated:
 //  megasoc_chip_pads
-`timescale 1ns/1ps
+`timescale  1ns / 100fs
 `default_nettype wire
 
 module megasoc_tb();
@@ -380,32 +380,20 @@ assign axis_rx1_tvalid = 1'b0;
 
 generate
     if(USE_SYNOPSYS_DDR_CTRL) begin : g_ddr_model
-/*       lpddr4_dram_uvmvlog #("U_lpddr4_dram1") U_lpddr4_dram1 (
-        .RESET_n(DDR_RESET_n),
-        .CK_t_a(DDR_CK_t),
-        .CK_c_a(DDR_CK_c),
-        .CKE_a(DDR_CKE[0]),
-        .CS_a(DDR_CS[0]),
-        .CA_a(DDR_CA),
-        .ODT_a(1'b0),
-        .DQS_t_a(DDR_DQS_t),
-        .DQS_c_a(DDR_DQS_c),
-        .DQ_a(DDR_DQ),
-        .DMI_a(DDR_DMI),
+      //  lpddr4_1ch_dram_uvmvlog #("U_lpddr4_dram1") U_lpddr4_dram1 (
+      //   .RESET_n(DDR_RESET_n),
+      //   .CK_t(DDR_CK_t),
+      //   .CK_c(DDR_CK_c),
+      //   .CKE(DDR_CKE[0]),
+      //   .CS(DDR_CS[0]),
+      //   .CA(DDR_CA),
+      //   .ODT(1'b0),
+      //   .DQS_t(DDR_DQS_t),
+      //   .DQS_c(DDR_DQS_c),
+      //   .DQ(DDR_DQ),
+      //   .DMI(DDR_DMI)
+      // );
 
-        .CK_t_b(DDR_CK_t),
-        .CK_c_b(DDR_CK_c),
-        .CKE_b(DDR_CKE[1]),
-        .CS_b(DDR_CS[1]),
-        .CA_b(DDR_CA),
-        .ODT_b(1'b0),
-        .DQS_t_b(DDR_DQS_t),
-        .DQS_c_b(DDR_DQS_c),
-        .DQ_b(DDR_DQ),
-        .DMI_b(DDR_DMI)
-
-      );
- */
     lpddr4_16 u_lpddr4_dram1 (
         .CK_t(DDR_CK_t),
         .CK_c(DDR_CK_c),
