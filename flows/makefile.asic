@@ -16,16 +16,19 @@ A53_L1_TAG_MEM_DIR 		:= $(A53_MEM_DIR)/L1_TAG
 
 
 ASIC_IMPLEMENTATION_DIR := $(SOCLABS_PROJECT_DIR)/imp/ASIC
-CA53_IMP_DIR 	:= $(ASIC_IMPLEMENTATION_DIR)/CA53
-CA53_FLIST_DIR 	:= $(CA53_IMP_DIR)/flist
-CA53_FLIST_i	:= $(SOCLABS_MEGASOC_TECH_DIR)/flist/IP/ARM_Cortex_A53.flist
-CA53_FLIST_inc 	:= $(SOCLABS_MEGASOC_TECH_DIR)/flist/IP/ARM_CA53_ASIC.flist
-CA53_FLIST_o 	:= $(CA53_FLIST_DIR)/ca53_fc_flist.tcl
 
 MEGASOC_ASIC_IMP_DIR	:= $(ASIC_IMPLEMENTATION_DIR)/megasoc
 MEGASOC_FLIST_DIR 		:= $(MEGASOC_ASIC_IMP_DIR)/flist
 MEGASOC_ASIC_FLIST_i	:= $(SOCLABS_PROJECT_DIR)/flist/project/top_ASIC.flist
 MEGASOC_ASIC_FLIST_o	:= $(MEGASOC_FLIST_DIR)/megasoc_fc_flist.tcl
+
+QSPI_ASIC_FLIST_i 		:= $(SOCLABS_MEGASOC_TECH_DIR)/logical/sl_ahb_qspi/flist/Top/ahb_QSPI.flist 
+QSPI_ASIC_FLIST_INC		:= $(SOCLABS_PROJECT_DIR)/flist/ASIC/qspi_ASIC.flist
+QSPI_ASIC_FLIST_o		:= $(MEGASOC_FLIST_DIR)/qspi_fc_flist.tcl
+
+CA53_FLIST_i	:= $(SOCLABS_MEGASOC_TECH_DIR)/flist/IP/ARM_Cortex_A53.flist
+CA53_FLIST_inc 	:= $(SOCLABS_MEGASOC_TECH_DIR)/flist/IP/ARM_CA53_ASIC.flist
+CA53_FLIST_o 	:= $(MEGASOC_FLIST_DIR)/ca53_fc_flist.tcl
 
 REPORTS_FOLDER			:= $(MEGASOC_ASIC_IMP_DIR)/reports
 SYN_LOGS				:= $(MEGASOC_ASIC_IMP_DIR)/logs
@@ -33,6 +36,7 @@ NETLIST_FOLDER			:= $(MEGASOC_ASIC_IMP_DIR)/netlist/
 ASIC_OUTPUT_DIR 	    := $(MEGASOC_ASIC_IMP_DIR)/outputs
 ASIC_WORK_DIR 			:= $(MEGASOC_ASIC_IMP_DIR)/work
 ASIC_LIBS_DIR 			:= $(MEGASOC_ASIC_IMP_DIR)/libs
+ASIC_INITIAL_SYN_DIR	:= $(MEGASOC_ASIC_IMP_DIR)/initial_synthesis
 
 A53_REPORTS_FOLDER		:= $(CA53_IMP_DIR)/reports
 A53_SYN_LOGS			:= $(CA53_IMP_DIR)/logs
@@ -42,16 +46,13 @@ A53_ASIC_WORK_DIR 		:= $(CA53_IMP_DIR)/work
 A53_ASIC_LIBS_DIR 		:= $(CA53_IMP_DIR)/libs
 
 
-flist_fc_ca53:
-	@mkdir -p $(CA53_FLIST_DIR)
-	@(cd $(CA53_FLIST_DIR) ; \
-	$(SOCLABS_SOCTOOLS_FLOW_DIR)/bin/filelist_compile.py -a -t -s -f $(CA53_FLIST_i) -i $(CA53_FLIST_inc) -o $(CA53_FLIST_o) ;)
-
 flist_fc_megasoc:
 	@mkdir -p $(MEGASOC_FLIST_DIR)
 	@(cd $(MEGASOC_FLIST_DIR) ; \
-	$(SOCLABS_SOCTOOLS_FLOW_DIR)/bin/filelist_compile.py -a -t -s -f $(MEGASOC_ASIC_FLIST_i) -o $(MEGASOC_ASIC_FLIST_o) ;)
-	
+	$(SOCLABS_SOCTOOLS_FLOW_DIR)/bin/filelist_compile.py -a -t -s -d $(DEFINES_VC) -f $(MEGASOC_ASIC_FLIST_i) -i $(CA53_FLIST_inc) -o $(MEGASOC_ASIC_FLIST_o) ; \
+	$(SOCLABS_SOCTOOLS_FLOW_DIR)/bin/filelist_compile.py -a -t -s -d $(DEFINES_VC) -f $(QSPI_ASIC_FLIST_i) -i $(QSPI_ASIC_FLIST_INC) -o $(QSPI_ASIC_FLIST_o) ; \
+	$(SOCLABS_SOCTOOLS_FLOW_DIR)/bin/filelist_compile.py -a -t -s -f $(CA53_FLIST_i) -i $(CA53_FLIST_inc) -o $(CA53_FLIST_o) ;)
+
 
 gen_a53_memories_frontend:
 	@mkdir -p $(A53_MEM_DIR)
@@ -75,6 +76,7 @@ megasoc_fusion_setup_dirs:
 	@mkdir -p $(ASIC_OUTPUT_DIR) 	 
 	@mkdir -p $(ASIC_WORK_DIR) 
 	@mkdir -p $(ASIC_LIBS_DIR) 
+	@mkdir -p $(ASIC_INITIAL_SYN_DIR)
 	cp -rf $(SOCLABS_PROJECT_DIR)/ASIC/megasoc/FusionCompiler/scripts $(MEGASOC_ASIC_IMP_DIR)/
 	cp -rf $(SOCLABS_PROJECT_DIR)/ASIC/megasoc/FusionCompiler/inputs $(MEGASOC_ASIC_IMP_DIR)/
 	cp -rf $(SOCLABS_PROJECT_DIR)/ASIC/megasoc/FusionCompiler/floorplan $(MEGASOC_ASIC_IMP_DIR)/
@@ -103,3 +105,4 @@ a53_fusion_setup_libs: a53_fusion_setup_dirs
 a53_fusion_clean_libs:
 	rm -rf $(A53_ASIC_LIBS_DIR)
 	@mkdir -p $(A53_ASIC_LIBS_DIR)
+

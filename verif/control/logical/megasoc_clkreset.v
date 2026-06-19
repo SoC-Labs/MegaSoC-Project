@@ -57,7 +57,7 @@ module megasoc_clkreset(
       clock_q   <= 1'b0;
       clock_com <= 1'b0;
       clock_rt  <= 1'b0;
-      shifter   <= 16'h0000;
+      shifter   <= 16'h0100;
       #40 clock_q <= 1'b1;
       clock_rt <= 1'b1;
       clock_com <= 1'b1;

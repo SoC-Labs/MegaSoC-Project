@@ -11,6 +11,7 @@
 // Modules instantiated:
 //  megasoc_chip_pads
 `timescale 1ns/1ps
+`default_nettype wire
 
 module megasoc_tb();
 
@@ -42,6 +43,26 @@ wire         PL011_nUARTOut1DCD;
 wire         PL011_nUARTDTRDSR;
 wire         PL011_nUARTOut2TRI;
 
+// DDR Wires
+wire        DDR_RESET_n;
+wire        DDR_CK_t;
+wire        DDR_CK_c;
+wire        DDR_CKE;
+wire        DDR_CS;
+wire [5:0]  DDR_CA;
+wire        DDR_ODT;
+wire [1:0]  DDR_DQS_t;
+wire [1:0]  DDR_DQS_c;
+wire [15:0] DDR_DQ;
+wire [1:0]  DDR_DMI;
+wire        DDR_ALERT_N;
+supply1        DDR_VREF;
+wire        DDR_ZN_SENSE;
+wire        DDR_ZN;
+
+assign DDR_ZN_SENSE=1'b0;
+pullup(DDR_ALERT_N);
+
 megasoc_clkreset u_megasoc_clkreset(
     .CLK(EXT_CLK),
     .CLK_RT(RT_CLK),
@@ -52,14 +73,8 @@ megasoc_clkreset u_megasoc_clkreset(
 
 `define MEGASOC_TECH_WRAPPER u_megasoc_chip_pads.u_megasoc_chip.u_megasoc_system.u_megasoc_tech_wrapper
 `define MEGASOC_ROM `MEGASOC_TECH_WRAPPER.u_ROM_wrapper.u_ROM
-`define MEGASOC_SRAM `MEGASOC_TECH_WRAPPER.u_SRAM_wrapper.u_SRAM
 
-initial begin 
-    //$readmemh("bootloader.hex", `MEGASOC_ROM.mem, 32'h0000_0000);
-    $readmemh("app_ram.v8-a.hex", `MEGASOC_SRAM.mem, 32'h0000_0000);
-    //#1 $readmemh("app_flash.v8-a.hex", FLASH.I0.memory);
 
-end
 
 megasoc_chip_pads u_megasoc_chip_pads(
     .REF_CLK_XTAL1(EXT_CLK),
@@ -73,11 +88,11 @@ megasoc_chip_pads u_megasoc_chip_pads(
     .P0(P0),
     .P1(P1),
 
-    .TDO_SWO(), 
+    .TDO_SWO(),
     .RTCK(),
     .TDI(),
-    .TCK_SWCLK(), 
-    .TMS_SWDIO(), 
+    .TCK_SWCLK(),
+    .TMS_SWDIO(),
     .nTRST(),
     .TRACEDATA(),
     .TRACECLK(),
@@ -99,6 +114,22 @@ megasoc_chip_pads u_megasoc_chip_pads(
     .PL011_nUARTOut1(PL011_nUARTOut1DCD),
     .PL011_nUARTRTS(PL011_nUARTRTSCTS),
     .PL011_nUARTDTR(PL011_nUARTDTRDSR),
+
+    .DDR4_RESET_N(DDR_RESET_n),
+    .DDR4_CK_T(DDR_CK_t),
+    .DDR4_CK_C(DDR_CK_c),
+    .DDR4_CKE(DDR_CKE),
+    .DDR4_CS_N(DDR_CS),
+    .DDR4_ADR(DDR_CA),
+    .DDR4_ODT(DDR_ODT),
+    .DDR4_DQS_T(DDR_DQS_t),
+    .DDR4_DQS_C(DDR_DQS_c),
+    .DDR4_DQ(DDR_DQ),
+    .DDR4_DM_DBI_N(DDR_DMI),
+    .DDR4_ALERT_N(DDR_ALERT_N),
+    .DDR4_VREF(DDR_VREF),
+    .DDR4_ZN_SENSE(DDR_ZN_SENSE),
+    .DDR4_ZN(DDR_ZN),
 
     .SDIO_CK(SDIO_CK),
     .SDIO_CMD(SDIO_CMD),
@@ -178,7 +209,7 @@ wire UARTXD_edge = UARTXD_del ^ UARTXD; // edge detect
 
 reg [3:0] pllq;
 always @(negedge nRESET or posedge BAUDx16) begin 
-    if(~nRESET) 
+    if(~nRESET)
         pllq <= 4'h0;
     else begin 
         if (UARTXD_edge)
@@ -337,5 +368,34 @@ assign axis_rx1_tvalid = 1'b0;
     .txd8_valid(axis_rx0_tvalid),
     .txd8_data(axis_rx0_tdata8)
   );
+
+// DRAM model instantiation
+`ifdef INC_SYNOPSYS_LPDDR4
+    parameter USE_SYNOPSYS_DDR_CTRL = 1;
+`else
+    parameter USE_SYNOPSYS_DDR_CTRL = 0;
+`endif
+
+generate
+    if(USE_SYNOPSYS_DDR_CTRL) begin : g_ddr_model
+      lpddr4_dram_uvmvlog #("U_lpddr4_dram1") U_lpddr4_dram1 (
+        .RESET_n(DDR_RESET_n),
+        .CK_t_a(DDR_CK_t),
+        .CK_c_a(DDR_CK_c),
+        .CKE_a(DDR_CKE),
+        .CS_a(DDR_CS),
+        .CA_a(DDR_CA),
+        .ODT_a(1'b0),
+        .DQS_t_a(DDR_DQS_t),
+        .DQS_c_a(DDR_DQS_c),
+        .DQ_a(DDR_DQ),
+        .DMI_a(DDR_DMI)
+      );
+    end
+    else begin : g_no_ddr
+
+    end
+endgenerate
+
 
 endmodule
