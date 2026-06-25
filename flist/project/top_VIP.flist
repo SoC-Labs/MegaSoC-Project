@@ -1,0 +1,32 @@
+//-----------------------------------------------------------------------------
+// Project Top-level Filelist -- SDIO VIP variant
+// Additive verification infrastructure, parallel to top_BEHAV.flist.
+// Identical DUT/system compile order; only the testbench filelist differs
+// (uvm_vip_tb.flist instead of megasoc_tb.flist), so the SDIO VIP
+// integration and the existing mdl_sdio.v-based BEHAV flow stay fully
+// independent of each other.
+//-----------------------------------------------------------------------------
+
+// ============= Verilog library extensions ===========
++libext+.v+.vlib
+
+
+// =============    System Filelist      =========================
+// - Defines RTL
++incdir+$(SOCLABS_PROJECT_DIR)/system/src/defines
+
+-f $(SOCLABS_PROJECT_DIR)/flist/project/system.flist
+
+// SDIO VIP Testbench
+-f $(SOCLABS_PROJECT_DIR)/flist/project/uvm_vip_tb.flist
+
+// =============    Arm-IP Specific Filelists      =========================
+// - MegaSoC Chip IP
+-f $(SOCLABS_MEGASOC_TECH_DIR)/flist/megasoc_tech_BEHAV.flist
+
+$(SOCLABS_PROJECT_DIR)/megasoc_chip/chip/logical/megasoc_chip.v
+$(SOCLABS_PROJECT_DIR)/megasoc_chip/chip/logical/megasoc_chip_pin_mux.v
+$(SOCLABS_PROJECT_DIR)/megasoc_chip/chip/logical/megasoc_clock_ctrl.v
+$(SOCLABS_PROJECT_DIR)/megasoc_chip/pads/glib/logical/megasoc_chip_pads.v
+
+$(SOCLABS_PROJECT_DIR)/megasoc_system/logical/megasoc_system.sv
