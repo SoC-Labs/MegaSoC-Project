@@ -132,7 +132,7 @@ N25Qxxx FLASH(
 
 mdl_sdio #(
   .OPT_HIGH_CAPACITY(1),
-  .LGMEMSZ(35),
+  .LGMEMSZ(25),
   .OPT_DUAL_VOLTAGE(1)
   ) u_sd_card_model (
   .sd_clk(SDIO_CK),

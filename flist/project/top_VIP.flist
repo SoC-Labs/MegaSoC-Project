@@ -1,18 +1,11 @@
 //-----------------------------------------------------------------------------
-// Project Top-level Filelist System Filelist
-// A joint work commissioned on behalf of SoC Labs, under Arm Academic Access license.
-//
-// Contributors
-//
-// David Mapstone (d.a.mapstone@soton.ac.uk)
-//
-// Copyright � 2021-3, SoC Labs (www.soclabs.org)
+// Project Top-level Filelist -- SDIO VIP variant
+// Additive verification infrastructure, parallel to top_BEHAV.flist.
+// Identical DUT/system compile order; only the testbench filelist differs
+// (uvm_vip_tb.flist instead of megasoc_tb.flist), so the SDIO VIP
+// integration and the existing mdl_sdio.v-based BEHAV flow stay fully
+// independent of each other.
 //-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-// Abstract : Verilog Command File for Top-level Accelerator System
-//-----------------------------------------------------------------------------
-
-// DESIGN_TOP nanosoc_chip
 
 // ============= Verilog library extensions ===========
 +libext+.v+.vlib
@@ -24,8 +17,8 @@
 
 -f $(SOCLABS_PROJECT_DIR)/flist/project/system.flist
 
-// MegaSoC Testbench
--f $(SOCLABS_PROJECT_DIR)/flist/project/megasoc_tb.flist
+// SDIO VIP Testbench
+-f $(SOCLABS_PROJECT_DIR)/flist/project/uvm_vip_tb.flist
 
 // =============    Arm-IP Specific Filelists      =========================
 // - MegaSoC Chip IP

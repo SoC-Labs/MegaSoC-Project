@@ -82,9 +82,9 @@ assign QSPI_IO_i[3] = QSPI_IO[3];
 wire         SDIO_CMD_tri;
 wire         SDIO_CMD_o;
 wire         SDIO_CMD_i;
-wire [7:0]   SDIO_DAT_tri;
-wire [7:0]   SDIO_DAT_o;
-wire [7:0]   SDIO_DAT_i;
+wire [3:0]   SDIO_DAT_tri;
+wire [3:0]   SDIO_DAT_o;
+wire [3:0]   SDIO_DAT_i;
 
 assign SDIO_CMD = SDIO_CMD_tri ? 1'bz : SDIO_CMD_o;
 assign SDIO_CMD_i = SDIO_CMD;
