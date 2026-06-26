@@ -41,7 +41,7 @@ always @(clock_sys)
     #1 clock_sys <= !clock_sys;  // 2ns period, 500MHz
 
 always @(clock_cpu)
-    #0.5 clock_cpu <= !clock_cpu; // 1ns period, 1GHz
+    #5 clock_cpu <= !clock_cpu; // 10ns period, 100MHz -- matches the CPU_CLK base sdiodrv.c's SDIOCK_* divisor table assumes (sdio.v:69)
 
 always @(clock_flash)
     #2 clock_flash <= !clock_flash; // 4ns period 250MHz

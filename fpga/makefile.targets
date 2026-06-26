@@ -18,7 +18,11 @@ else ifeq ($(FPGA),haps_sx)
 	XILINX_PART  := xcvu19p-fsva3824-2-e
 	BOARD_NAME   := haps_sx
 	PLATFORM     := bare
-else # Default to MPS3
+else ifeq ($(FPGA),pynq_z2)
+	XILINX_PART  := xc7z020clg400-1
+	BOARD_NAME   := pynq_z2
+	PLATFORM     := bare
+else # Default to HAPS SX
 	XILINX_PART  := xcvu19p-fsva3824-2-e
 	BOARD_NAME   := haps_sx
 	PLATFORM     := bare

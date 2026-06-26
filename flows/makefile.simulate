@@ -97,7 +97,7 @@ run_vcs : testcode
 	@if [ ! -d $(SIM_DIR)/logs ] ; then \
 	  mkdir -p $(SIM_DIR)/logs; \
 	fi
-	@if [ $(ASIC_MEMS) -e yes] ; then \
+	@if [ "$(ASIC_MEMS)" = "yes"]; then \
 		cp $(SOCLABS_PROJECT_DIR)/memories/megasoc/bootrom/bootrom_emulation.rcf $(SIM_DIR)/; \
 	fi
 	@if [ -f $(TESTCODES_DIR)/$(TESTNAME)/adp.cmd ] ; then \
