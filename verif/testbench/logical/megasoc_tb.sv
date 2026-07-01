@@ -130,16 +130,11 @@ N25Qxxx FLASH(
   .Vcc('d1800)
 );
 
-mdl_sdio #(
-  .OPT_HIGH_CAPACITY(1),
-  .LGMEMSZ(25),
-  .OPT_DUAL_VOLTAGE(1)
-  ) u_sd_card_model (
-  .sd_clk(SDIO_CK),
-  .sd_cmd(SDIO_CMD),
-  .sd_dat(SDIO_DAT),
-  .i_1p8v(SD_O_1P8V)
-);
+// mdl_sdio (u_sd_card_model) removed: logical/sdspi was swapped from the
+// ZipCPU fork to soclabs/sdio-controller, which does not carry bench/
+// models. SDIO verification now goes through the Synopsys VC-VIP-SOC UVM
+// testbench (top_VIP.flist / uvm_vip_tb.flist) instead of this BEHAV path.
+// See flist/project/megasoc_tb.flist for the matching flist-side removal.
 
 // GPIO P0 Loop
 tran P0_0(P0[0],P0[8]);
