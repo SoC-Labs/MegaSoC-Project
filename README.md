@@ -94,6 +94,17 @@ To get a list of the valid values for TESTNAME run:
 make list_tests
 ```
 
+### SDIO Synopsys VIP
+SDIO/SD-card verification is done via the Synopsys VC-VIP-SOC eMMC/SD UVM
+testbench (`logical/sdspi` is `soclabs/sdio-controller`, the RTL host; the
+VIP is the card model)
+
+```bash
+make testcode TESTNAME=sdio_tests   # only if sdio_tests.c/sdiodrv.c changed --rebuilds the embedded test software image (compile_vip only rebuilds the RTL/testbench,it does NOT pick up software changes)
+make compile_vip                    # only if a uvm_vip/*.sv file or RTL changed
+make run_vip TESTNAME=sdio_tests
+```
+
 ## FPGA
 So far limited testing in FPGA has been achieved. We have attempted to build for the Arm MPS3 but the design does not fit the Kintex 115 part. 
 

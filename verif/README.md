@@ -15,7 +15,8 @@ Percentage Verified: X%
     - [Watchdog Timer](#watchdog-timer)
     - [Real Time Clock](#real-time-clock)
     - [SPI Controller](#spi-controller)
-4. [ASCII Debugger](#acii-debugger)
+4. [SDIO Controller](#sdio-controller)
+5. [ASCII Debugger](#acii-debugger)
 
 ## Cortex A53
 
@@ -71,6 +72,29 @@ Test file: [uart_test.c](../megasoc_tech/software/src/uart_tests/uart_tests.c)
 ### Real Time Clock
 
 ### SPI Controller
+
+## SDIO Controller
+RTL: `logical/sdspi` (`soclabs/sdio-controller`, FPGA + Synopsys VIP validated --
+see `sdio_verification_report.md` and `sdio_synopsys_vip_verification_report.md`).
+Test file: [sdio_tests.c](../megasoc_tech/software/src/sdio_tests/sdio_tests.c)
+
+Verified via the Synopsys VC-VIP-SOC eMMC/SD UVM testbench (the older
+`mdl_sdio.v` BEHAV model is retired):
+```bash
+make testcode TESTNAME=sdio_tests   # rebuild embedded test software, only if
+                                     # sdio_tests.c/sdiodrv.c changed
+make compile_vip                    # rebuild RTL/testbench, only if uvm_vip/*.sv
+                                     # or RTL changed
+make run_vip TESTNAME=sdio_tests
+```
+- [x] SDIO initialisation, card info readback
+- [x] Single-block read/write, repeated single-block read
+- [x] Multi-block write/readback (`SDMULTI=0`/`1`)
+- [x] Invalid argument handling, recovery after invalid request
+- [x] Repeated write/read stress, multi-sector boundary transition
+- [x] Adversarial data patterns, neighbour/sector-0 sector preservation
+- [x] Scratch range integrity sweep
+- [x] 1-bit/4-bit width, 400 kHz - 50 MHz (FPGA), 25 MHz (sim, default-speed)
 
 ## Acii Debugger
 

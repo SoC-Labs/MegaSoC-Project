@@ -31,3 +31,8 @@ export SOCLABS_AHB_QSPI_DIR="$SOCLABS_MEGASOC_TECH_DIR/logical/sl_ahb_qspi"
 
 # SoCLabs ASIC FLow - toolkit of scripts related to ASIC implementatino
 export SOCLABS_ASIC_FLOW_DIR="$SOCLABS_PROJECT_DIR/asic_flow"
+
+# Synopsys VC-VIP-SOC eMMC/SD card VIP -- required by the SDIO VIP testbench
+# (see flist/project/uvm_vip_tb.flist); shared install on this server, same
+# path for every user.
+export DESIGNWARE_HOME=/eda/synopsys/2022-23/RHELx86/VC-VIP-SOC_2022.12
