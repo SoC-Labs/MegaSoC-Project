@@ -180,6 +180,9 @@ build_ip:
 get_flash_model:
 	make -C ./megasoc_tech/logical/sl_ahb_qspi get_flash_model
 
+build_ddr_vip_model:
+	$(DESIGNWARE_HOME)/bin/dw_vip_setup -path $(SOCLABS_PROJECT_DIR)/verif/models/lpddr_vip -e lpddr_svt/tb_lpddr4_svt_verilog_basic_sys -svlog
+
 first_time_setup: make_project build_ip get_flash_model
 
 docs:

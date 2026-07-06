@@ -380,35 +380,20 @@ assign axis_rx1_tvalid = 1'b0;
 
 generate
     if(USE_SYNOPSYS_DDR_CTRL) begin : g_ddr_model
-      //  lpddr4_1ch_dram_uvmvlog #("U_lpddr4_dram1") U_lpddr4_dram1 (
-      //   .RESET_n(DDR_RESET_n),
-      //   .CK_t(DDR_CK_t),
-      //   .CK_c(DDR_CK_c),
-      //   .CKE(DDR_CKE[0]),
-      //   .CS(DDR_CS[0]),
-      //   .CA(DDR_CA),
-      //   .ODT(1'b0),
-      //   .DQS_t(DDR_DQS_t),
-      //   .DQS_c(DDR_DQS_c),
-      //   .DQ(DDR_DQ),
-      //   .DMI(DDR_DMI)
-      // );
 
-    lpddr4_16 u_lpddr4_dram1 (
-        .CK_t(DDR_CK_t),
-        .CK_c(DDR_CK_c),
-        .CKE(DDR_CKE[0]),
-        .CS(DDR_CS[0]),
-        .CA(DDR_CA),
-        .ODT_CA(1'b0),
-        .DQ(DDR_DQ),
-        .DQS_t(DDR_DQS_t),
-        .DQS_c(DDR_DQS_c),
-        .DMI(DDR_DMI),
-        .RESET_n(DDR_RESET_n),
-        .ZQ()
-    );
-
+  lpddr_model memory(
+                             .ck_c    (DDR_CK_t),
+                             .ck_t    (DDR_CK_c),
+                             .cke     (DDR_CKE[0]),
+                             .cs_n    (DDR_CS[0]),
+                             .odt     (1'b0),
+                             .ca      (DDR_CA),
+                             .dm      (DDR_DMI),
+                             .dqs_t   (DDR_DQS_t),
+                             .dqs_c   (DDR_DQS_c),
+                             .dq      (DDR_DQ),
+                             .reset_n (DDR_RESET_n)
+                            );
 
 //      dfi_monitor u_dfi_monitor(
 //        .dfi_clk(`MEGASOC_DDR_SUBSYSTEM.ACLK),
