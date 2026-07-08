@@ -82,7 +82,7 @@ TEST_LIST         = $(shell cat $(TEST_LIST_FILE) | while read line || [ -n "$$l
 # - Verilog Defines and Filelists
 #-------------------------------------
 # Simulator/Lint Defines
-DEFINES_VC  += +define+CORTEX_A53 
+DEFINES_VC  += +define+CORTEX_A53 +define+VERILATOR
 
 ifeq ($(ASIC),no)
 	DEFINES_VC += +define+USE_TARMAC 

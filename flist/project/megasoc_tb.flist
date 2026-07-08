@@ -33,15 +33,15 @@ $(SOCLABS_PROJECT_DIR)/verif/trace/megasoc_ft1248x1_track.v
 // $(SOCLABS_PROJECT_DIR)/verif/trace/dfi_monitor.sv
 $(SOCLABS_PROJECT_DIR)/megasoc_tech/logical/socdebug_tech/socket/f232h_ft1248_stream/verilog/SYNCHRONIZER_EDGES.v
 // $(SOCLABS_MEGASOC_TECH_DIR)/logical/MS_QSPI_XIP_CACHE/verify/vip/sst26wf080b.v
+// SDIO behavioural card models (mdl_sdio.v/mdl_sdtx.v/mdl_sdcmd.v/mdl_sdrx.v/
+// mdl_emmc.v) were removed along with the ZipCPU sdspi submodule swap to
+// soclabs/sdio-controller, which does not carry bench/ models. SDIO
+// verification is now done via the Synopsys VC-VIP-SOC UVM testbench --
+// see top_VIP.flist / uvm_vip_tb.flist.
+
 +incdir+$(SIM_MODELS)/MT25QU128ABA8E0_VG17
 $(SIM_MODELS)/MT25QU128ABA8E0_VG17/code/N25Qxxx.v
 $(SIM_MODELS)/z11m_8gx16_4266_20201110/z11m_8gx16_4266_20201110_svp/z11m_8gx16_4266_20201110_vc.sv
-$(SOCLABS_MEGASOC_TECH_DIR)/logical/sdspi_controller/bench/verilog/mdl_emmc.v
-
-$(SOCLABS_MEGASOC_TECH_DIR)/logical/sdspi_controller/bench/verilog/mdl_sdcmd.v
-$(SOCLABS_MEGASOC_TECH_DIR)/logical/sdspi_controller/bench/verilog/mdl_sdio.v
-$(SOCLABS_MEGASOC_TECH_DIR)/logical/sdspi_controller/bench/verilog/mdl_sdrx.v
-$(SOCLABS_MEGASOC_TECH_DIR)/logical/sdspi_controller/bench/verilog/mdl_sdtx.v
 
 
 +incdir+/home/dwn1c21/SoC-Labs/megasoc_project/verif/models/lpddr_vip/src/sverilog/vcs 

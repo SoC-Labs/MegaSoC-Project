@@ -1,0 +1,49 @@
+//-----------------------------------------------------------------------------
+// MegaSoC SDIO VIP Testbench Filelist
+// Additive verification infrastructure. Parallel to megasoc_tb.flist --
+// instantiates the same megasoc_chip_pads DUT and trace/capture modules,
+// but connects the Synopsys VC-VIP-SOC eMMC/SD card agent at
+// SDIO_CK/SDIO_CMD/SDIO_DAT instead of mdl_sdio.v. mdl_sdio.v and its
+// siblings under megasoc_tech/logical/sdspi/bench/verilog/ are
+// deliberately NOT included here -- this is a separate, independent
+// verification path selected via top_VIP.flist.
+//-----------------------------------------------------------------------------
+
+// ============= Verilog library extensions ===========
++libext+.v+.vlib
+
+// =============    SDIO VIP Testbench search path    =============
+// Only tb_top.sv is listed here. sim_done_if.sv, card_cfg.sv,
+// sdio_card_env.sv and sdio_base_test.sv are pulled in purely via
+// `include from inside tb_top.sv's module scope (after the uvm_pkg /
+// svt_emmc_uvm_pkg imports have executed) -- exactly the pattern the
+// VC-VIP-SOC reference example uses for top.sv/top_test.sv. Listing them
+// separately here would compile them outside that import context and
+// fail to resolve uvm_test / svt_emmc_* types.
++incdir+$(SOCLABS_PROJECT_DIR)/verif/testbench/logical/uvm_vip
+$(SOCLABS_PROJECT_DIR)/verif/testbench/logical/uvm_vip/tb_top.sv
+
+$(SOCLABS_PROJECT_DIR)/verif/trace/megasoc_uart_capture.v
+$(SOCLABS_PROJECT_DIR)/verif/trace/megasoc_qspi_capture.v
+$(SOCLABS_PROJECT_DIR)/verif/trace/extio8x4_axis_target.v
+$(SOCLABS_PROJECT_DIR)/verif/trace/extio8x4_tfsm.v
+$(SOCLABS_PROJECT_DIR)/verif/control/logical/megasoc_clkreset.v
+
+$(SOCLABS_PROJECT_DIR)/verif/trace/megasoc_axi_stream_io_8_rxd_to_file.v
+$(SOCLABS_PROJECT_DIR)/verif/trace/megasoc_axi_stream_io_8_txd_from_file.v
+$(SOCLABS_PROJECT_DIR)/verif/trace/megasoc_ft1248x4_to_axi_streamio_v1_0.v
+$(SOCLABS_PROJECT_DIR)/verif/trace/megasoc_ft1248x1_track.v
+$(SOCLABS_PROJECT_DIR)/megasoc_tech/logical/socdebug_tech/socket/f232h_ft1248_stream/verilog/SYNCHRONIZER_EDGES.v
+
++incdir+$(SOCLABS_PROJECT_DIR)/verif/models/MT25QU128ABA8E0_VG17
+$(SOCLABS_PROJECT_DIR)/verif/models/MT25QU128ABA8E0_VG17/code/N25Qxxx.v
+
+// =============    VC-VIP-SOC eMMC/SD VIP include paths    =========
+// Requires $DESIGNWARE_HOME=/eda/synopsys/2022-23/RHELx86/VC-VIP-SOC_2022.12
+// (or equivalent) exported, and -ntb_opts uvm plus the SVT defines passed
+// on the vcs command line (filelist_compile.py drops +define+/-ntb_opts
+// lines placed in a -f file, so those cannot live here).
++incdir+$(DESIGNWARE_HOME)/vip/svt/common/latest/sverilog/include
++incdir+$(DESIGNWARE_HOME)/vip/svt/common/latest/sverilog/src/vcs
++incdir+$(DESIGNWARE_HOME)/vip/svt/emmc_svt/latest/sverilog/include
++incdir+$(DESIGNWARE_HOME)/vip/svt/emmc_svt/latest/sverilog/src/vcs

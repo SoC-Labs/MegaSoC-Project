@@ -71,7 +71,7 @@ endif
 	  cd $(TESTCODES_DIR)/$(TESTNAME) ;\
 	  $(MAKE) all $(SW_MAKE_OPTIONS) ; \
 	  echo Compile done ;\
-	  echo cd $(TESTCODES_DIR)/  $(TESTNAME) ;\
+	  echo cd $(TESTCODES_DIR)/$(TESTNAME) ;\
 	  ls > /dev/null ;\
 	  echo Copy $(TESTCODES_DIR)/../build/$(TESTNAME)/host0/app_flash.v8-a.hex ;\
 	  if [ -e  $(TESTCODES_DIR)/../build/$(TESTNAME)/host0/app_flash.v8-a.hex ] ; then \

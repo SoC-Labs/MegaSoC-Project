@@ -375,6 +375,7 @@ sdfrontend #(
     .OPT_DDR(1'b0),
     .OPT_COLLISION(1'b0),
     .OPT_CRCTOKEN(1'b1),
+    .BUSY_CLOCKS(16),
     .NUMIO(4)
 ) u_sdio_frontend (
     .i_clk(CPU_CLK),

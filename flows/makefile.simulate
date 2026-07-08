@@ -68,7 +68,7 @@ MAKEFILE_FILELIST     := $(COCOTB_DIR)/makefile.flist
 MODULE ?= test_adp
 
 # Create a List of PHONY Targets
-.PHONY: compile_$(SIMULATOR) run_$(SIMULATOR) sim_$(SIMULATOR)
+.PHONY: compile_$(SIMULATOR) run_$(SIMULATOR) sim_$(SIMULATOR) compile_vip run_vip
 
 # ------- Simulator redirect -----------
 
@@ -77,6 +77,26 @@ compile: compile_$(SIMULATOR)
 run: run_$(SIMULATOR)
 
 sim: sim_$(SIMULATOR)
+
+# ------- Synopsys VC-VIP-SOC SDIO VIP convenience targets -----------
+# Requires $DESIGNWARE_HOME exported (see flist/project/uvm_vip_tb.flist).
+VIP_FLIST      = $(SOCLABS_PROJECT_DIR)/flist/project/top_VIP.flist
+UVM_TESTNAME  ?= sdio_vip_tc3_test
+
+VIP_DEFINES_VC = +define+CORTEX_A53 +define+USE_TARMAC +define+VERILATOR -ntb_opts uvm \
+                 +define+DESIGNWARE_INCDIR=$(DESIGNWARE_HOME) +define+SVT_UVM_TECHNOLOGY \
+                 +define+SYNOPSYS_SV +define+UVM_DISABLE_AUTO_ITEM_RECORDING \
+                 +define+UVM_PACKER_MAX_BYTES=150000 +define+SVT_MEM_MAX_DATA_WIDTH=4096 \
+                 $(DESIGNWARE_HOME)/vip/svt/common/latest/C/lib/linux64/libmemserver.so
+
+# make compile_vip
+compile_vip:
+	$(MAKE) compile_vcs TBENCH_VC=$(VIP_FLIST) DESIGN_VC=$(VIP_FLIST) DEFINES_VC="$(VIP_DEFINES_VC)"
+
+# make run_vip TESTNAME=sdio_tests [UVM_TESTNAME=...]
+run_vip:
+	$(MAKE) run_vcs TESTNAME=$(TESTNAME) TBENCH_VC=$(VIP_FLIST) DESIGN_VC=$(VIP_FLIST) \
+		VCS_SIM_OPTION="+vcs+lic+wait +vcs+flush+log -assert nopostproc +UVM_TESTNAME=$(UVM_TESTNAME) +UVM_VERBOSITY=UVM_LOW"
 
 # Preload IMEM in Simulation
 compile_mti: MEGASOC_DEFINES += IMEM_0_RAM_PRELOAD
@@ -109,9 +129,9 @@ run_vcs : testcode
 	@if [ ! -d $(SIM_DIR)/logs ] ; then \
 	  mkdir -p $(SIM_DIR)/logs; \
 	fi
-ifeq ($(ASIC_MEMS), yes)
-		cp $(SOCLABS_PROJECT_DIR)/memories/megasoc/bootrom/bootrom_emulation.rcf $(SIM_DIR)/
-endif
+	@if [ "$(ASIC_MEMS)" = "yes"]; then \
+		cp $(SOCLABS_PROJECT_DIR)/memories/megasoc/bootrom/bootrom_emulation.rcf $(SIM_DIR)/; \
+	fi
 	@if [ -f $(TESTCODES_DIR)/$(TESTNAME)/adp.cmd ] ; then \
 		cp $(TESTCODES_DIR)/$(TESTNAME)/adp.cmd $(SIM_DIR)/; \
 	fi
