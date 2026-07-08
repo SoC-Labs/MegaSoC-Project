@@ -1,12 +1,12 @@
 [submodule "megasoc_tech"]
 	path = megasoc_tech
-	url = https://git.soton.ac.uk/soclabs/megasoc_tech.git
+	url = https://github.com/SoC-Labs/MegaSoC-Tech.git
 [submodule "soctools_flow"]
 	path = soctools_flow
-	url = https://git.soton.ac.uk/soclabs/soctools_flow.git
+	url = https://github.com/SoC-Labs/SoCTools-Flow.git
 [submodule "asic_flow"]
 	path = asic_flow
-	url = https://git.soton.ac.uk/soclabs/asic_flow.git
+	url = https://github.com/SoC-Labs/ASIC-Flow.git
 [submodule "fpga/vhdl-axis-uart"]
 	path = fpga/vhdl-axis-uart
 	url = https://github.com/fcayci/vhdl-axis-uart.git

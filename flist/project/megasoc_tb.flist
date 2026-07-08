@@ -49,4 +49,5 @@ $(SOCLABS_MEGASOC_TECH_DIR)/logical/sdspi_controller/bench/verilog/mdl_sdtx.v
 +incdir+/home/dwn1c21/SoC-Labs/megasoc_project/verif/models/lpddr_vip/src/verilog/vcs 
 +incdir+/home/dwn1c21/SoC-Labs/megasoc_project/verif/models/lpddr_vip/include/verilog
 
++incdir+$(SOCLABS_PROJECT_DIR)/verif/testbench/logical
 $(SOCLABS_PROJECT_DIR)/verif/testbench/logical/lpddr_model.v
