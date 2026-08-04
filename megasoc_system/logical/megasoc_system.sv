@@ -533,11 +533,34 @@ expansion_subsystem_wrapper u_megasoc_expansion_wrapper(
 );
 `else
     // EXP_M_AXI Tie off's
+    // BVALID must only assert while at least one AW request has been
+    // accepted and not yet completed by a B response -- previously tied
+    // unconditionally to 1'b1, which asserted a B response with no
+    // outstanding AW request at all (AXI4 protocol violation; spec
+    // megasoc_spec.md SS10 S1, MEGASOC-ILL-005 / a_exp_bvalid_only_after_aw).
+    // Tracks outstanding accepted-AW count the same way the paired bench
+    // assertion (megasoc_exp_boundary_assertions.sv) does.
+    reg [3:0] exp_m_aw_outstanding;
+    wire      exp_m_aw_accept   = EXP_M_AXI.AWVALID && EXP_M_AXI.AWREADY;
+    wire      exp_m_b_complete  = EXP_M_AXI.BVALID  && EXP_M_AXI.BREADY;
+
+    always @(posedge CLK_IN or negedge nRESET) begin
+        if (!nRESET)
+            exp_m_aw_outstanding <= 4'd0;
+        else begin
+            case ({exp_m_aw_accept, exp_m_b_complete})
+                2'b10: if (exp_m_aw_outstanding != 4'hF) exp_m_aw_outstanding <= exp_m_aw_outstanding + 4'd1;
+                2'b01: if (exp_m_aw_outstanding != 4'd0) exp_m_aw_outstanding <= exp_m_aw_outstanding - 4'd1;
+                default: ; // 00: no change; 11: simultaneous accept+complete nets to no change
+            endcase
+        end
+    end
+
     assign EXP_M_AXI.AWREADY = 1'b1;
     assign EXP_M_AXI.WREADY = 1'b1;
     assign EXP_M_AXI.BID = 9'd0;
     assign EXP_M_AXI.BRESP = 2'b11;
-    assign EXP_M_AXI.BVALID = 1'b1;
+    assign EXP_M_AXI.BVALID = (exp_m_aw_outstanding != 4'd0);
     assign EXP_M_AXI.ARREADY = 1'b1;
     assign EXP_M_AXI.RID = 9'd0;
     assign EXP_M_AXI.RDATA = 64'hDEAFBEEFDEADBEED;
