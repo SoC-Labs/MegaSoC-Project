@@ -556,9 +556,21 @@ expansion_subsystem_wrapper u_megasoc_expansion_wrapper(
         end
     end
 
+    // BID must echo the AWID of the accepted write request -- previously
+    // hardcoded to a constant 9'd0, which desyncs NIC400's EXP_M amib
+    // outstanding-transaction ID/credit tracking (nic400_megasoc_main.xml
+    // amib EXP_M compress_id=true) for any accepted AWID != 0, causing
+    // NIC400 to withhold AWREADY on the next transaction sharing that
+    // credit pool forever (MEGASOC-CONN-001 EXP_M write hang).
+    reg [8:0] exp_m_awid_captured;
+    always @(posedge CLK_IN) begin
+        if (exp_m_aw_accept)
+            exp_m_awid_captured <= EXP_M_AXI.AWID;
+    end
+
     assign EXP_M_AXI.AWREADY = 1'b1;
     assign EXP_M_AXI.WREADY = 1'b1;
-    assign EXP_M_AXI.BID = 9'd0;
+    assign EXP_M_AXI.BID = exp_m_awid_captured;
     assign EXP_M_AXI.BRESP = 2'b11;
     assign EXP_M_AXI.BVALID = (exp_m_aw_outstanding != 4'd0);
     assign EXP_M_AXI.ARREADY = 1'b1;
