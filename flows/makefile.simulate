@@ -21,7 +21,22 @@ MTI_RUN_OPTIONS   = -voptargs=+acc
 MTI_RUN_OPTIONS   += -sv_lib $(CORTEX_A53_IP_LOGICAL_DIR)/ca53univent/build_x86_64/lib/ca53_tarmac_dpi
 
 # VCS options
-VCS_OPTIONS    =  -msg_config=$(SOCLABS_PROJECT_DIR)/verif/testbench/vcs_lint_config +vcs+lic+wait +v2k -sverilog -override_timescale=1ns/1ps +lint=all,noTMR,noVCDE -debug -debug_access+all -upf $(SIM_UPF_FILE)
+# UPF_FLAG defaults to applying megasoc_tb.upf (power-domain checking is
+# intended for normal SoC simulation/regression). The VIP convenience
+# targets below (compile_vip/run_vip) override this to empty on their
+# recursive $(MAKE) call: megasoc_tb.upf's instance paths (set_design_top
+# etc.) were authored for the plain megasoc_tb.sv hierarchy and don't match
+# top_VIP.flist's elaborated hierarchy, which surfaces as
+# 'Error-[UPF_CFCIL] Cannot find cell ... For low power analysis each
+# instance should have a resolved master' on both Arm CA53 clock-gate cells
+# and project-owned instances (e.g. u_ROM_wrapper) alike -- not a narrow,
+# single-cell problem, and not something the SDIO VIP bench needs anyway
+# (it checks SDIO command/protocol/DMA behavior, not power intent). Making
+# a VIP-specific UPF (or reconciling megasoc_tb.upf against the VIP
+# hierarchy) is a real power-intent integration task, out of scope here;
+# dropping -upf only for compile_vip/run_vip is the narrow, reversible fix.
+UPF_FLAG ?= -upf $(SIM_UPF_FILE)
+VCS_OPTIONS    =  -msg_config=$(SOCLABS_PROJECT_DIR)/verif/testbench/vcs_lint_config +vcs+lic+wait +v2k -sverilog -override_timescale=1ns/1ps +lint=all,noTMR,noVCDE -debug -debug_access+all $(UPF_FLAG)
 VCS_SIM_OPTION = +vcs+lic+wait +vcs+flush+log -assert nopostproc
 VCS_VC_OPTIONS = -f $(TBENCH_VC) 
 VCS_OPTIONS   += -sverilog $(CORTEX_A53_IP_LOGICAL_DIR)/ca53univent/build_x86_64/lib/ca53_tarmac_dpi.so
@@ -71,24 +86,73 @@ sim: sim_$(SIMULATOR)
 VIP_FLIST      = $(SOCLABS_PROJECT_DIR)/flist/project/top_VIP.flist
 UVM_TESTNAME  ?= sdio_vip_tc3_test
 
+# NOTE: '+define+VERILATOR' was removed here (it previously sat right after
+# +define+USE_TARMAC). It doesn't appear anywhere else in this project's own
+# flists/RTL/testbench sources, and this flow runs VCS (not Verilator), so it
+# had no legitimate reason to be here. CORRECTION to an earlier note that
+# used to sit here: removing it does NOT fix the 'Error-[UPF_CFCIL] Cannot
+# find cell ... For low power analysis each instance should have a resolved
+# master' failures during 'make compile_vip' -- that was a false conclusion
+# from an incomplete run. What actually happened: with this define present,
+# a real port-mismatch bug in megasoc_chip.v's sdfrontend instantiation
+# ('Error-[UPIMI-E] Undefined port') was ALSO present and aborted compilation
+# before VCS ever reached its UPF cell-resolution pass, which masked the UPF
+# errors entirely rather than avoiding them. Once that separate bug was fixed
+# (see megasoc_tech/logical/sdspi/rtl/sdfrontend.v), compilation proceeds
+# further and the UPF_CFCIL errors reappear -- now also on project-owned
+# instances (e.g. u_ROM_wrapper), not just Arm CA53 clock-gate cells,
+# showing this was never actually about this define at all. The real fix
+# for the UPF errors is the UPF_FLAG override below. This define is still
+# correctly removed here (it has no purpose in a VCS-only flow), just not
+# for the reason originally written.
+#
 # +define+SDFRONTEND_SPLIT_TRISTATE is required for megasoc_chip.v's
 # sdfrontend instantiation to elaborate: sdfrontend.v now gates its split
 # tristate port interface (io_cmd_tristate/o_cmd/i_cmd/io_dat_tristate/
 # o_dat/i_dat) behind this dedicated, opt-in macro instead of hijacking
 # `VERILATOR` (see megasoc_tech/logical/sdspi/rtl/sdfrontend.v).
-VIP_DEFINES_VC = +define+CORTEX_A53 +define+USE_TARMAC +define+VERILATOR +define+SDFRONTEND_SPLIT_TRISTATE -ntb_opts uvm \
+VIP_DEFINES_VC = +define+CORTEX_A53 +define+USE_TARMAC +define+SDFRONTEND_SPLIT_TRISTATE -ntb_opts uvm \
                  +define+DESIGNWARE_INCDIR=$(DESIGNWARE_HOME) +define+SVT_UVM_TECHNOLOGY \
                  +define+SYNOPSYS_SV +define+UVM_DISABLE_AUTO_ITEM_RECORDING \
                  +define+UVM_PACKER_MAX_BYTES=150000 +define+SVT_MEM_MAX_DATA_WIDTH=4096 \
                  $(DESIGNWARE_HOME)/vip/svt/common/latest/C/lib/linux64/libmemserver.so
 
+# NOTE: the top-level makefile builds FLIST_INCLUDES via '+=' and exports it
+# (see ../makefile), so this recursive $(MAKE) call inherits an already-full
+# FLIST_INCLUDES from this process's environment; the child then re-runs the
+# same '+=' accumulation logic on top of that inherited value, appending a
+# second copy of every flist entry instead of starting fresh. VCS then sees
+# every module declared twice ('Error-[MPD] Module previously declared') and
+# aborts at its 10-error cap before it ever reaches real design files.
+# CORRECTION to an earlier fix that used to sit here: passing bare
+# 'FLIST_INCLUDES=' (empty) on the recursive $(MAKE) command line does stop
+# the doubling, but a command-line variable assignment is immutable for the
+# rest of that child process (the child's own '+=' lines in ../makefile
+# become no-ops against a command-line-set variable), so it doesn't just
+# stop the doubling -- it silently discards FLIST_INCLUDES' actual content
+# (ARM_CA53_BEHAV.flist / megasoc_tech_BEHAVMEMS.flist, the CA53 clock-gate
+# cell models and ROM_wrapper.sv/bootrom.v) for the entire compile_vip/
+# run_vip run. That content is genuinely required -- megasoc_tech_wrapper.sv
+# instantiates u_ROM_wrapper and the CA53 IP instantiates ca53_cell_inter_
+# clkgate unconditionally, VIP flow or not -- so a clean compile_vip run
+# (no leftover state from a prior plain compile_vcs in the same build dir)
+# fails elaboration with ~139 unresolved-module errors. Fix: pass through
+# the parent's already-resolved $(FLIST_INCLUDES) value explicitly instead
+# of blanking it. This still prevents doubling (the child's '+=' can't
+# modify a command-line-set variable) while keeping its content.
+# UPF_FLAG= (empty) disables megasoc_tb.upf for the VIP flow -- see the
+# UPF_FLAG comment above VCS_OPTIONS for the full reasoning. The SDIO VIP
+# bench checks command/protocol/DMA behavior, not power intent, so this is a
+# narrow, reversible drop; the normal compile_vcs/run_vcs path (used
+# directly, not through these targets) is unaffected and still applies
+# megasoc_tb.upf.
 # make compile_vip
 compile_vip:
-	$(MAKE) compile_vcs TBENCH_VC=$(VIP_FLIST) DESIGN_VC=$(VIP_FLIST) DEFINES_VC="$(VIP_DEFINES_VC)"
+	$(MAKE) FLIST_INCLUDES="$(FLIST_INCLUDES)" UPF_FLAG= compile_vcs TBENCH_VC=$(VIP_FLIST) DESIGN_VC=$(VIP_FLIST) DEFINES_VC="$(VIP_DEFINES_VC)"
 
 # make run_vip TESTNAME=sdio_tests [UVM_TESTNAME=...]
 run_vip:
-	$(MAKE) run_vcs TESTNAME=$(TESTNAME) TBENCH_VC=$(VIP_FLIST) DESIGN_VC=$(VIP_FLIST) \
+	$(MAKE) FLIST_INCLUDES="$(FLIST_INCLUDES)" UPF_FLAG= run_vcs TESTNAME=$(TESTNAME) TBENCH_VC=$(VIP_FLIST) DESIGN_VC=$(VIP_FLIST) \
 		VCS_SIM_OPTION="+vcs+lic+wait +vcs+flush+log -assert nopostproc +UVM_TESTNAME=$(UVM_TESTNAME) +UVM_VERBOSITY=UVM_LOW"
 
 # Preload IMEM in Simulation
