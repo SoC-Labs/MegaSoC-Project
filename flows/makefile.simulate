@@ -71,7 +71,12 @@ sim: sim_$(SIMULATOR)
 VIP_FLIST      = $(SOCLABS_PROJECT_DIR)/flist/project/top_VIP.flist
 UVM_TESTNAME  ?= sdio_vip_tc3_test
 
-VIP_DEFINES_VC = +define+CORTEX_A53 +define+USE_TARMAC +define+VERILATOR -ntb_opts uvm \
+# +define+SDFRONTEND_SPLIT_TRISTATE is required for megasoc_chip.v's
+# sdfrontend instantiation to elaborate: sdfrontend.v now gates its split
+# tristate port interface (io_cmd_tristate/o_cmd/i_cmd/io_dat_tristate/
+# o_dat/i_dat) behind this dedicated, opt-in macro instead of hijacking
+# `VERILATOR` (see megasoc_tech/logical/sdspi/rtl/sdfrontend.v).
+VIP_DEFINES_VC = +define+CORTEX_A53 +define+USE_TARMAC +define+VERILATOR +define+SDFRONTEND_SPLIT_TRISTATE -ntb_opts uvm \
                  +define+DESIGNWARE_INCDIR=$(DESIGNWARE_HOME) +define+SVT_UVM_TECHNOLOGY \
                  +define+SYNOPSYS_SV +define+UVM_DISABLE_AUTO_ITEM_RECORDING \
                  +define+UVM_PACKER_MAX_BYTES=150000 +define+SVT_MEM_MAX_DATA_WIDTH=4096 \
