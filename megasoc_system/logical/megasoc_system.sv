@@ -573,5 +573,18 @@ expansion_subsystem_wrapper u_megasoc_expansion_wrapper(
     assign EXP_S_AXI.ARPROT = 3'h0;
     assign EXP_S_AXI.ARVALID = 1'b0;
     assign EXP_S_AXI.RREADY = 1'b0;
+
+    // EXP_IRQs[7:0] tie-off. With INC_EXP undefined, expansion_subsystem_wrapper
+    // (the only driver of this bus, see the `ifdef INC_EXP branch above) is never
+    // instantiated, leaving EXP_IRQs floating X/Z into the IRQ concatenation and
+    // GIC400 synchronizer (SPIs 110-117, megasoc_tech_wrapper.sv:313-318) --
+    // suspected issue S2 (megasoc_spec.md SS10), MEGASOC-IRQ-017. Observed
+    // downstream consequence: reading any GICD_ISPENDRn/GICD_SPISRn bank that
+    // covers SPIs 110-117 returns a partially-X word (verified to also disturb
+    // adjacent bits 108-109/118-119 within the same bank in simulation), which
+    // then hangs software comparisons against that word rather than the GIC_AXI
+    // bus itself (verif/reports/megasoc/gic_and_uart_boundary_read_hangs.md
+    // section 1 update, 2026-08-18).
+    assign EXP_IRQs = 8'h0;
 `endif
 endmodule
