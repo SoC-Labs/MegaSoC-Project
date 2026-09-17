@@ -119,7 +119,18 @@ UVM_TESTNAME  ?= sdio_vip_tc3_test
 # UPF_FLAG override below. This define is still correctly removed here (it
 # has no purpose in a VCS-only flow), just not for the reason originally
 # written.
-VIP_DEFINES_VC = +define+CORTEX_A53 +define+USE_TARMAC -ntb_opts uvm \
+# '+define+SDFRONTEND_SPLIT_TRISTATE' (command-line, not a local `define)
+# replaces the old '+define+VERILATOR' this instantiation used to rely on.
+# sdio-controller's sdfrontend.v renamed its port-selection macro to stop
+# '+define+VERILATOR' from also flipping unrelated 'ifdef VERILATOR' code in
+# other vendored IP (the same Arm CA53/UPF leakage problem noted above). It
+# must be a command-line define, not a local `define inside megasoc_chip.v --
+# sdfrontend.v is compiled before megasoc_chip.v in the file list, so a local
+# `define placed there is invisible to sdfrontend.v's preprocessor pass and
+# silently has no effect (confirmed: still hits 'Error-[UPIMI-E] Undefined
+# port' on io_cmd_tristate with a local `define, works with this command-line
+# one instead).
+VIP_DEFINES_VC = +define+CORTEX_A53 +define+USE_TARMAC +define+SDFRONTEND_SPLIT_TRISTATE -ntb_opts uvm \
                  +define+DESIGNWARE_INCDIR=$(DESIGNWARE_HOME) +define+SVT_UVM_TECHNOLOGY \
                  +define+SYNOPSYS_SV +define+UVM_DISABLE_AUTO_ITEM_RECORDING \
                  +define+UVM_PACKER_MAX_BYTES=150000 +define+SVT_MEM_MAX_DATA_WIDTH=4096 \
