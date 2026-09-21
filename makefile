@@ -83,7 +83,7 @@ TEST_LIST         = $(shell cat $(TEST_LIST_FILE) | while read line || [ -n "$$l
 # - Verilog Defines and Filelists
 #-------------------------------------
 # Simulator/Lint Defines
-DEFINES_VC  += +define+CORTEX_A53 +define+USE_TARMAC +define+VERILATOR
+DEFINES_VC  += +define+CORTEX_A53 +define+USE_TARMAC +define+SDFRONTEND_SPLIT_TRISTATE
 
 # Set Variables depending on whether Expansion subsystem is included
 ifeq ($(INC_EXP),yes)
