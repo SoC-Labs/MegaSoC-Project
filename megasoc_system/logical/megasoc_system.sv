@@ -533,17 +533,86 @@ expansion_subsystem_wrapper u_megasoc_expansion_wrapper(
 );
 `else
     // EXP_M_AXI Tie off's
+    // BVALID must only assert while at least one AW request has been
+    // accepted and not yet completed by a B response -- previously tied
+    // unconditionally to 1'b1, which asserted a B response with no
+    // outstanding AW request at all (AXI4 protocol violation; spec
+    // megasoc_spec.md SS10 S1, MEGASOC-ILL-005 / a_exp_bvalid_only_after_aw).
+    // Tracks outstanding accepted-AW count the same way the paired bench
+    // assertion (megasoc_exp_boundary_assertions.sv) does.
+    reg [3:0] exp_m_aw_outstanding;
+    wire      exp_m_aw_accept   = EXP_M_AXI.AWVALID && EXP_M_AXI.AWREADY;
+    wire      exp_m_b_complete  = EXP_M_AXI.BVALID  && EXP_M_AXI.BREADY;
+
+    always @(posedge CLK_IN or negedge nRESET) begin
+        if (!nRESET)
+            exp_m_aw_outstanding <= 4'd0;
+        else begin
+            case ({exp_m_aw_accept, exp_m_b_complete})
+                2'b10: if (exp_m_aw_outstanding != 4'hF) exp_m_aw_outstanding <= exp_m_aw_outstanding + 4'd1;
+                2'b01: if (exp_m_aw_outstanding != 4'd0) exp_m_aw_outstanding <= exp_m_aw_outstanding - 4'd1;
+                default: ; // 00: no change; 11: simultaneous accept+complete nets to no change
+            endcase
+        end
+    end
+
+    // BID must echo the AWID of the accepted write request -- previously
+    // hardcoded to a constant 9'd0, which desyncs NIC400's EXP_M amib
+    // outstanding-transaction ID/credit tracking (nic400_megasoc_main.xml
+    // amib EXP_M compress_id=true) for any accepted AWID != 0, causing
+    // NIC400 to withhold AWREADY on the next transaction sharing that
+    // credit pool forever (MEGASOC-CONN-001 EXP_M write hang).
+    reg [8:0] exp_m_awid_captured;
+    always @(posedge CLK_IN) begin
+        if (exp_m_aw_accept)
+            exp_m_awid_captured <= EXP_M_AXI.AWID;
+    end
+
     assign EXP_M_AXI.AWREADY = 1'b1;
     assign EXP_M_AXI.WREADY = 1'b1;
-    assign EXP_M_AXI.BID = 9'd0;
+    assign EXP_M_AXI.BID = exp_m_awid_captured;
     assign EXP_M_AXI.BRESP = 2'b11;
-    assign EXP_M_AXI.BVALID = 1'b1;
+    assign EXP_M_AXI.BVALID = (exp_m_aw_outstanding != 4'd0);
+
+    // RVALID must only assert while at least one AR request has been
+    // accepted and not yet completed by an R response -- previously tied
+    // permanently to 1'b0, which left any EXP_M read waiting forever for a
+    // response that never comes (megasoc_spec.md SS10 S1b, MEGASOC-CONN-001
+    // EXP_M read hang). Mirrors the accepted-AW-outstanding counter used
+    // above for the write path; single-beat response per accepted AR,
+    // matching the write path's single BRESP-per-accepted-AW shape (this
+    // tie-off does not model AWLEN/ARLEN multi-beat bursts either side).
+    reg [3:0] exp_m_ar_outstanding;
+    wire      exp_m_ar_accept   = EXP_M_AXI.ARVALID && EXP_M_AXI.ARREADY;
+    wire      exp_m_r_complete  = EXP_M_AXI.RVALID  && EXP_M_AXI.RREADY;
+
+    always @(posedge CLK_IN or negedge nRESET) begin
+        if (!nRESET)
+            exp_m_ar_outstanding <= 4'd0;
+        else begin
+            case ({exp_m_ar_accept, exp_m_r_complete})
+                2'b10: if (exp_m_ar_outstanding != 4'hF) exp_m_ar_outstanding <= exp_m_ar_outstanding + 4'd1;
+                2'b01: if (exp_m_ar_outstanding != 4'd0) exp_m_ar_outstanding <= exp_m_ar_outstanding - 4'd1;
+                default: ; // 00: no change; 11: simultaneous accept+complete nets to no change
+            endcase
+        end
+    end
+
+    // RID must echo the ARID of the accepted read request -- same ID-echo
+    // requirement as BID above (NIC400 amib EXP_M compress_id=true tracks
+    // outstanding read IDs/credits too); do not hardcode.
+    reg [8:0] exp_m_arid_captured;
+    always @(posedge CLK_IN) begin
+        if (exp_m_ar_accept)
+            exp_m_arid_captured <= EXP_M_AXI.ARID;
+    end
+
     assign EXP_M_AXI.ARREADY = 1'b1;
-    assign EXP_M_AXI.RID = 9'd0;
-    assign EXP_M_AXI.RDATA = 64'hDEAFBEEFDEADBEED;
+    assign EXP_M_AXI.RID = exp_m_arid_captured;
+    assign EXP_M_AXI.RDATA = 64'd0;
     assign EXP_M_AXI.RRESP = 2'b11;
-    assign EXP_M_AXI.RLAST = 1'b0;
-    assign EXP_M_AXI.RVALID = 1'b0;
+    assign EXP_M_AXI.RVALID = (exp_m_ar_outstanding != 4'd0);
+    assign EXP_M_AXI.RLAST = EXP_M_AXI.RVALID;
 
     // EXP_S_AXI Tie off's
     assign EXP_S_AXI.AWID = 3'h0;
