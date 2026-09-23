@@ -91,7 +91,7 @@ module megasoc_system(
 
     output wire             DDR4_ACT_n,
     output wire [1:0]       DDR4_CKE,
-    output wire [1:0]       DDR4_CS_N,
+    output wire [1:0]       DDR4_CS,
     output wire [1:0]       DDR4_ODT,
     output wire             DDR_PARITY,
 
@@ -325,7 +325,7 @@ megasoc_tech_wrapper u_megasoc_tech_wrapper(
     .DDR4_BG(DDR4_BG),
     .DDR4_ACT_n(DDR4_ACT_n),
     .DDR4_CKE(DDR4_CKE),
-    .DDR4_CS_N(DDR4_CS_N),
+    .DDR4_CS(DDR4_CS),
     .DDR4_ODT(DDR4_ODT),
     .DDR_PARITY(DDR_PARITY),
     .DDR4_DQ(DDR4_DQ),

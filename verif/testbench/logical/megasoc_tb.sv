@@ -35,6 +35,21 @@ wire         SDIO_CMD;
 wire [3:0]   SDIO_DAT;
 wire         SD_O_1P8V;
 
+// Ethernet MII Wires
+wire         ETH_MTX_CLK;
+wire [3:0]   ETH_MTXD;
+wire         ETH_MTXEN;
+wire         ETH_MTXERR;
+wire         ETH_MRX_CLK;
+wire [3:0]   ETH_MRXD;
+wire         ETH_MRXDV;
+wire         ETH_MRXERR;
+wire         ETH_MCOL;
+wire         ETH_MCRS;
+wire         ETH_MDIO;
+wire         ETH_MDC;
+wire         PTP_REF_CLK;
+
 // Loopback PL011
 wire         PL011_UARTTXRX;
 wire         PL011_nUARTRTSCTS;
@@ -103,7 +118,22 @@ megasoc_chip_pads u_megasoc_chip_pads(
     .SDIO_CK(SDIO_CK),
     .SDIO_CMD(SDIO_CMD),
     .SDIO_DAT(SDIO_DAT),
-    .SD_O_1P8V(SD_O_1P8V)
+    .SD_O_1P8V(SD_O_1P8V),
+
+    // Ethernet MII
+    .ETH_MTX_CLK(ETH_MTX_CLK),
+    .ETH_MTXD(ETH_MTXD),
+    .ETH_MTXEN(ETH_MTXEN),
+    .ETH_MTXERR(ETH_MTXERR),
+    .ETH_MRX_CLK(ETH_MRX_CLK),
+    .ETH_MRXD(ETH_MRXD),
+    .ETH_MRXDV(ETH_MRXDV),
+    .ETH_MRXERR(ETH_MRXERR),
+    .ETH_MCOL(ETH_MCOL),
+    .ETH_MCRS(ETH_MCRS),
+    .ETH_MDIO(ETH_MDIO),
+    .ETH_MDC(ETH_MDC),
+    .PTP_REF_CLK(PTP_REF_CLK)
 );
 
 pullup(SDIO_CMD);
@@ -135,6 +165,64 @@ N25Qxxx FLASH(
 // models. SDIO verification now goes through the Synopsys VC-VIP-SOC UVM
 // testbench (top_VIP.flist / uvm_vip_tb.flist) instead of this BEHAV path.
 // See flist/project/megasoc_tb.flist for the matching flist-side removal.
+
+
+//---------------------------------------------------------------------
+// Behavioral MII PHY Model
+//---------------------------------------------------------------------
+pullup(ETH_MDIO);
+
+mdl_ethphy #(
+    .TX_CLK_FREQ_HZ (25_000_000),
+    .RX_CLK_FREQ_HZ (25_000_000),
+    .TX_LOGFILE      ("logs/eth_tx.log"),
+    .VERBOSE         (1)
+) u_eth_phy (
+    .mtx_clk_o  (ETH_MTX_CLK),
+    .mrx_clk_o  (ETH_MRX_CLK),
+    .mtxd_i     (ETH_MTXD),
+    .mtxen_i    (ETH_MTXEN),
+    .mtxerr_i   (ETH_MTXERR),
+    .mrxd_o     (ETH_MRXD),
+    .mrxdv_o    (ETH_MRXDV),
+    .mrxerr_o   (ETH_MRXERR),
+    .mcoll_o    (ETH_MCOL),
+    .mcrs_o     (ETH_MCRS),
+    .mdc_i      (ETH_MDC),
+    .md_o       (1'bz),
+    .md_padoe_i (1'b0),
+    .md_i       (),
+    .ptp_ref_clk(PTP_REF_CLK),
+    .resetn     (nRESET)
+);
+
+//---------------------------------------------------------------------
+// MII Protocol Checker
+//---------------------------------------------------------------------
+// Passive monitor — checks preamble, SFD, CRC, frame size, MDIO format.
+mii_protocol_checker #(
+    .VERBOSE  (1),
+    .CHECK_CRC(1),
+    .LOG_FILE ("logs/mii_proto_check.log")
+) u_mii_checker (
+    .mtx_clk (ETH_MTX_CLK),
+    .mtxd    (ETH_MTXD),
+    .mtxen   (ETH_MTXEN),
+    .mtxerr  (ETH_MTXERR),
+    .mrx_clk (ETH_MRX_CLK),
+    .mrxd    (ETH_MRXD),
+    .mrxdv   (ETH_MRXDV),
+    .mrxerr  (ETH_MRXERR),
+    .mdc     (ETH_MDC),
+    .mdio    (ETH_MDIO),
+    .tx_frame_err   (),
+    .rx_frame_err   (),
+    .tx_frame_count (),
+    .rx_frame_count (),
+    .tx_error_count (),
+    .rx_error_count (),
+    .mdio_error_count()
+);
 
 // GPIO P0 Loop
 tran P0_0(P0[0],P0[8]);

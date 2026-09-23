@@ -83,7 +83,7 @@ TEST_LIST         = $(shell cat $(TEST_LIST_FILE) | while read line || [ -n "$$l
 # - Verilog Defines and Filelists
 #-------------------------------------
 # Simulator/Lint Defines
-DEFINES_VC  += +define+CORTEX_A53 +define+USE_TARMAC +define+SDFRONTEND_SPLIT_TRISTATE
+DEFINES_VC  += +define+CORTEX_A53 +define+USE_TARMAC +define+SDFRONTEND_SPLIT_TRISTATE +define+ETH_WISHBONE_B3
 
 # Set Variables depending on whether Expansion subsystem is included
 ifeq ($(INC_EXP),yes)
@@ -152,6 +152,10 @@ build_ip:
 
 get_flash_model:
 	make -C ./megasoc_tech/logical/sl_ahb_qspi get_flash_model
+
+build_ethmac_vip_model:
+	mkdir -p $(SOCLABS_PROJECT_DIR)/verif/models
+	$(DESIGNWARE_HOME)/bin/dw_vip_setup -path $(SOCLABS_PROJECT_DIR)/verif/models/ethmac_vip -e ethernet_svt/tb_ethernet_svt_verilog_basic_sys -svlog
 
 first_time_setup: make_project build_ip get_flash_model
 

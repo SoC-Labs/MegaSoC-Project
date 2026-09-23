@@ -31,11 +31,19 @@ $(SOCLABS_PROJECT_DIR)/verif/trace/megasoc_ft1248x4_to_axi_streamio_v1_0.v
 $(SOCLABS_PROJECT_DIR)/verif/trace/megasoc_ft1248x1_track.v
 $(SOCLABS_PROJECT_DIR)/megasoc_tech/logical/socdebug_tech/socket/f232h_ft1248_stream/verilog/SYNCHRONIZER_EDGES.v
 // $(SOCLABS_MEGASOC_TECH_DIR)/logical/MS_QSPI_XIP_CACHE/verify/vip/sst26wf080b.v
-+incdir+$(SOCLABS_PROJECT_DIR)/verif/models/MT25QU128ABA8E0_VG17
-$(SOCLABS_PROJECT_DIR)/verif/models/MT25QU128ABA8E0_VG17/code/N25Qxxx.v
 
 // SDIO behavioural card models (mdl_sdio.v/mdl_sdtx.v/mdl_sdcmd.v/mdl_sdrx.v/
 // mdl_emmc.v) were removed along with the ZipCPU sdspi submodule swap to
 // soclabs/sdio-controller, which does not carry bench/ models. SDIO
 // verification is now done via the Synopsys VC-VIP-SOC UVM testbench --
 // see top_VIP.flist / uvm_vip_tb.flist.
+
+// Behavioral MII PHY Model
+$(SOCLABS_PROJECT_DIR)/verif/testbench/logical/mdl_ethphy.v
+
+// MII Protocol Checker
+$(SOCLABS_PROJECT_DIR)/verif/testbench/logical/mii_protocol_checker.v
+
++incdir+$(SIM_MODELS)/MT25QU128ABA8E0_VG17
+$(SIM_MODELS)/MT25QU128ABA8E0_VG17/code/N25Qxxx.v
+$(SIM_MODELS)/z11m_8gx16_4266_20201110/z11m_8gx16_4266_20201110_svp/z11m_8gx16_4266_20201110_vc.sv
