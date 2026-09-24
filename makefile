@@ -82,7 +82,7 @@ TEST_LIST         = $(shell cat $(TEST_LIST_FILE) | while read line || [ -n "$$l
 # - Verilog Defines and Filelists
 #-------------------------------------
 # Simulator/Lint Defines
-DEFINES_VC  += +define+CORTEX_A53 +define+VERILATOR
+DEFINES_VC  += +define+CORTEX_A53 +define+VERILATOR +define+ETH_WISHBONE_B3 +define+SDFRONTEND_SPLIT_TRISTATE
 
 ifeq ($(ASIC),no)
 	DEFINES_VC += +define+USE_TARMAC 
@@ -95,9 +95,9 @@ export SYNOPSYS_LPDDR4_multiPHY_LIB_DIR
 export CTB_VIP_HOME
 
 ifeq ($(INC_SYNOPSYS_LPDDR4),yes)
-	FLIST_INCLUDES += $(SOCLABS_MEGASOC_TECH_DIR)/flist/IP/Synopsys_uMCTL2.flist
-	FLIST_INCLUDES += $(SOCLABS_MEGASOC_TECH_DIR)/flist/IP/Synopsys_LPDDR4PHY.flist
-	FLIST_INCLUDES += $(SOCLABS_MEGASOC_TECH_DIR)/flist/IP/Synopsys_LPDDR4PHY_BEHAV.flist
+	FLIST_INCLUDES += $(LPDDR4_PROJECT_DIR)/flist/IP/Synopsys_uMCTL2.vc
+	FLIST_INCLUDES += $(LPDDR4_PROJECT_DIR)/flist/IP/Synopsys_LPDDR4PHY.vc
+	FLIST_INCLUDES += $(LPDDR4_PROJECT_DIR)/flist/IP/Synopsys_LPDDR4PHY_BEHAV.vc
 
 	DEFINES_VC += +define+INC_SYNOPSYS_LPDDR4   
 	ifeq ($(ASIC),no)
@@ -181,7 +181,7 @@ get_flash_model:
 	make -C ./megasoc_tech/logical/sl_ahb_qspi get_flash_model
 
 build_ddr_vip_model:
-	$(DESIGNWARE_HOME)/bin/dw_vip_setup -path $(SOCLABS_PROJECT_DIR)/verif/models/lpddr_vip -e lpddr_svt/tb_lpddr4_svt_verilog_basic_sys -svlog
+	cd $(LPDDR4_PROJECT_DIR); make first_time_setup
 
 first_time_setup: make_project build_ip get_flash_model build_ddr_vip_model
 

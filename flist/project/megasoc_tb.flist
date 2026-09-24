@@ -44,10 +44,9 @@ $(SIM_MODELS)/MT25QU128ABA8E0_VG17/code/N25Qxxx.v
 $(SIM_MODELS)/z11m_8gx16_4266_20201110/z11m_8gx16_4266_20201110_svp/z11m_8gx16_4266_20201110_vc.sv
 
 
-+incdir+$(SOCLABS_PROJECT_DIR)/verif/models/lpddr_vip/src/sverilog/vcs 
-+incdir+$(SOCLABS_PROJECT_DIR)/verif/models/lpddr_vip/include/sverilog 
-+incdir+$(SOCLABS_PROJECT_DIR)/verif/models/lpddr_vip/src/verilog/vcs 
-+incdir+$(SOCLABS_PROJECT_DIR)/verif/models/lpddr_vip/include/verilog
++incdir+${LPDDR4_PROJECT_DIR}/verif/models/lpddr_vip/src/sverilog/vcs
++incdir+${LPDDR4_PROJECT_DIR}/verif/models/lpddr_vip/include/sverilog
++incdir+${LPDDR4_PROJECT_DIR}/verif/models/lpddr_vip/src/verilog/vcs
++incdir+${LPDDR4_PROJECT_DIR}/verif/models/lpddr_vip/include/verilog
+${LPDDR4_PROJECT_DIR}/verif/lpddr_model.v
 
-+incdir+$(SOCLABS_PROJECT_DIR)/verif/testbench/logical
-$(SOCLABS_PROJECT_DIR)/verif/testbench/logical/lpddr_model.v
