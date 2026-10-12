@@ -29,6 +29,9 @@ FAST_SIM ?= yes
 # Include the expansion subsystem?
 INC_EXP ?= no
 
+# Include the LPDDR4 DRAM subsystem (megasoc_tech/logical/lpddr4_subsystem)?
+INC_LPDDR4 ?= no
+
 ASIC_MEMS ?= no 
 
 ifeq ($(ASIC_MEMS),yes)
@@ -44,6 +47,15 @@ export ASIC_MEMS
 
 ifeq ($(INC_EXP),yes)
 	FLIST_INCLUDES += $(SOCLABS_PROJECT_DIR)/flist/project/expansion.flist
+endif
+
+ifeq ($(INC_LPDDR4),yes)
+	# RTL selects dram_wrapper (LPDDR4) over the fast sim DRAM responder
+	DEFINES_VC += +define+INC_LPDDR4
+	FLIST_INCLUDES += $(SOCLABS_MEGASOC_TECH_DIR)/flist/megasoc_tech_LPDDR4.flist
+	# filelist_compile.py drops +define+ lines from flists, so take the
+	# subsystem's design defines straight from its flist (single source of truth)
+	DEFINES_VC += $(shell grep -h '^+define+' $(LPDDR4_PROJECT_DIR)/flist/lpddr4_rtl.vc)
 endif
 
 export FLIST_INCLUDES
@@ -106,6 +118,9 @@ FPGA_DESIGN_VC ?= $(SOCLABS_PROJECT_DIR)/flist/project/top_FPGA.flist
 export ARM_CORTEX_M0_DIR
 export ARM_CORSTONE_101_DIR
 export CORTEX_A53_IP_LOGICAL_DIR
+export SYNOPSYS_LPDDR4_UMCTL2_DIR
+export SYNOPSYS_LPDDR4_multiPHY_DIR
+export SYNOPSYS_LPDDR4_multiPHY_LIB_DIR
 export FLIST_INCLUDES
 export AMS
 # Location of Defines File

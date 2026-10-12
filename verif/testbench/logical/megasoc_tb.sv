@@ -22,6 +22,28 @@ wire EXT_CLK; // 100 MHz crystal clock
 wire RT_CLK; // 32.768 kHz crystal clock
 wire nRESET;
 
+// LPDDR4 DRAM (INC_LPDDR4 builds): 400 MHz controller/DFI clock, as in the
+// lpddr4_subsystem standalone testbench. Tied low otherwise.
+reg  DDR_CLK = 1'b0;
+`ifdef INC_LPDDR4
+always #1.25 DDR_CLK = ~DDR_CLK;
+`endif
+
+wire         LPDDR4_RESET_N;
+wire         LPDDR4_CK_T;
+wire         LPDDR4_CK_C;
+wire [1:0]   LPDDR4_CKE;
+wire [1:0]   LPDDR4_CS;
+wire [5:0]   LPDDR4_CA;
+wire         LPDDR4_ODT;
+wire [1:0]   LPDDR4_DQS_T;
+wire [1:0]   LPDDR4_DQS_C;
+wire [15:0]  LPDDR4_DQ;
+wire [1:0]   LPDDR4_DMI;
+wire         LPDDR4_ALERT_N;
+wire         LPDDR4_VREF;
+wire         LPDDR4_ZN;
+
 wire         QSPI_SCLK;
 wire [3:0]   QSPI_IO;
 wire         QSPI_nCS;
@@ -103,7 +125,25 @@ megasoc_chip_pads u_megasoc_chip_pads(
     .SDIO_CK(SDIO_CK),
     .SDIO_CMD(SDIO_CMD),
     .SDIO_DAT(SDIO_DAT),
-    .SD_O_1P8V(SD_O_1P8V)
+    .SD_O_1P8V(SD_O_1P8V),
+
+    // LPDDR4 DRAM (memory model attached in a later step)
+    .DDR_CLK_IN(DDR_CLK),
+    .LPDDR4_RESET_N(LPDDR4_RESET_N),
+    .LPDDR4_CK_T(LPDDR4_CK_T),
+    .LPDDR4_CK_C(LPDDR4_CK_C),
+    .LPDDR4_CKE(LPDDR4_CKE),
+    .LPDDR4_CS(LPDDR4_CS),
+    .LPDDR4_CA(LPDDR4_CA),
+    .LPDDR4_ODT(LPDDR4_ODT),
+    .LPDDR4_DQS_T(LPDDR4_DQS_T),
+    .LPDDR4_DQS_C(LPDDR4_DQS_C),
+    .LPDDR4_DQ(LPDDR4_DQ),
+    .LPDDR4_DMI(LPDDR4_DMI),
+    .LPDDR4_ALERT_N(LPDDR4_ALERT_N),
+    .LPDDR4_VREF(LPDDR4_VREF),
+    .LPDDR4_ZN_SENSE(1'b0),
+    .LPDDR4_ZN(LPDDR4_ZN)
 );
 
 pullup(SDIO_CMD);

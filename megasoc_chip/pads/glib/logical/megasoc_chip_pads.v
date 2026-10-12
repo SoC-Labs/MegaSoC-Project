@@ -55,6 +55,25 @@ module megasoc_chip_pads(
     output wire             PL011_nUARTDTR,
 
     // DDR
+    // LPDDR4 DRAM (lpddr4_subsystem in megasoc_tech). Used by INC_LPDDR4 builds;
+    // idle otherwise. The PHY has its own I/O cells, so these pins pass through
+    // to the package without pad-ring cells.
+    input  wire             DDR_CLK_IN,       // LPDDR4 clock (simulation: testbench)
+    output wire             LPDDR4_RESET_N,
+    output wire             LPDDR4_CK_T,
+    output wire             LPDDR4_CK_C,
+    output wire [1:0]       LPDDR4_CKE,
+    output wire [1:0]       LPDDR4_CS,
+    output wire [5:0]       LPDDR4_CA,
+    output wire             LPDDR4_ODT,
+    inout  wire [1:0]       LPDDR4_DQS_T,
+    inout  wire [1:0]       LPDDR4_DQS_C,
+    inout  wire [15:0]      LPDDR4_DQ,
+    inout  wire [1:0]       LPDDR4_DMI,
+    inout  wire             LPDDR4_ALERT_N,
+    inout  wire             LPDDR4_VREF,
+    input  wire             LPDDR4_ZN_SENSE,
+    output wire             LPDDR4_ZN,
 
     // SDIO
     output wire         SDIO_CK,
@@ -171,7 +190,25 @@ megasoc_chip u_megasoc_chip(
     .SDIO_DAT_tri(SDIO_DAT_tri),
     .SDIO_DAT_o(SDIO_DAT_o),
     .SDIO_DAT_i(SDIO_DAT_i),
-    .SD_O_1P8V(SD_O_1P8V)
+    .SD_O_1P8V(SD_O_1P8V),
+
+    // LPDDR4 DRAM
+    .DDR_CLK_IN(DDR_CLK_IN),
+    .LPDDR4_RESET_N(LPDDR4_RESET_N),
+    .LPDDR4_CK_T(LPDDR4_CK_T),
+    .LPDDR4_CK_C(LPDDR4_CK_C),
+    .LPDDR4_CKE(LPDDR4_CKE),
+    .LPDDR4_CS(LPDDR4_CS),
+    .LPDDR4_CA(LPDDR4_CA),
+    .LPDDR4_ODT(LPDDR4_ODT),
+    .LPDDR4_DQS_T(LPDDR4_DQS_T),
+    .LPDDR4_DQS_C(LPDDR4_DQS_C),
+    .LPDDR4_DQ(LPDDR4_DQ),
+    .LPDDR4_DMI(LPDDR4_DMI),
+    .LPDDR4_ALERT_N(LPDDR4_ALERT_N),
+    .LPDDR4_VREF(LPDDR4_VREF),
+    .LPDDR4_ZN_SENSE(LPDDR4_ZN_SENSE),
+    .LPDDR4_ZN(LPDDR4_ZN)
 );
 
 
