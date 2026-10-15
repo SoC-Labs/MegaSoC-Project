@@ -73,6 +73,31 @@ end
 always @(LPDDR4_VREF)                  $display("[%0t] LPDDR4_MON: VREF              = %b%s", $time, LPDDR4_VREF,
                                                 ($isunknown(LPDDR4_VREF) ? "  <-- UNKNOWN" : ""));
 
+// Low-power handshakes on the two subsystem channels (after the Q-channel
+// adapters): csysreq = request (0 = low power), csysack = answer, cactive at
+// the answer tells accept (0) from refusal (1). Shows the entry/exit order.
+`define LPDDR4_QW u_megasoc_chip_pads.u_megasoc_chip.u_megasoc_system.u_megasoc_tech_wrapper
+always @(`LPDDR4_QW.LPDDR4_SYS_QCHAN.qreqn)     $display("[%0t] LPDDR4_MON: LP AXI port  csysreq = %b", $time, `LPDDR4_QW.LPDDR4_SYS_QCHAN.qreqn);
+always @(`LPDDR4_QW.LPDDR4_SYS_QCHAN.qacceptn)  $display("[%0t] LPDDR4_MON: LP AXI port  csysack = %b (cactive = %b)", $time, `LPDDR4_QW.LPDDR4_SYS_QCHAN.qacceptn, `LPDDR4_QW.LPDDR4_SYS_QCHAN.qactive);
+always @(`LPDDR4_QW.LPDDR4_DDRC_QCHAN.qreqn)    $display("[%0t] LPDDR4_MON: LP ctrl core csysreq = %b", $time, `LPDDR4_QW.LPDDR4_DDRC_QCHAN.qreqn);
+always @(`LPDDR4_QW.LPDDR4_DDRC_QCHAN.qacceptn) $display("[%0t] LPDDR4_MON: LP ctrl core csysack = %b (cactive = %b)", $time, `LPDDR4_QW.LPDDR4_DDRC_QCHAN.qacceptn, `LPDDR4_QW.LPDDR4_DDRC_QCHAN.qactive);
+// cactive (the controller's "I am busy" on each channel, reaches the PPU as
+// QACTIVE): first 20 changes per channel, and always when X
+int lpddr4_cact_sys_n = 0, lpddr4_cact_core_n = 0;
+always @(`LPDDR4_QW.LPDDR4_SYS_QCHAN.qactive) begin
+  lpddr4_cact_sys_n++;
+  if (lpddr4_cact_sys_n <= 20 || $isunknown(`LPDDR4_QW.LPDDR4_SYS_QCHAN.qactive))
+    $display("[%0t] LPDDR4_MON: LP AXI port  cactive = %b", $time, `LPDDR4_QW.LPDDR4_SYS_QCHAN.qactive);
+end
+always @(`LPDDR4_QW.LPDDR4_DDRC_QCHAN.qactive) begin
+  lpddr4_cact_core_n++;
+  if (lpddr4_cact_core_n <= 20 || $isunknown(`LPDDR4_QW.LPDDR4_DDRC_QCHAN.qactive))
+    $display("[%0t] LPDDR4_MON: LP ctrl core cactive = %b", $time, `LPDDR4_QW.LPDDR4_DDRC_QCHAN.qactive);
+end
+// The DRAM PPU's request to its distributor (SYS_CLK side)
+always @(`LPDDR4_QW.u_megasoc_power_control.u_megasoc_DRAM_power_control.lpd_qreqn)
+  $display("[%0t] LPDDR4_MON: DRAM PPU request qreqn = %b", $time, `LPDDR4_QW.u_megasoc_power_control.u_megasoc_DRAM_power_control.lpd_qreqn);
+
 // SYS_CLK period, for the firmware's timer-based delays (LPDDR4_TIMER_MHZ)
 initial begin
   realtime t0;
@@ -94,6 +119,9 @@ initial begin
     $fsdbDumpvars(1, `LPDDR4_DW);                       // DFI handshake, reset/pwrok, clock enables
     $fsdbDumpvars(1, `LPDDR4_TW.u_lpddr4_cfg_bridge);   // configuration APB accesses
     $fsdbDumpvars(1, `LPDDR4_TW.u_dram_axi_async_bridge); // AXI data path
+    $fsdbDumpvars(1, `LPDDR4_TW.u_lpddr4_sys_qadapter);   // low-power: AXI port channel
+    $fsdbDumpvars(1, `LPDDR4_TW.u_lpddr4_ddrc_qadapter);  // low-power: controller core channel
+    $fsdbDumpvars(1, `LPDDR4_TW.u_megasoc_power_control.u_megasoc_DRAM_power_control); // DRAM PPU boundary
     $fsdbDumpvars(1, megasoc_tb.u_lpddr4_memory);       // DRAM pins at the memory model
     $fsdbDumpvars(0, megasoc_tb.DDR_CLK, megasoc_tb.LPDDR4_RESET_N, megasoc_tb.LPDDR4_CKE,
                      megasoc_tb.LPDDR4_CS, megasoc_tb.LPDDR4_CA, megasoc_tb.LPDDR4_CK_T,
