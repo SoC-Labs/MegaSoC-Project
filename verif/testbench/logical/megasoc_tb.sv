@@ -22,6 +22,100 @@ wire EXT_CLK; // 100 MHz crystal clock
 wire RT_CLK; // 32.768 kHz crystal clock
 wire nRESET;
 
+// LPDDR4 DRAM (INC_LPDDR4 builds): 400 MHz controller/DFI clock, as in the
+// lpddr4_subsystem standalone testbench. Tied low otherwise.
+reg  DDR_CLK = 1'b0;
+`ifdef INC_LPDDR4
+always #1.25 DDR_CLK = ~DDR_CLK;
+`endif
+
+wire         LPDDR4_RESET_N;
+wire         LPDDR4_CK_T;
+wire         LPDDR4_CK_C;
+wire [1:0]   LPDDR4_CKE;
+wire [1:0]   LPDDR4_CS;
+wire [5:0]   LPDDR4_CA;
+wire         LPDDR4_ODT;
+wire [1:0]   LPDDR4_DQS_T;
+wire [1:0]   LPDDR4_DQS_C;
+wire [15:0]  LPDDR4_DQ;
+wire [1:0]   LPDDR4_DMI;
+wire         LPDDR4_ALERT_N;
+wire         LPDDR4_VREF;
+wire         LPDDR4_ZN;
+
+`ifdef INC_LPDDR4
+// LPDDR4 x16 DRAM device model (Synopsys LPDDR VIP behind lpddr_model.v from
+// the lpddr4_subsystem submodule), connected as in the subsystem's standalone
+// testbench: single rank (rank 0), ODT unused, ALERT_N pulled up, VREF high.
+pullup(LPDDR4_ALERT_N);
+// Supply strength, like the standalone testbench's supply1 net: nothing in
+// the PHY model can override it (a plain 1'b1 driver would resolve to X if
+// the PHY also drives the pin).
+assign (supply1, supply0) LPDDR4_VREF = 1'b1;
+
+// LPDDR4 bring-up monitor: logs the DFI init handshake between controller and
+// PHY (wires inside dram_wrapper), the DRAM reset/CKE pins and any X on VREF.
+`define LPDDR4_DW u_megasoc_chip_pads.u_megasoc_chip.u_megasoc_system.u_megasoc_tech_wrapper.u_lpddr4_subsystem
+always @(`LPDDR4_DW.dfi_init_start)    $display("[%0t] LPDDR4_MON: dfi_init_start    = %b", $time, `LPDDR4_DW.dfi_init_start);
+always @(`LPDDR4_DW.dfi_init_complete) $display("[%0t] LPDDR4_MON: dfi_init_complete = %b", $time, `LPDDR4_DW.dfi_init_complete);
+always @(LPDDR4_RESET_N)               $display("[%0t] LPDDR4_MON: DRAM RESET_N      = %b", $time, LPDDR4_RESET_N);
+// CKE toggles with every power-down/refresh once the DRAM is running, which
+// would interleave with the UART output, so only the first changes (and any
+// X) are logged
+int lpddr4_cke_changes = 0;
+always @(LPDDR4_CKE[0]) begin
+  lpddr4_cke_changes++;
+  if (lpddr4_cke_changes <= 20 || $isunknown(LPDDR4_CKE[0]))
+    $display("[%0t] LPDDR4_MON: DRAM CKE[0]       = %b%s", $time, LPDDR4_CKE[0],
+             (lpddr4_cke_changes == 20) ? "  (further CKE changes not logged)" : "");
+end
+always @(LPDDR4_VREF)                  $display("[%0t] LPDDR4_MON: VREF              = %b%s", $time, LPDDR4_VREF,
+                                                ($isunknown(LPDDR4_VREF) ? "  <-- UNKNOWN" : ""));
+
+// SYS_CLK period, for the firmware's timer-based delays (LPDDR4_TIMER_MHZ)
+initial begin
+  realtime t0;
+  #50us;
+  @(posedge u_megasoc_chip_pads.u_megasoc_chip.u_megasoc_system.u_megasoc_tech_wrapper.SYS_CLK) t0 = $realtime;
+  @(posedge u_megasoc_chip_pads.u_megasoc_chip.u_megasoc_system.u_megasoc_tech_wrapper.SYS_CLK);
+  $display("[%0t] LPDDR4_MON: SYS_CLK period = %0.3f ns (%0.2f MHz)", $time,
+           ($realtime - t0), 1000.0 / ($realtime - t0));
+end
+
+// Optional LPDDR4 integration waveform (make run ... LPDDR4_WAVES=yes): one
+// level of each scope only, i.e. project-RTL wires/ports at the integration
+// boundary -- nothing inside the vendor controller or PHY.
+`define LPDDR4_TW u_megasoc_chip_pads.u_megasoc_chip.u_megasoc_system.u_megasoc_tech_wrapper
+initial begin
+  if ($test$plusargs("LPDDR4_WAVES")) begin
+    $display("LPDDR4_MON: dumping integration waveform to lpddr4_waves.fsdb");
+    $fsdbDumpfile("lpddr4_waves.fsdb");
+    $fsdbDumpvars(1, `LPDDR4_DW);                       // DFI handshake, reset/pwrok, clock enables
+    $fsdbDumpvars(1, `LPDDR4_TW.u_lpddr4_cfg_bridge);   // configuration APB accesses
+    $fsdbDumpvars(1, `LPDDR4_TW.u_dram_axi_async_bridge); // AXI data path
+    $fsdbDumpvars(1, megasoc_tb.u_lpddr4_memory);       // DRAM pins at the memory model
+    $fsdbDumpvars(0, megasoc_tb.DDR_CLK, megasoc_tb.LPDDR4_RESET_N, megasoc_tb.LPDDR4_CKE,
+                     megasoc_tb.LPDDR4_CS, megasoc_tb.LPDDR4_CA, megasoc_tb.LPDDR4_CK_T,
+                     megasoc_tb.LPDDR4_VREF, megasoc_tb.LPDDR4_ALERT_N);
+  end
+end
+
+lpddr_model u_lpddr4_memory(
+    .ck_t    (LPDDR4_CK_T),
+    .ck_c    (LPDDR4_CK_C),
+    .cke     (LPDDR4_CKE[0]),
+    .cs      (LPDDR4_CS[0]),
+    .odt     (1'b0),
+    .ca      (LPDDR4_CA),
+    .dm      (LPDDR4_DMI),
+    .dqs_t   (LPDDR4_DQS_T),
+    .dqs_c   (LPDDR4_DQS_C),
+    .dq      (LPDDR4_DQ),
+    .reset_n (LPDDR4_RESET_N)
+);
+`endif
+
 wire         QSPI_SCLK;
 wire [3:0]   QSPI_IO;
 wire         QSPI_nCS;
@@ -103,7 +197,25 @@ megasoc_chip_pads u_megasoc_chip_pads(
     .SDIO_CK(SDIO_CK),
     .SDIO_CMD(SDIO_CMD),
     .SDIO_DAT(SDIO_DAT),
-    .SD_O_1P8V(SD_O_1P8V)
+    .SD_O_1P8V(SD_O_1P8V),
+
+    // LPDDR4 DRAM (memory model attached in a later step)
+    .DDR_CLK_IN(DDR_CLK),
+    .LPDDR4_RESET_N(LPDDR4_RESET_N),
+    .LPDDR4_CK_T(LPDDR4_CK_T),
+    .LPDDR4_CK_C(LPDDR4_CK_C),
+    .LPDDR4_CKE(LPDDR4_CKE),
+    .LPDDR4_CS(LPDDR4_CS),
+    .LPDDR4_CA(LPDDR4_CA),
+    .LPDDR4_ODT(LPDDR4_ODT),
+    .LPDDR4_DQS_T(LPDDR4_DQS_T),
+    .LPDDR4_DQS_C(LPDDR4_DQS_C),
+    .LPDDR4_DQ(LPDDR4_DQ),
+    .LPDDR4_DMI(LPDDR4_DMI),
+    .LPDDR4_ALERT_N(LPDDR4_ALERT_N),
+    .LPDDR4_VREF(LPDDR4_VREF),
+    .LPDDR4_ZN_SENSE(1'b0),
+    .LPDDR4_ZN(LPDDR4_ZN)
 );
 
 pullup(SDIO_CMD);

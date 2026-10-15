@@ -29,6 +29,9 @@ FAST_SIM ?= yes
 # Include the expansion subsystem?
 INC_EXP ?= no
 
+# Include the LPDDR4 DRAM subsystem (megasoc_tech/logical/lpddr4_subsystem)?
+INC_LPDDR4 ?= no
+
 ASIC_MEMS ?= no 
 
 ifeq ($(ASIC_MEMS),yes)
@@ -44,6 +47,21 @@ export ASIC_MEMS
 
 ifeq ($(INC_EXP),yes)
 	FLIST_INCLUDES += $(SOCLABS_PROJECT_DIR)/flist/project/expansion.flist
+endif
+
+ifeq ($(INC_LPDDR4),yes)
+	# RTL selects dram_wrapper (LPDDR4) over the fast sim DRAM responder
+	DEFINES_VC += +define+INC_LPDDR4
+	FLIST_INCLUDES += $(SOCLABS_MEGASOC_TECH_DIR)/flist/megasoc_tech_LPDDR4.flist
+	# filelist_compile.py drops +define+ lines from flists, so take the
+	# subsystem's design defines straight from its flist (single source of truth)
+	DEFINES_VC += $(shell grep -h '^+define+' $(LPDDR4_PROJECT_DIR)/flist/lpddr4_rtl.vc)
+	# LPDDR4 DRAM device model for the testbench (Synopsys LPDDR VIP behind
+	# lpddr_model.v), set up as in the subsystem's standalone testbench
+	FLIST_INCLUDES += $(LPDDR4_PROJECT_DIR)/flist/lpddr4_mem_model.vc
+	DEFINES_VC += $(shell grep -h '^+define+' $(LPDDR4_PROJECT_DIR)/flist/lpddr4_mem_model.vc)
+	DEFINES_VC += +define+SYNOPSYS_SV +define+SVT_UVM_TECHNOLOGY +define+SVT_MEM_DPI_OK
+	DEFINES_VC += +define+UVM_DISABLE_AUTO_ITEM_RECORDING +define+UVM_PACKER_MAX_BYTES=1500000
 endif
 
 export FLIST_INCLUDES
@@ -106,6 +124,9 @@ FPGA_DESIGN_VC ?= $(SOCLABS_PROJECT_DIR)/flist/project/top_FPGA.flist
 export ARM_CORTEX_M0_DIR
 export ARM_CORSTONE_101_DIR
 export CORTEX_A53_IP_LOGICAL_DIR
+export SYNOPSYS_LPDDR4_UMCTL2_DIR
+export SYNOPSYS_LPDDR4_multiPHY_DIR
+export SYNOPSYS_LPDDR4_multiPHY_LIB_DIR
 export FLIST_INCLUDES
 export AMS
 # Location of Defines File
@@ -123,6 +144,22 @@ include $(SOCLABS_PROJECT_DIR)/flows/makefile.lint
 
 # Include Simulation Makefile
 include $(SOCLABS_PROJECT_DIR)/flows/makefile.simulate
+
+# LPDDR4 memory model: SVT/UVM base classes and the VIP memory server. Added
+# after makefile.simulate because that file assigns VCS_OPTIONS with '='.
+ifeq ($(INC_LPDDR4),yes)
+VCS_OPTIONS    += -ntb_opts uvm $(DESIGNWARE_HOME)/vip/svt/common/latest/C/lib/amd64/libmemserver.so
+# Same time settings as the subsystem's standalone flow: 1ns/100fs as the
+# default only (not forced), so the LPDDR4 PHY models keep their own timescale.
+# Forcing 1ps on them stops the PHY generating the DRAM clock (CK stays X).
+VCS_OPTIONS    := $(subst -override_timescale=1ns/1ps,-timescale=1ns/100fs,$(VCS_OPTIONS))
+VCS_SIM_OPTION += +ddr_squashz_to_0
+# Optional LPDDR4 integration waveform (lpddr4_waves.fsdb in the run folder)
+LPDDR4_WAVES ?= no
+ifeq ($(LPDDR4_WAVES),yes)
+VCS_SIM_OPTION += +LPDDR4_WAVES
+endif
+endif
 
 # Include Regression Simulation Makefile
 include $(SOCLABS_PROJECT_DIR)/flows/makefile.regression
