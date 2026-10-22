@@ -1,0 +1,54 @@
+--- a/logical/ahb_qspi_interface/logical/ahb_qspi_interface.sv
++++ b/logical/ahb_qspi_interface/logical/ahb_qspi_interface.sv
+@@ -68,6 +68,30 @@
+ assign HREADYOUT = ((current_state==IDLE && last_HTRANS[1]==1'b0)||(current_state==ERR)) ? 1'b1: qspi_ready; //(current_state==IDLE)? 1'b1 : qspi_ready;
+ assign HRESP = (current_state == ERR) ? 1'b1 : 1'b0;
+ 
++// 2026-09-14: AHB_QSPI_ENABLE_ACK and AHB_QSPI_BUSY are driven on
++// QSPI_SCLK_i (a runtime-divided derived clock, see qspi_clock_div.v) but
++// were being consumed here directly, combinationally, on HCLK - an
++// unsynchronized clock-domain crossing in the return direction (the
++// forward direction, QSPI_ENABLE, had the same problem - see
++// qspi_controller.sv). Added 2-stage ASYNC_REG synchronisers; the FSM
++// below now reads the synchronized versions instead of the raw inputs.
++(* ASYNC_REG = "true" *) reg AHB_QSPI_ENABLE_ACK_meta, AHB_QSPI_ENABLE_ACK_sync;
++(* ASYNC_REG = "true" *) reg AHB_QSPI_BUSY_meta, AHB_QSPI_BUSY_sync;
++
++always @(posedge HCLK or negedge HRESETn) begin
++    if(~HRESETn) begin
++        AHB_QSPI_ENABLE_ACK_meta <= 1'b0;
++        AHB_QSPI_ENABLE_ACK_sync <= 1'b0;
++        AHB_QSPI_BUSY_meta       <= 1'b0;
++        AHB_QSPI_BUSY_sync       <= 1'b0;
++    end else begin
++        AHB_QSPI_ENABLE_ACK_meta <= AHB_QSPI_ENABLE_ACK;
++        AHB_QSPI_ENABLE_ACK_sync <= AHB_QSPI_ENABLE_ACK_meta;
++        AHB_QSPI_BUSY_meta       <= AHB_QSPI_BUSY;
++        AHB_QSPI_BUSY_sync       <= AHB_QSPI_BUSY_meta;
++    end
++end
++
+ always @(posedge HCLK or negedge HRESETn) begin
+     if(~HRESETn) begin
+         last_HSEL   <= 1'b0;
+@@ -121,17 +145,17 @@
+         AHB_QSPI_ADDR <= 22'd0;
+     end else begin
+         if(current_state == WAIT_READ) begin
+-            if(AHB_QSPI_BUSY!=1'b1) begin
++            if(AHB_QSPI_BUSY_sync!=1'b1) begin
+                 if(qspi_started==1'b0) begin
+                     AHB_QSPI_ENABLE <= 1'b1;
+                 end
+             end
+-            if(AHB_QSPI_ENABLE_ACK) begin
++            if(AHB_QSPI_ENABLE_ACK_sync) begin
+                 AHB_QSPI_ENABLE <= 1'b0;
+                 qspi_started <= 1'b1;
+             end
+             if(qspi_started==1'b1) begin
+-                if(AHB_QSPI_BUSY==1'b0) begin
++                if(AHB_QSPI_BUSY_sync==1'b0) begin
+                     HRDATA <= AHB_QSPI_RDATA_i;
+                     qspi_ready <= 1'b1;
+                 end

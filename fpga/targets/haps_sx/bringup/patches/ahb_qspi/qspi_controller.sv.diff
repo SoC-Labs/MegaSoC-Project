@@ -1,0 +1,257 @@
+--- a/logical/qspi_controller/logical/qspi_controller.sv
++++ b/logical/qspi_controller/logical/qspi_controller.sv
+@@ -3,7 +3,14 @@
+     input  wire         HCLK,
+     input  wire         HRESETn,
+ 
++    // 2026-09-23 (Build B): QSPI_SCLK_i is now a registered LEVEL in the HCLK
++    // domain, not a clock. Everything in this module is clocked on HCLK and
++    // enabled by the two pulses below, which are asserted on exactly the HCLK
++    // edge where SCLK changes - so the timing relative to the SCLK waveform at
++    // the pin is unchanged. See qspi_clock_div.v for the full rationale.
+     input  wire         QSPI_SCLK_i,
++    input  wire         QSPI_SCLK_RISE_EN,   // was: posedge QSPI_SCLK_i
++    input  wire         QSPI_SCLK_FALL_EN,   // was: negedge QSPI_SCLK_i
+ 
+     input  wire [1:0]   QSPI_SPI_MODE, // {CPOL, CPHA}
+ 
+@@ -52,30 +59,80 @@
+ reg [127:0] data_in_reg;
+ reg [21:0]  last_QSPI_ADDR;
+ 
++// 2026-09-14: QSPI_ENABLE is a genuine clock-domain crossing - it's driven
++// on HCLK (ahb_qspi_interface.sv) but sampled here on QSPI_SCLK_i, a
++// runtime-divided derived clock (qspi_clock_div.v, ratio set by a
++// software-writable register) with no fixed phase relationship to HCLK.
++// This used to be a single flop, which is metastability-unsafe for a real
++// CDC. Widened to a proper 2-stage synchroniser with ASYNC_REG.
++//
++// 2026-09-23 (Build B): this is NO LONGER A CDC. QSPI_ENABLE is driven on
++// HCLK and is now sampled on HCLK, so source and destination are the same
++// clock and the crossing has ceased to exist. The two stages are kept - they
++// cost nothing, they preserve the existing handshake latency exactly, and
++// keeping them means the enable still cannot be seen mid-transition - but the
++// ASYNC_REG attribute and the matching XDC exceptions are no longer required.
++// The three set_max_delay -datapath_only lines in haps_top.xdc that targeted
++// these flops were rejected by Vivado anyway (no -from) and have been removed.
++(* ASYNC_REG = "true" *) reg QSPI_enable_meta;
+ reg QSPI_enable_sync;
+ 
+-always @(posedge QSPI_SCLK_i or negedge HRESETn) begin
++always @(posedge HCLK or negedge HRESETn) begin
+     if(~HRESETn)begin
++        QSPI_enable_meta <= 1'b0;
+         QSPI_enable_sync <= 1'b0;
+-    end else begin 
+-        QSPI_enable_sync <= QSPI_ENABLE;
+-    end 
++    end else if(QSPI_SCLK_RISE_EN) begin
++        QSPI_enable_meta <= QSPI_ENABLE;
++        QSPI_enable_sync <= QSPI_enable_meta;
++    end
+ end
+ 
+ reg [127:0]   QSPI_WDATA_reg;
+ 
+ assign QSPI_IO_o = QSPI_IO_o_reg;
+ 
+-always @(posedge QSPI_SCLK_i or negedge HRESETn) begin
++always @(posedge HCLK or negedge HRESETn) begin
+     if(~HRESETn) begin
+         current_state <= IDLE;
+-    end else begin
++    end else if(QSPI_SCLK_RISE_EN) begin
+         current_state <= next_state;
+     end
+ end
+ 
++// 2026-09-23 (Build B): last_QSPI_ADDR is genuine stored state - it has to
++// survive from one transaction to the next so the NO_CMD path can decide
++// whether the requested address is the one already fetched. It used to be
++// assigned inside the next-state always_comb below, which made it an inferred
++// latch (22 of them). Registered here instead, at the same edge the FSM would
++// have taken the branch that wrote it.
++always @(posedge HCLK or negedge HRESETn) begin
++    if(~HRESETn) begin
++        last_QSPI_ADDR <= 22'h0;
++    end else if(QSPI_SCLK_RISE_EN && (current_state == ADDR)
++                && (QSPI_QIO_MODE == 1'b1) && (addr_counter == 5'h05)) begin
++        last_QSPI_ADDR <= QSPI_ADDR;
++    end
++end
++
+ // FSM:Next state decision tree
+ always_comb begin
++    // 2026-09-23 (Build B): explicit defaults. Without them this block left
++    // next_state and QSPI_ENABLE_ACK unassigned on several paths and inferred
++    // latches for both (3 + 1 LDCE cells). Both defaults are behaviourally
++    // identical to the latch they replace:
++    //
++    //  - next_state: every unassigned path is one where the machine stays put,
++    //    so the latch was holding a value equal to current_state anyway
++    //    (e.g. NO_FETCH while the enable is still high).
++    //  - QSPI_ENABLE_ACK: every state that leaves it unassigned is entered
++    //    from a state that had just driven it to 0 (IDLE's idle branch, or the
++    //    terminal branch of OP/ADDR), so the held value was always 0.
++    //
++    // last_QSPI_ADDR is no longer assigned here at all - it is a real register
++    // now, above.
++    next_state      = current_state;
++    QSPI_ENABLE_ACK = 1'b0;
++
+     case(current_state)
+         IDLE: begin
+             if(QSPI_enable_sync==1'b1 && QSPI_NO_CMD==1'b0) begin
+@@ -135,7 +192,7 @@
+             // Next state decision from ADDR if in QPI mode
+             if(QSPI_QIO_MODE==1'b1 & addr_counter==5'h05) begin
+                 QSPI_ENABLE_ACK = 1'b0;
+-                last_QSPI_ADDR = QSPI_ADDR;
++                // last_QSPI_ADDR <= QSPI_ADDR; now registered above (Build B)
+                 if(QSPI_CONT_READ)
+                     next_state = MODE;
+                 else if(QSPI_DUMMY_CYCLES!=4'h0)
+@@ -201,7 +258,12 @@
+                 // Next state decision from DATA_O if in QPI mode
+                 if(QSPI_QIO_MODE==1'b0) begin
+                     if(byte_counter==QSPI_N_RW_BYTES) begin
+-                        if(data_counter == 3'h7)
++                        // 2026-10-19 (build 50): was data_counter == 3'h7, which kept DATA_O one
++                        // SCLK too long: every 1-bit write sent 8*(N+1)+1 clocks, so nCS rose off a
++                        // byte boundary and the flash discarded page programs and status-register
++                        // writes (erase, which has no data phase, worked). Reads (DATA_I) already
++                        // end at 3'h6. Same defect in the upstream SoC Labs RTL (ticket N39).
++                        if(data_counter == 3'h6)
+                             next_state = IDLE;
+                         else
+                             next_state = DATA_O;
+@@ -248,8 +310,25 @@
+ end
+ 
+ reg QSPI_IO_e_int;
++reg [1:0] spi_wbit;     // 2026-10-19 (build 50): bit position within the current nibble, 1-bit writes
+ 
+-always @(negedge QSPI_SCLK_i) begin
++// 2026-09-23 (Build B): was `always @(negedge QSPI_SCLK_i)`. Now HCLK, enabled
++// on the falling-edge pulse, so the outputs still change on the SCLK falling
++// edge and are stable well before the flash samples them on the rising edge.
++// A reset branch has also been added: these flops previously had none, so they
++// powered up as X in simulation (on FPGA they came up 0 from the bitstream).
++// The values chosen match what the FSM's own idle/default branch drives.
++always @(posedge HCLK or negedge HRESETn) begin
++  if(~HRESETn) begin
++    QSPI_IO_e_int  <= 1'b1;
++    QSPI_SCLK_e    <= 1'b0;
++    QSPI_IO_o_reg  <= 4'hF;
++    op_code        <= 8'h00;
++    addr_code      <= 24'h0;
++    qspi_mode_reg  <= 8'h00;
++    QSPI_WDATA_reg <= 128'd0;
++    spi_wbit       <= 2'd0;
++  end else if(QSPI_SCLK_FALL_EN) begin
+     if(current_state==OP) begin
+         QSPI_IO_e_int <= 1'b1;
+         QSPI_SCLK_e <= 1'b1;
+@@ -270,8 +349,13 @@
+             QSPI_IO_o_reg <= QSPI_WDATA_reg[3:0];
+             QSPI_WDATA_reg <= {4'h0, QSPI_WDATA_reg[127:4]};
+         end else begin
+-            QSPI_IO_o_reg[0] <= QSPI_WDATA_reg[0];
+-            QSPI_WDATA_reg <= {1'b0, QSPI_WDATA_reg[127:1]};
++            // 2026-10-19 (build 50): MSB first within each nibble. Upstream shifted WDATA out
++            // LSB first, so a byte X reached the flash as {rev4(X[7:4]), rev4(X[3:0])} (ticket
++            // N27). apb_qspi_regs nibble-swaps WRITE_DATA for the 4-bit path, so WDATA[3:0] holds
++            // the high nibble of the user's byte: send WDATA[3], [2], [1], [0], then the next nibble.
++            QSPI_IO_o_reg[0] <= QSPI_WDATA_reg[3 - spi_wbit];
++            spi_wbit <= spi_wbit + 2'd1;
++            if (spi_wbit == 2'd3) QSPI_WDATA_reg <= {4'h0, QSPI_WDATA_reg[127:4]};
+         end
+ 
+     end else if(current_state == ADDR) begin
+@@ -306,10 +390,13 @@
+ 
+     if(current_state != DATA_O) begin
+         QSPI_WDATA_reg <= QSPI_WDATA;
++        spi_wbit       <= 2'd0;
+     end
+-
++  end
+ end
+-always @(posedge QSPI_SCLK_i or negedge HRESETn) begin
++
++// 2026-09-23 (Build B): was `always @(posedge QSPI_SCLK_i ...)`.
++always @(posedge HCLK or negedge HRESETn) begin
+     if(~HRESETn) begin
+         op_counter <= 3'h0;
+         data_counter <= 3'h7;
+@@ -318,7 +405,7 @@
+         addr_counter <= 5'h00;
+         mode_counter <= 1'b1;
+         data_in_reg <= 128'd0;
+-    end else begin
++    end else if(QSPI_SCLK_RISE_EN) begin
+         if(current_state==OP) begin
+             data_in_reg <= 128'd0;
+             op_counter<=op_counter+1;
+@@ -371,29 +458,41 @@
+     end
+ end
+ 
+-// RDATA latch
+-always_comb begin
++// RDATA capture
++//
++// 2026-09-23 (Build B): was an always_comb with no else branch, which inferred
++// 128 latches - the single largest block of latches in the design, and the
++// reason 154 "clock" endpoints traced back to the FSM state bits (Vivado counts
++// a latch's gate pin as a clock pin).
++//
++// Semantics are preserved exactly: the value is refreshed while QSPI_nCS is
++// high (idle, i.e. between transactions) and held while a transaction is in
++// progress. It is now a clocked register rather than a transparent latch, so it
++// settles one HCLK cycle later; the consumer (ahb_qspi_interface /
++// qspi_controller_mux) only samples it once the transaction has completed and
++// nCS has gone high again, so that delay is not observable.
++always @(posedge HCLK or negedge HRESETn) begin
+     if(~HRESETn) begin
+-        QSPI_RDATA = 128'd0;
++        QSPI_RDATA <= 128'd0;
+     end else if(QSPI_nCS) begin
+         case(QSPI_N_RW_BYTES)
+-            4'h0:   QSPI_RDATA = {{120{1'b0}}, data_in_reg[7:0 ]};
+-            4'h1:   QSPI_RDATA = {{112{1'b0}}, data_in_reg[15:0]};
+-            4'h2:   QSPI_RDATA = {{104{1'b0}}, data_in_reg[23:0]};
+-            4'h3:   QSPI_RDATA = {{96{1'b0}},  data_in_reg[31:0]};
+-            4'h4:   QSPI_RDATA = {{88{1'b0}},  data_in_reg[31:0], data_in_reg[39:32]};
+-            4'h5:   QSPI_RDATA = {{80{1'b0}},  data_in_reg[31:0], data_in_reg[47:32]};
+-            4'h6:   QSPI_RDATA = {{72{1'b0}},  data_in_reg[31:0], data_in_reg[55:32]};
+-            4'h7:   QSPI_RDATA = {{64{1'b0}},  data_in_reg[31:0], data_in_reg[63:32]};
+-            4'h8:   QSPI_RDATA = {{56{1'b0}},  data_in_reg[31:0], data_in_reg[63:32], data_in_reg[71:64]};
+-            4'h9:   QSPI_RDATA = {{48{1'b0}},  data_in_reg[31:0], data_in_reg[63:32], data_in_reg[79:64]};
+-            4'hA:   QSPI_RDATA = {{40{1'b0}},  data_in_reg[31:0], data_in_reg[63:32], data_in_reg[87:64]};
+-            4'hB:   QSPI_RDATA = {{32{1'b0}},  data_in_reg[31:0], data_in_reg[63:32], data_in_reg[95:64]};
+-            4'hC:   QSPI_RDATA = {{24{1'b0}},  data_in_reg[31:0], data_in_reg[63:32], data_in_reg[95:64], data_in_reg[103:96]};
+-            4'hD:   QSPI_RDATA = {{16{1'b0}},  data_in_reg[31:0], data_in_reg[63:32], data_in_reg[95:64], data_in_reg[111:96]};
+-            4'hE:   QSPI_RDATA = {{8{1'b0}},   data_in_reg[31:0], data_in_reg[63:32], data_in_reg[95:64], data_in_reg[119:96]};
+-            4'hF:   QSPI_RDATA = {data_in_reg[31:0], data_in_reg[63:32], data_in_reg[95:64], data_in_reg[127:96]};
+-            default: QSPI_RDATA = 128'd0;
++            4'h0:   QSPI_RDATA <= {{120{1'b0}}, data_in_reg[7:0 ]};
++            4'h1:   QSPI_RDATA <= {{112{1'b0}}, data_in_reg[15:0]};
++            4'h2:   QSPI_RDATA <= {{104{1'b0}}, data_in_reg[23:0]};
++            4'h3:   QSPI_RDATA <= {{96{1'b0}},  data_in_reg[31:0]};
++            4'h4:   QSPI_RDATA <= {{88{1'b0}},  data_in_reg[31:0], data_in_reg[39:32]};
++            4'h5:   QSPI_RDATA <= {{80{1'b0}},  data_in_reg[31:0], data_in_reg[47:32]};
++            4'h6:   QSPI_RDATA <= {{72{1'b0}},  data_in_reg[31:0], data_in_reg[55:32]};
++            4'h7:   QSPI_RDATA <= {{64{1'b0}},  data_in_reg[31:0], data_in_reg[63:32]};
++            4'h8:   QSPI_RDATA <= {{56{1'b0}},  data_in_reg[31:0], data_in_reg[63:32], data_in_reg[71:64]};
++            4'h9:   QSPI_RDATA <= {{48{1'b0}},  data_in_reg[31:0], data_in_reg[63:32], data_in_reg[79:64]};
++            4'hA:   QSPI_RDATA <= {{40{1'b0}},  data_in_reg[31:0], data_in_reg[63:32], data_in_reg[87:64]};
++            4'hB:   QSPI_RDATA <= {{32{1'b0}},  data_in_reg[31:0], data_in_reg[63:32], data_in_reg[95:64]};
++            4'hC:   QSPI_RDATA <= {{24{1'b0}},  data_in_reg[31:0], data_in_reg[63:32], data_in_reg[95:64], data_in_reg[103:96]};
++            4'hD:   QSPI_RDATA <= {{16{1'b0}},  data_in_reg[31:0], data_in_reg[63:32], data_in_reg[95:64], data_in_reg[111:96]};
++            4'hE:   QSPI_RDATA <= {{8{1'b0}},   data_in_reg[31:0], data_in_reg[63:32], data_in_reg[95:64], data_in_reg[119:96]};
++            4'hF:   QSPI_RDATA <= {data_in_reg[31:0], data_in_reg[63:32], data_in_reg[95:64], data_in_reg[127:96]};
++            default: QSPI_RDATA <= 128'd0;
+         endcase
+     end
+ end

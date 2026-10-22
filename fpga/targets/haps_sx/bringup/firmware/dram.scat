@@ -1,0 +1,29 @@
+;; 2026-10-14 FPGA bring-up: run a test from the DRAM window (block RAM on the HAPS build).
+;; Single load region at 0x8000_0000 so `fromelf --bin` gives one flat image: RO then RW,
+;; ZI zeroed by __scatterload. Stack/heap stay in SRAM where boot.s puts the stack.
+LOAD 0x80000000
+{
+    EXEC_ROM 0x80000000
+    {
+        boot.s.v8-a.o (SECURE_ROM_BOOT, +FIRST)
+        *(+RO)
+    }
+    RW +0
+    {
+        *(+RW)
+    }
+    ZI +0
+    {
+        *(+ZI)
+    }
+}
+
+SRAM 0x00800000
+{
+    ARM_LIB_STACK 0x00800000 EMPTY 0x2000
+    {
+    }
+    ARM_LIB_HEAP 0x00802000 EMPTY 0x2000
+    {
+    }
+}

@@ -1,0 +1,58 @@
+--- a/logical/megasoc_subsystems/megasoc_cpu_subsystem/megasoc_irq_sync.v
++++ b/logical/megasoc_subsystems/megasoc_cpu_subsystem/megasoc_irq_sync.v
+@@ -5,14 +5,26 @@
+ // Contributors
+ //
+ // Daniel Newbrook (d.newbrook@soton.ac.uk)
+-// 
+-// Copyright � 2021-4, SoC Labs (www.soclabs.org)
++//
++// Copyright (C) 2021-4, SoC Labs (www.soclabs.org)
+ //-----------------------------------------------------------------------------
+ // Purpose:
+ //  Synchronize interrupts to input clock. Needed as GIC has no internal synchronizers
+ //-----------------------------------------------------------------------------
+ // Modules instantiated:
+ //  none
++//
++// 2026-09-30: upgraded from a single flop to a two-stage synchroniser, in line
++// with the upstream change recorded under MBT-15. One flop is not a
++// synchroniser - it only adds a cycle of latency and passes any metastable
++// capture straight to GIC-400, which documents that its inputs must already
++// be synchronous to its clock. At least the RTC-domain interrupts genuinely
++// cross asynchronously. These are level interrupts, so per-bit independent
++// resolution is fine: no gray coding or handshake is needed.
++//
++// ASYNC_REG on both stages keeps each pair adjacent in placement and marks the
++// first stage as a synchroniser for timing analysis. Cost: one extra cycle of
++// interrupt latency.
+ 
+ 
+ module megasoc_irq_sync #(
+@@ -21,14 +33,19 @@
+         input wire  CLK,
+         input wire  RESETn,
+         input wire [NUM_SPIS-1:0]   SPI_i,
++        (* ASYNC_REG = "true" *)
+         output reg [NUM_SPIS-1:0]   SPI_o
+ );
+ 
+-always @(posedge CLK or negedge RESETn) begin 
+-    if(~RESETn) begin 
+-        SPI_o<={NUM_SPIS{1'b0}};
+-    end else begin 
+-        SPI_o<=SPI_i;
++(* ASYNC_REG = "true" *) reg [NUM_SPIS-1:0] SPI_meta;
++
++always @(posedge CLK or negedge RESETn) begin
++    if(~RESETn) begin
++        SPI_meta <= {NUM_SPIS{1'b0}};
++        SPI_o    <= {NUM_SPIS{1'b0}};
++    end else begin
++        SPI_meta <= SPI_i;
++        SPI_o    <= SPI_meta;
+     end
+ end
+-endmodule
+\ No newline at end of file
++endmodule

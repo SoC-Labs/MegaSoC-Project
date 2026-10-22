@@ -1,0 +1,93 @@
+--- a/logical/qspi_controller/logical/qspi_clock_div.v
++++ b/logical/qspi_controller/logical/qspi_clock_div.v
+@@ -1,35 +1,70 @@
++// -----------------------------------------------------------------------------
++// 2026-09-23 (Build B): SCLK is no longer a clock. It is a registered level plus
++// two single-cycle HCLK enables.
++//
++// Why this changed
++// ----------------
++// QSPI_SCLK_i used to be a runtime-selected mux between HCLK and a divided flop,
++// and the whole of qspi_controller was clocked from it - on BOTH edges. Measured
++// on the routed netlist of 2026-09-22: 901 register/latch pins in the design had
++// NO CLOCK at all (essentially all of them in this block), and after Build A
++// removed the CA53/PPU/GIC clock-gate skew, ALL 200 of the worst hold paths in
++// the entire design terminated inside u_qspi_controller.
++//
++// No XDC could fix that. A generated clock declared at a consumer pin resolved
++// on 1 of 1434 sequential cells, a set_false_path made routing diverge twice,
++// and the set_max_delay -datapath_only replacement was rejected outright by
++// Vivado for having no -from. The clock itself had to go.
++//
++// What it is now
++// --------------
++// A plain synchronous divider in the HCLK domain. QSPI_SCLK_i is the SCLK level
++// (a registered signal, used to drive the output pad and for the pad-level mux),
++// and QSPI_SCLK_RISE_EN / QSPI_SCLK_FALL_EN are one-HCLK-cycle pulses asserted on
++// exactly the HCLK edge at which that level changes. Logic that used to be
++// clocked on posedge/negedge SCLK is now clocked on HCLK and enabled by the
++// corresponding pulse, so it updates at the same physical instant as before -
++// the sequencing relative to the SCLK waveform at the pin is unchanged.
++//
++// One deliberate behavioural change: QSPI_CLK_DIV == 0 used to mean "pass HCLK
++// straight through" (SCLK = HCLK). That is what made the clock unanalyzable, and
++// it cannot be expressed as an enable. It now behaves as QSPI_CLK_DIV == 1, i.e.
++// SCLK = HCLK/2 (10 MHz at the current 20 MHz HCLK). That is the fastest rate
++// this structure can produce, and it is slower than the old div==0 case, never
++// faster - safe for the W25Q32FW, which is rated well above it.
++// -----------------------------------------------------------------------------
+ module qspi_clock_div(
+     input  wire         HCLK,
+     input  wire         HRESETn,
+     input  wire [4:0]   QSPI_CLK_DIV,
+-    output wire         QSPI_SCLK_i
++    output wire         QSPI_SCLK_i,
++    output wire         QSPI_SCLK_RISE_EN,
++    output wire         QSPI_SCLK_FALL_EN
+ );
+ 
+ reg [4:0] QSPI_CLK_DIV_COUNTER;
+-reg     QSPI_SCLK_reg;
+-assign QSPI_SCLK_i = (QSPI_CLK_DIV==5'h00) ? HCLK : QSPI_SCLK_reg;
++reg       QSPI_SCLK_reg;
++
++// div == 0 is treated as div == 1 (toggle every HCLK cycle); see header.
++wire [4:0] div_eff = (QSPI_CLK_DIV == 5'h00) ? 5'h01 : QSPI_CLK_DIV;
++
++// Terminal count: this HCLK edge is where SCLK toggles.
++wire       sclk_tick = (QSPI_CLK_DIV_COUNTER == (div_eff - 1'b1));
++
++assign QSPI_SCLK_i       = QSPI_SCLK_reg;
++assign QSPI_SCLK_RISE_EN = sclk_tick & ~QSPI_SCLK_reg;  // edge where SCLK goes 0->1
++assign QSPI_SCLK_FALL_EN = sclk_tick &  QSPI_SCLK_reg;  // edge where SCLK goes 1->0
+ 
+-// Clock Divider for SCLK
+ always @(posedge HCLK or negedge HRESETn) begin
+     if(~HRESETn) begin
+-        QSPI_CLK_DIV_COUNTER<=5'h00;
+-        QSPI_SCLK_reg <= 1'b0;
++        QSPI_CLK_DIV_COUNTER <= 5'h00;
++        QSPI_SCLK_reg        <= 1'b0;
++    end else if(sclk_tick) begin
++        QSPI_CLK_DIV_COUNTER <= 5'h00;
++        QSPI_SCLK_reg        <= ~QSPI_SCLK_reg;
+     end else begin
+-        if(QSPI_CLK_DIV==5'h01) begin
+-            QSPI_SCLK_reg <= ~QSPI_SCLK_reg;
+-        end else if(QSPI_CLK_DIV!=5'h00) begin
+-            if(QSPI_CLK_DIV_COUNTER==QSPI_CLK_DIV-1'b1) begin
+-                QSPI_CLK_DIV_COUNTER <= 5'h00;
+-                QSPI_SCLK_reg <= ~QSPI_SCLK_reg;
+-            end else begin
+-                QSPI_CLK_DIV_COUNTER <= QSPI_CLK_DIV_COUNTER + 1;
+-            end
+-        end else begin
+-            QSPI_SCLK_reg <= 1'b0;
+-        end
++        QSPI_CLK_DIV_COUNTER <= QSPI_CLK_DIV_COUNTER + 1'b1;
+     end
+ end
+ 
+-
+-
+ endmodule
