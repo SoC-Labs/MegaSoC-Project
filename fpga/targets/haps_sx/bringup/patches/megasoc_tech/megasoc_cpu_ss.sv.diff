@@ -1,0 +1,57 @@
+--- a/logical/megasoc_subsystems/megasoc_cpu_subsystem/megasoc_cpu_ss.sv
++++ b/logical/megasoc_subsystems/megasoc_cpu_subsystem/megasoc_cpu_ss.sv
+@@ -117,6 +117,37 @@
+       CNTVALUEB <= CNTVALUEB + 1;
+   end
+ 
++  // ---------------------------------------------------------------------
++  // 2026-09-21: single, synchronously-released reset for the whole CA53.
++  //
++  // Supersedes the 2026-08-17 `nCORERESET = CPU_CORE_WRMRSTn & CPU_L2_RESETn`
++  // workaround described below. That change gated the CORE reset on the L2
++  // being ready, but left nCPUPORESET (and nPRESETDBG) ungated, so the core's
++  // power-on reset still released ~5 cycles before nL2RESET - which is the
++  // wrong way round, and out of spec: the CA53 TRM requires nL2RESET to be
++  // asserted whenever nCPUPORESET is, and for a power-on reset all three to
++  // be released together, synchronously to CLKIN, and held for at least 16
++  // CLKIN cycles afterwards.
++  //
++  // It also had a side effect worth calling out: making nCORERESET a
++  // permanent function of the L2 domain's reset means any later L2 power-down
++  // or L2 warm reset would also reset the CPU core.
++  //
++  // Here the three PPU outputs are combined once, asserted asynchronously
++  // (so reset still works with no clock), and released synchronously after a
++  // 16-cycle hold. The combining LUT now drives an ASYNC_REG-style shift
++  // chain instead of tens of thousands of CLR pins directly, so a runt pulse
++  // on it can no longer reset the core, and every endpoint sees the release
++  // on the same clock edge.
++  wire cpu_rst_all_n = CPU_CORE_PORESETn & CPU_CORE_WRMRSTn & CPU_L2_RESETn;
++
++  (* DONT_TOUCH = "true" *) reg [15:0] cpu_rst_hold;
++  always @(posedge CPU_CLK or negedge cpu_rst_all_n)
++    if (!cpu_rst_all_n) cpu_rst_hold <= 16'h0000;
++    else                cpu_rst_hold <= {cpu_rst_hold[14:0], 1'b1};
++
++  wire cpu_resetn_common = cpu_rst_hold[15];
++
+   assign CPU_AXI.AWID[5] = 1'b0;
+   //assign CPU_AXI.WID[5] = 1'b0;
+   //assign CPU_AXI.BID[5] = 1'b0;
+@@ -124,10 +155,12 @@
+     u_cortexa53
+       (// Clocks and resets
+        .CLKIN                       (CPU_CLK),
+-       .nCPUPORESET                 (CPU_CORE_PORESETn),
+-       .nCORERESET                  (CPU_CORE_WRMRSTn),
+-       .nPRESETDBG                  (CPU_CORE_PORESETn),
+-       .nL2RESET                    (CPU_L2_RESETn),
++       // 2026-09-21: all four driven from cpu_resetn_common (see above), so
++       // they release together, synchronously to CLKIN, after a 16-cycle hold.
++       .nCPUPORESET                 (cpu_resetn_common),
++       .nCORERESET                  (cpu_resetn_common),
++       .nPRESETDBG                  (cpu_resetn_common),
++       .nL2RESET                    (cpu_resetn_common),
+        .nMBISTRESET                 (1'b1),       // No MBIST
+        .L2RSTDISABLE                (1'b0),
+        .WARMRSTREQ                  (),

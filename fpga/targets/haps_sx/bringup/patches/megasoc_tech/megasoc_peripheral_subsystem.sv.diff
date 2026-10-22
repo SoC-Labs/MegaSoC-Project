@@ -1,0 +1,90 @@
+--- a/logical/megasoc_subsystems/peripheral_subsystem/megasoc_peripheral_subsystem.sv
++++ b/logical/megasoc_subsystems/peripheral_subsystem/megasoc_peripheral_subsystem.sv
+@@ -313,7 +313,20 @@
+     .PORT1_ENABLE  (1), // GPIO Port 0
+     .PORT2_ENABLE  (1), // GPIO Port 1
+     .PORT3_ENABLE  (0), // SYS control
+-    .PORT4_ENABLE  (0), // Default
++    // 2026-09-21: was 0, which silently disabled the default slave.
++    //
++    // u_ahb_default_slave_1 is instantiated and its HSEL4/HRESP4/HRDATA4/
++    // HREADYOUT4 are all wired up, but cmsdk_ahb_slave_mux gates every port-4
++    // contribution on (PORT4_ENABLE != 0), so its two-cycle ERROR response was
++    // being thrown away. The effect: any access in 0x4000_0000-0x5FFF_FFFF
++    // outside the three decoded windows completed as OKAY with HRDATA = 0.
++    // Writes vanished, and a stray or mis-based peripheral pointer in firmware
++    // produced no abort, no HRESP and no symptom anywhere - which is a large
++    // part of why this bring-up has had so little to go on.
++    //
++    // Requires the hsel qualifier in megasoc_peripheral_addr_decode.v, landed
++    // in the same change - without it this turns into a bus hang.
++    .PORT4_ENABLE  (1), // Default
+     .PORT5_ENABLE  (0), // 
+     .PORT6_ENABLE  (0), // 
+     .PORT7_ENABLE  (0),
+@@ -643,6 +656,36 @@
+         rt_clk_div <= rt_clk_div + 1;
+ end
+ 
++// 2026-09-30: data-domain view of the RT clock for Timer0's EXTIN.
++//
++// cmsdk_apb_timer does not use EXTIN as a clock: it SAMPLES it on PCLK
++// (ext_in_sync1 <= EXTIN) and edge-detects. On the ASIC RT_CLK is a real
++// 32.768 kHz square wave, so sampling it works. On FPGA RT_CLK is now a gated
++// copy of PCLK (haps_top.sv) - high for half a PCLK period once every 610
++// cycles, rising just after a PCLK edge and falling before the next - so a
++// PCLK-edge sampler would land on its transition every time and never
++// reliably see it high.
++//
++// rt_clk_div[0] toggles on every RT_CLK pulse and is an ordinary flop output,
++// so PCLK logic can sample it as a same-clock path. XOR with a one-cycle-
++// delayed copy gives one PCLK-wide pulse per RT tick: the timer's edge
++// detector sees exactly one rising edge per tick, i.e. the same 32.787 kHz
++// count rate an external-clock-mode timer would see from the real pin.
++// (Enable-mode behaviour differs - a one-cycle pulse rather than a 50% duty
++// level - which is inherent in not having a real square wave.)
++`ifdef FPGA_BUILD
++reg  rt_tog_q;
++always @(posedge PCLK or negedge PRESETn) begin
++    if(~PRESETn)
++        rt_tog_q <= 1'b0;
++    else
++        rt_tog_q <= rt_clk_div[0];
++end
++wire rt_extin = rt_clk_div[0] ^ rt_tog_q;
++`else
++wire rt_extin = RT_CLK;
++`endif
++
+ cmsdk_apb_timer u_apb_timer0(
+     .PCLK(PCLK),    // PCLK for timer operation
+     .PCLKG(PCLK),   // Gated clock
+@@ -656,7 +699,7 @@
+     .PRDATA(PRDATA_TIMER0),  // Read data
+     .PREADY(PREADY_TIMER0),  // Device ready
+     .PSLVERR(PSLVERR_TIMER0), // Device error response
+-    .EXTIN(RT_CLK),   // Extenal input: real time clock 32.768 kHz
++    .EXTIN(rt_extin), // Extenal input: real time clock 32.768 kHz (see rt_extin above)
+     .TIMERINT(timer0_int)
+ );
+ 
+@@ -778,9 +821,16 @@
+     .PWRITE(PWRITE),
+     .PWDATA(PWDATA),
+ 
+-    .WDOGCLK(),
+-    .WDOGCLKEN(),
+-    .WDOGRESn(),
++    // 2026-09-21: these three are INPUTS (cmsdk_apb_watchdog.v:42-44) and were
++    // left unconnected. The whole counter block lives in the WDOGCLK domain
++    // and WDOGINT comes straight out of it, so with WDOGCLK floating the flops
++    // never clocked and with WDOGRESn floating they never reset - wdog_int was
++    // 1'bx for the entire simulation, and that X propagated to PERI_IRQS[59]
++    // and on into the GIC's SPI input. On FPGA it synthesised to a constant,
++    // so the watchdog was simply dead. Run it from PCLK, always enabled.
++    .WDOGCLK(PCLK),
++    .WDOGCLKEN(1'b1),
++    .WDOGRESn(PRESETn),
+ 
+     .ECOREVNUM(4'h0),
+ 

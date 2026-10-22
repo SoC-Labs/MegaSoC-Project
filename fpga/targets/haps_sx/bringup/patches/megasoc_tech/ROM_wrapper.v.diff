@@ -1,0 +1,272 @@
+--- a/logical/ROM/ROM_wrapper.v
++++ b/logical/ROM/ROM_wrapper.v
+@@ -1,24 +1,10 @@
+-//-----------------------------------------------------------------------------
+-// Expansion Subsystem SRAM Wrapper
+-// A joint work commissioned on behalf of SoC Labs, under Arm Academic Access license.
+-//
+-// Contributors
+-//
+-// Daniel Newbrook (d.newbrook@soton.ac.uk)
+-// 
+-// Copyright � 2021-4, SoC Labs (www.soclabs.org)
+-//-----------------------------------------------------------------------------
+-// Modules instantiated:
+-//  sie300_axi5_sram_ctrl_expansion_subsystem
+-//  SRAM
+-
+ module ROM_wrapper (
+     input  wire             ACLK,
+     input  wire             ARESETn,
+ 
+     input  wire             AWVALID,
+     output wire             AWREADY,
+-    input  wire [ID_W-1:0]  AWID,
++    input  wire [8:0]       AWID,
+     input  wire [31:0]      AWADDR,
+     input  wire [7:0]       AWLEN,
+     input  wire [2:0]       AWSIZE,
+@@ -26,7 +12,7 @@
+     input  wire             AWLOCK,
+     input  wire [2:0]       AWPROT,
+     input  wire [3:0]       AWQOS,
+-    
++
+     input  wire             WVALID,
+     output wire             WREADY,
+     input  wire [63:0]      WDATA,
+@@ -36,12 +22,12 @@
+ 
+     output wire             BVALID,
+     input  wire             BREADY,
+-    output wire [ID_W-1:0]  BID,
++    output wire [8:0]       BID,
+     output wire [1:0]       BRESP,
+-    
++
+     input  wire             ARVALID,
+     output wire             ARREADY,
+-    input  wire [ID_W-1:0]  ARID,
++    input  wire [8:0]       ARID,
+     input  wire [31:0]      ARADDR,
+     input  wire [7:0]       ARLEN,
+     input  wire [2:0]       ARSIZE,
+@@ -49,10 +35,10 @@
+     input  wire             ARLOCK,
+     input  wire [2:0]       ARPROT,
+     input  wire [3:0]       ARQOS,
+-    
++
+     output wire             RVALID,
+     input  wire             RREADY,
+-    output wire [ID_W-1:0]       RID,
++    output wire [8:0]       RID,
+     output wire [63:0]      RDATA,
+     output wire [1:0]       RRESP,
+     output wire             RLAST,
+@@ -74,93 +60,126 @@
+     input  wire             cfg_gate_resp
+ );
+ 
++wire [19:0] memaddr;
++wire [64:0] memd;
++wire [64:0] memq;
++wire        memcen;
++wire [8:0]  memwen;   // 9 bits: 8 byte strobes + the AXI5 poison-bit strobe (was 8, truncating the port)
+ 
+-wire [19:0]    memaddr;
+-wire [64:0]    memd;
+-wire [64:0]    memq;
+-wire           memcen;
+-wire [7:0]     memwen;
++wire [63:0] bootrom_rdata;
+ 
++// Keep the existing AXI-to-memory controller
+ sie300_axi5_sram_ctrl_1 u_SMC (
+-    .aclk(ACLK),
+-    .aresetn(ARESETn),
+-    .awvalid_s(AWVALID),
+-    .awready_s(AWREADY),
+-    .awid_s(AWID),
+-    .awaddr_s(AWADDR[19:0]),
+-    .awlen_s(AWLEN),
+-    .awsize_s(AWSIZE),
+-    .awburst_s(AWBURST),
+-    .awlock_s(AWLOCK),
+-    .awprot_s(AWPROT),
+-    .awqos_s(AWQOS),
+-    .wvalid_s(WVALID),
+-    .wready_s(WREADY),
+-    .wdata_s(WDATA),
+-    .wstrb_s(WSTRB),
+-    .wlast_s(WLAST),
+-    .wpoison_s(WPOISON),
+-    .bvalid_s(BVALID),
+-    .bready_s(BREADY),
+-    .bid_s(BID),
+-    .bresp_s(BRESP),
+-    .arvalid_s(ARVALID),
+-    .arready_s(ARREADY),
+-    .arid_s(ARID),
+-    .araddr_s(ARADDR[19:0]),
+-    .arlen_s(ARLEN),
+-    .arsize_s(ARSIZE),
+-    .arburst_s(ARBURST),
+-    .arlock_s(ARLOCK),
+-    .arprot_s(ARPROT),
+-    .arqos_s(ARQOS),
+-    .rvalid_s(RVALID),
+-    .rready_s(RREADY),
+-    .rid_s(RID),
+-    .rdata_s(RDATA),
+-    .rresp_s(RRESP),
+-    .rlast_s(RLAST),
+-    .rpoison_s(RPOISON),
+-    .awakeup_s(AWAKEUP),
+-
+-    .clk_qreqn(clk_qreqn),
+-    .clk_qacceptn(clk_qacceptn),
+-    .clk_qdeny(clk_qdeny),
+-    .clk_qactive(clk_qactive),
+-
+-    .pwr_qreqn(pwr_qreqn),
+-    .pwr_qacceptn(pwr_qacceptn),
+-    .pwr_qdeny(pwr_qdeny),
+-    .pwr_qactive(pwr_qactive),
++    .aclk           (ACLK),
++    .aresetn        (ARESETn),
+ 
+-    .ext_gt_qreqn(ext_gt_qreqn),
++    .awvalid_s      (AWVALID),
++    .awready_s      (AWREADY),
++    .awid_s         (AWID),
++    .awaddr_s       (AWADDR[19:0]),
++    .awlen_s        (AWLEN),
++    .awsize_s       (AWSIZE),
++    .awburst_s      (AWBURST),
++    .awlock_s       (AWLOCK),
++    .awprot_s       (AWPROT),
++    .awqos_s        (AWQOS),
++
++    .wvalid_s       (WVALID),
++    .wready_s       (WREADY),
++    .wdata_s        (WDATA),
++    .wstrb_s        (WSTRB),
++    .wlast_s        (WLAST),
++    .wpoison_s      (WPOISON),
++
++    .bvalid_s       (BVALID),
++    .bready_s       (BREADY),
++    .bid_s          (BID),
++    .bresp_s        (BRESP),
++
++    .arvalid_s      (ARVALID),
++    .arready_s      (ARREADY),
++    .arid_s         (ARID),
++    .araddr_s       (ARADDR[19:0]),
++    .arlen_s        (ARLEN),
++    .arsize_s       (ARSIZE),
++    .arburst_s      (ARBURST),
++    .arlock_s       (ARLOCK),
++    .arprot_s       (ARPROT),
++    .arqos_s        (ARQOS),
++
++    .rvalid_s       (RVALID),
++    .rready_s       (RREADY),
++    .rid_s          (RID),
++    .rdata_s        (RDATA),
++    .rresp_s        (RRESP),
++    .rlast_s        (RLAST),
++    .rpoison_s      (RPOISON),
++
++    .awakeup_s      (AWAKEUP),
++
++    .clk_qreqn      (clk_qreqn),
++    .clk_qacceptn   (clk_qacceptn),
++    .clk_qdeny      (clk_qdeny),
++    .clk_qactive    (clk_qactive),
++
++    .pwr_qreqn      (pwr_qreqn),
++    .pwr_qacceptn   (pwr_qacceptn),
++    .pwr_qdeny      (pwr_qdeny),
++    .pwr_qactive    (pwr_qactive),
++
++    .ext_gt_qreqn   (ext_gt_qreqn),
+     .ext_gt_qacceptn(ext_gt_qacceptn),
+-    .cfg_gate_resp(cfg_gate_resp),
++    .cfg_gate_resp  (cfg_gate_resp),
+ 
+-    .memaddr(memaddr),
+-    .memd(memd),
+-    .memq(memq),
+-    .memcen(memcen),
+-    .memwen(memwen)
++    .memaddr        (memaddr),
++    .memd           (memd),
++    .memq           (memq),
++    .memcen         (memcen),
++    .memwen         (memwen)
+ );
+ 
+-cmsdk_fpga_sram #(.AW(15)) u_fpga_sram_0(
+-    .CLK(ACLK),
+-    .ADDR(memaddr),
+-    .WDATA(memd[31:0]),
+-    .WREN(memwen[3:0]),
+-    .CS(memcen),
+-    .RDATA(memq[31:0])
++// Address the bootrom as 64-bit words.
++// memaddr is byte-addressed in most such wrappers, so drop [2:0].
++bootrom u_bootrom (
++    .CLK   (ACLK),
++    .EN    (~memcen),
++    .W_ADDR(memaddr[16:3]),
++    .RDATA (bootrom_rdata)
+ );
+ 
+-cmsdk_fpga_sram #(.AW(15)) u_fpga_sram_1(
+-    .CLK(ACLK),
+-    .ADDR(memaddr),
+-    .WDATA(memd[63:32]),
+-    .WREN(memwen[7:4]),
+-    .CS(memcen),
+-    .RDATA(memq[63:32])
+-);
++// Feed bootrom data back to the AXI SRAM controller
++assign memq[63:0] = bootrom_rdata;
++assign memq[64]   = 1'b0;
+ 
++// 2026-09-21: ILA instance removed.
++//
++// haps_top.sv and haps_top.xdc have both stated since 2026-08-11 that the ILA
++// was removed and debug_uart_probe is the sole debug channel, because JTAG
++// readback is confirmed corrupt at 20 MHz on this board (Xicom 50-38/50-41,
++// frozen clock-toggle probe, simultaneous glitches on unrelated signals). But
++// this instance was still live: FPGA_BUILD *is* defined for synthesis
++// (set_property verilog_define FPGA_BUILD), so every build carried the ILA,
++// the debug hub and its BSCAN/JTAG clock domain - confirmed on the routed
++// netlist of 2026-09-21, where dbg_hub's INTERNAL_TCK appears as one of only
++// two constrained clocks in the design.
++//
++// Removing it drops that clock domain, the hub, and the ila_1 OOC synthesis
++// run. If ILA visibility is ever wanted again, re-instantiate at the top level
++// alongside the other debug taps rather than inside a reusable leaf module,
++// and drop the design clock first so readback is trustworthy.
++//
++// ila_1 u_rom_ila (
++//     .clk    (ACLK),
++//     .probe0 (ARVALID),          // 1   CPU issuing a fetch?
++//     .probe1 (ARADDR),           // 32  ...to what byte address (expect 0x0, +8)
++//     .probe2 (ARREADY),          // 1
++//     .probe3 (RVALID),           // 1   read response returning?
++//     .probe4 (RREADY),           // 1
++//     .probe5 (RRESP),            // 2   00=OKAY, 11=DECERR
++//     .probe6 (memcen),           // 1   SMC driving a ROM read (active low)
++//     .probe7 (memaddr),          // 20  address SMC presents
++//     .probe8 (memaddr[16:3]),    // 14  word index fed to bootrom
++//     .probe9 (bootrom_rdata)     // 64  instruction word returned
++// );
+ 
+-endmodule
++endmodule
+\ No newline at end of file

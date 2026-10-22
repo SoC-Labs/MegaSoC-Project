@@ -1,0 +1,30 @@
+--- a/logical/megasoc_subsystems/peripheral_subsystem/megasoc_peripheral_addr_decode.v
++++ b/logical/megasoc_subsystems/peripheral_subsystem/megasoc_peripheral_addr_decode.v
+@@ -23,10 +23,22 @@
+ assign gpio0_hsel   = hsel & (haddr[31:12]==
+                     BASEADDR_GPIO0[31:12]);   // 0x40010000
+ assign gpio1_hsel   = hsel & (haddr[31:12]==
+-                    BASEADDR_GPIO1[31:12]);   // 0x40011000
++                    BASEADDR_GPIO1[31:12]);   // 0x40020000 (BASEADDR_GPIO1 is
++                                              // 0x4002_0000 - the old comment
++                                              // here said 0x40011000, which is
++                                              // wrong; the logic was always
++                                              // right. Corrected 2026-09-21.)
+ 
+-assign defslv_hsel  = ~(apbsys_hsel |
+-                        gpio0_hsel   | gpio1_hsel
+-                        );
++// 2026-09-21: qualified with hsel.
++//
++// Without it, defslv_hsel asserted whenever hsel was low - i.e. for transfers
++// on the shared PERIPH_AHB bus addressed at a different NIC-400 target - and
++// the default slave would drive HREADYOUT low and HRESP error at them. That
++// was masked while the slave mux's PORT4 was disabled (the mux discarded
++// everything port 4 produced), but it becomes a bus hang the moment
++// PORT4_ENABLE is turned on, which is why these two changes land together.
++assign defslv_hsel  = hsel & ~(apbsys_hsel |
++                               gpio0_hsel   | gpio1_hsel
++                               );
+ 
+ endmodule
+\ No newline at end of file

@@ -1,0 +1,88 @@
+--- a/logical/SRAM/fpga/SRAM_wrapper.sv
++++ b/logical/SRAM/fpga/SRAM_wrapper.sv
+@@ -28,11 +28,27 @@
+ );
+ 
+ 
++// 2026-09-30: memd/memq widened 64 -> 65 and memwen 8 -> 9 to match the SMC's
++// ports (synthesis had been warning [Synth 8-689] on all three).
++//
++// The extra bit is the AXI5 POISON lane, not parity or ECC: the controller
++// does `assign {rq_poison, rq_data} = memq_clamp;`, carries memd[64] as the
++// write-poison bit, and memwen[8] is that bit's write strobe. It has nothing
++// to do with CPU_CACHE_PROTECTION, which governs the Cortex-A53's own cache
++// ECC. With 64-bit wires, memq[64] was left undriven - X into rq_poison in
++// simulation, constant-folded by synthesis. rpoison_s is unconnected below and
++// wpoison_s is tied 0, so nothing consumed it; this was cosmetic, but it is
++// now explicit and simulation-clean, matching ROM_wrapper.v.
++//
++// Poison is not stored: memd[64] and memwen[8] are deliberately unused and
++// reads always return "not poisoned".
+ wire [19:0]     memaddr;
+-wire [63:0]     memd;
+-wire [63:0]     memq;
++wire [64:0]     memd;
++wire [64:0]     memq;
+ wire            memcen;
+-wire [7:0]      memwen;
++wire [8:0]      memwen;
++
++assign memq[64] = 1'b0;
+ 
+ sie300_axi5_sram_ctrl_1 u_SMC(
+     .aclk(ACLK),
+@@ -88,7 +104,13 @@
+     .pwr_qdeny(SRAM_qchan_p.qdeny),
+     .pwr_qactive(SRAM_qchan_p.qactive),
+ 
+-    .ext_gt_qreqn(SRAM_qchan_p.qreqn),
++    // External-gate FSM disabled (mirrors ROM_wrapper's pattern) - it was
++    // previously wired to SRAM_qchan_p.qreqn, sharing a wire with the normal
++    // power q-channel request. That drives qext_state off traffic it was
++    // never designed to track and can park it in ST_GATED/ST_START_GATE,
++    // which asserts ext_stall and blocks all AXI traffic through this
++    // controller indefinitely.
++    .ext_gt_qreqn(1'b1),
+     .ext_gt_qacceptn(),
+     .cfg_gate_resp(cfg_gate_resp),
+ 
+@@ -99,21 +121,33 @@
+     .memwen(memwen)
+ );
+ 
++// 2026-10-09: polarity fix. The SMC drives memcen and memwen ACTIVE LOW
++// (sie300_axi5_sram_ctrl_sys_arb.sv: memcen_arb = ~access, memwen_arb =
++// ~wstrb, all ones on reads; the behavioural SRAM.v model and ROM_wrapper.v's
++// .EN(~memcen) agree). cmsdk_fpga_sram's CS and WREN are ACTIVE HIGH. Wired
++// straight through, every SRAM access had CS = 0: writes were dropped and
++// reads returned zero (RDATA is gated by cs_reg). On hardware the boot ROM's
++// first stack-based return popped a zero link register and jumped to the
++// reset vector - the CPU looped through early boot every ~300 us and never
++// reached the UART (build 41 logger capture, 9 Oct 2026).
++// Also index by 64-bit word (memaddr[16:3], as SRAM.v's memaddr[19:3])
++// instead of memaddr[15:2], which kept bit 2 (always 0 for 64-bit accesses)
++// in the index and aliased the RAM every 64 KB; the two banks now give 128 KB.
+ cmsdk_fpga_sram #(.AW(16)) u_fpga_sram_0(
+     .CLK(ACLK),
+-    .ADDR(memaddr[15:2]),
++    .ADDR(memaddr[16:3]),
+     .WDATA(memd[31:0]),
+-    .WREN(memwen[3:0]),
+-    .CS(memcen),
++    .WREN(~memwen[3:0]),
++    .CS(~memcen),
+     .RDATA(memq[31:0])
+ );
+ 
+ cmsdk_fpga_sram #(.AW(16)) u_fpga_sram_1(
+     .CLK(ACLK),
+-    .ADDR(memaddr[15:2]),
++    .ADDR(memaddr[16:3]),
+     .WDATA(memd[63:32]),
+-    .WREN(memwen[7:4]),
+-    .CS(memcen),
++    .WREN(~memwen[7:4]),
++    .CS(~memcen),
+     .RDATA(memq[63:32])
+ );
+ 

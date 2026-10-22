@@ -1,0 +1,32 @@
+--- a/logical/power_control/megasoc_ROM_power_control.sv
++++ b/logical/power_control/megasoc_ROM_power_control.sv
+@@ -28,7 +28,28 @@
+ wire        devwarmresetn_o;
+ wire        devporesetn_o;
+ 
+-assign ROM_RESETn = devwarmresetn_o & devporesetn_o;
++// 2026-09-21: async-assert / sync-deassert on the block reset.
++//
++// This used to be a bare `devwarmresetn_o & devporesetn_o`, i.e. a LUT2 whose
++// output drives the asynchronous reset input of the ROM's SMC
++// (sie300_axi5_sram_ctrl_1.aresetn, used as `negedge resetn` throughout).
++// Two problems with that: (1) when the two PPU flops change on the same edge
++// in opposite directions the LUT can emit a runt pulse, and an async reset pin
++// does not filter runts - so the ROM could be reset spuriously, with whether
++// it happens depending on routing, which matches the placement-sensitive
++// failure being investigated; (2) the release edge was unsynchronised, so it
++// arrived at different flops on different cycles across the device.
++//
++// Asserting asynchronously is still correct and necessary (it must work with
++// no clock). Only the release is retimed onto PCLK here.
++wire rom_rst_comb = devwarmresetn_o & devporesetn_o;
++
++(* ASYNC_REG = "true" *) reg [1:0] rom_rst_sync;
++always @(posedge PCLK or negedge rom_rst_comb)
++    if (!rom_rst_comb) rom_rst_sync <= 2'b00;
++    else               rom_rst_sync <= {rom_rst_sync[0], 1'b1};
++
++assign ROM_RESETn = rom_rst_sync[1];
+ 
+ assign ROM_qchan_p.qreqn = dev_qreqn[0];
+ assign ROM_qchan_q.qreqn = dev_qreqn[1];

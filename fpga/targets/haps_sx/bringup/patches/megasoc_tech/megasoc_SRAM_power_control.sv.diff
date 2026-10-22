@@ -1,0 +1,25 @@
+--- a/logical/power_control/megasoc_SRAM_power_control.sv
++++ b/logical/power_control/megasoc_SRAM_power_control.sv
+@@ -29,7 +29,21 @@
+ wire        devporesetn_o;
+ wire        devretresetn_o;
+ 
+-assign SRAM_RESETn = devwarmresetn_o & devporesetn_o & devretresetn_o;
++// 2026-09-21: async-assert / sync-deassert on the block reset - see the long
++// note in megasoc_ROM_power_control.sv for the rationale. This one ANDs three
++// PPU flop outputs rather than two, so the runt-pulse exposure on the
++// SMC's asynchronous reset input was correspondingly worse. Note the ROM
++// controller deliberately omits devretresetn_o from its equation; that
++// asymmetry between two otherwise identical controllers is preserved here
++// but is worth resolving separately.
++wire sram_rst_comb = devwarmresetn_o & devporesetn_o & devretresetn_o;
++
++(* ASYNC_REG = "true" *) reg [1:0] sram_rst_sync;
++always @(posedge PCLK or negedge sram_rst_comb)
++    if (!sram_rst_comb) sram_rst_sync <= 2'b00;
++    else                sram_rst_sync <= {sram_rst_sync[0], 1'b1};
++
++assign SRAM_RESETn = sram_rst_sync[1];
+ 
+ assign SRAM_qchan_p.qreqn = dev_qreqn[0];
+ assign SRAM_qchan_q.qreqn = dev_qreqn[1];

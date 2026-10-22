@@ -1,0 +1,38 @@
+--- a/logical/qspi_controller/logical/qspi_controller_mux.v
++++ b/logical/qspi_controller/logical/qspi_controller_mux.v
+@@ -1,5 +1,10 @@
+ module qspi_controller_mux(
++    // 2026-09-23 (Build B): QSPI_SCLK is retained for compatibility but is no
++    // longer used as a clock here; HCLK + QSPI_SCLK_RISE_EN replace it.
+     input  wire                 QSPI_SCLK,
++    input  wire                 HCLK,
++    input  wire                 HRESETn,
++    input  wire                 QSPI_SCLK_RISE_EN,
+     input  wire                 XIP_ACTIVE,
+ 
+     input  wire [7:0]           AHB_QSPI_CMD,
+@@ -71,10 +76,20 @@
+ wire AHB_QSPI_BUSY_in = (XIP_ACTIVE==1'b1) ? QSPI_BUSY : 1'b1;
+ // AHB_QSPI_BUSY must be delayed to introduce a delay between qspi transaction
+ // otherwise timing violations occure on the chip select (nCS)
+-always @(posedge QSPI_SCLK) begin
+-    AHB_QSPI_BUSY_del <= AHB_QSPI_BUSY_in;
+-    AHB_QSPI_BUSY_del1 <= AHB_QSPI_BUSY_del;
+-    AHB_QSPI_BUSY_del2 <= AHB_QSPI_BUSY_del1;
++// 2026-09-23 (Build B): was `always @(posedge QSPI_SCLK)`. QSPI_SCLK is now a
++// registered level in the HCLK domain rather than a clock, so this delay chain
++// runs on HCLK enabled by the SCLK rising-edge pulse - same three-SCLK-cycle
++// delay as before, no generated clock. Reset added (there was none).
++always @(posedge HCLK or negedge HRESETn) begin
++    if(~HRESETn) begin
++        AHB_QSPI_BUSY_del  <= 1'b0;
++        AHB_QSPI_BUSY_del1 <= 1'b0;
++        AHB_QSPI_BUSY_del2 <= 1'b0;
++    end else if(QSPI_SCLK_RISE_EN) begin
++        AHB_QSPI_BUSY_del  <= AHB_QSPI_BUSY_in;
++        AHB_QSPI_BUSY_del1 <= AHB_QSPI_BUSY_del;
++        AHB_QSPI_BUSY_del2 <= AHB_QSPI_BUSY_del1;
++    end
+ end
+ assign AHB_QSPI_BUSY = (AHB_QSPI_BUSY_in | AHB_QSPI_BUSY_del | AHB_QSPI_BUSY_del1 | AHB_QSPI_BUSY_del2);
+ endmodule
