@@ -47,7 +47,27 @@ module haps_top (
     // On-board SPI flash (bank 21, 1.8V)
     output wire        QSPI_SCLK,        // CA49
     output wire        QSPI_nCS,         // CB49
-    inout  wire [3:0]  QSPI_IO           // CC49, CC50, CA51, CB51
+    inout  wire [3:0]  QSPI_IO,          // CC49, CC50, CA51, CB51
+
+    // 2026-10-28 (build 58, MGSOC-34 step 2): on-board DDR4 SODIMM (banks 29/30/31, SLR2) and its
+    // 299.85 MHz reference clock; pins in haps_top_ddr4_impl.xdc. LED_G1 = DDR4 calibration complete.
+    input  wire        DDR4_SYS_CLK_P,   // AF51
+    input  wire        DDR4_SYS_CLK_N,   // AF52
+    output wire [1:0]  DDR4_CK_T,
+    output wire [1:0]  DDR4_CK_C,
+    output wire [16:0] DDR4_ADR,
+    output wire [1:0]  DDR4_BA,
+    output wire [1:0]  DDR4_BG,
+    output wire        DDR4_ACT_n,
+    output wire [1:0]  DDR4_CKE,
+    output wire [1:0]  DDR4_CS_N,
+    output wire [1:0]  DDR4_ODT,
+    inout  wire [63:0] DDR4_DQ,
+    inout  wire [7:0]  DDR4_DM_DBI_N,
+    inout  wire [7:0]  DDR4_DQS_T,
+    inout  wire [7:0]  DDR4_DQS_C,
+    output wire        DDR4_RESET_N,
+    output wire        LED_DDR4_CALIB    // BE14 (LED_G1)
 );
 
     // =========================================================================
@@ -274,18 +294,14 @@ module haps_top (
         if (!nreset_soc)           uart0_tx_ever_low_dbg <= 1'b0;
         else if (!uart0_txd_dbg)   uart0_tx_ever_low_dbg <= 1'b1;
 
-    // DDR4 (internal, no controller - terminated by error slave inside)
-    wire        DDR4_CK_T, DDR4_CK_C;
-    wire [16:0] DDR4_ADR;
-    wire [1:0]  DDR4_BA, DDR4_BG;
-    wire        DDR4_ACT_n;
-    wire [1:0]  DDR4_CKE, DDR4_CS_N, DDR4_ODT;
+    // DDR4: pins are top-level ports since build 58 (haps_ddr4_bridge inside megasoc_tech_wrapper).
+    // The IP is reset by PB1 only, never by the SoC auto-reset: DRAM contents survive 'g' and the
+    // 10 s watchdog. No parity/alert/event lines on the SODIMM socket.
     wire        DDR_PARITY;
-    wire [63:0] DDR4_DQ;
-    wire [7:0]  DDR4_DM_DBI_N, DDR4_DQS_T, DDR4_DQS_C;
-    wire        DDR4_RESET_N;
     wire        DDR_nALERT = 1'b1;
     wire        DDR_nEVENT = 1'b1;
+    wire        ddr4_calib;
+    assign LED_DDR4_CALIB = ddr4_calib;
 
     // SDIO (not pinned)
     wire        SDIO_CK, SDIO_CMD_tri, SDIO_CMD_o;
@@ -352,6 +368,10 @@ module haps_top (
         .DDR4_RESET_N    (DDR4_RESET_N),
         .DDR_nALERT      (DDR_nALERT),
         .DDR_nEVENT      (DDR_nEVENT),
+        .DDR4_SYS_CLK_P  (DDR4_SYS_CLK_P),
+        .DDR4_SYS_CLK_N  (DDR4_SYS_CLK_N),
+        .DDR4_SYS_RST    (~HAPS_RESET_N),
+        .DDR4_CALIB_COMPLETE(ddr4_calib),
 
         .SDIO_CK         (SDIO_CK),
         .SDIO_CMD_tri    (SDIO_CMD_tri),

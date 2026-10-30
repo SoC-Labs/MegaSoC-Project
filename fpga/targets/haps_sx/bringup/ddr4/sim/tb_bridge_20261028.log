@@ -1,0 +1,17 @@
+Time resolution is 1 ps
+WARNING: Behavioral models for independent clock FIFO configurations do not model synchronization delays. The behavioral models are functionally correct, and will represent the behavior of the configured FIFO. See the FIFO Generator User Guide for more information.
+WARNING: Behavioral models for independent clock FIFO configurations do not model synchronization delays. The behavioral models are functionally correct, and will represent the behavior of the configured FIFO. See the FIFO Generator User Guide for more information.
+WARNING: Behavioral models for independent clock FIFO configurations do not model synchronization delays. The behavioral models are functionally correct, and will represent the behavior of the configured FIFO. See the FIFO Generator User Guide for more information.
+WARNING: Behavioral models for independent clock FIFO configurations do not model synchronization delays. The behavioral models are functionally correct, and will represent the behavior of the configured FIFO. See the FIFO Generator User Guide for more information.
+WARNING: Behavioral models for independent clock FIFO configurations do not model synchronization delays. The behavioral models are functionally correct, and will represent the behavior of the configured FIFO. See the FIFO Generator User Guide for more information.
+             1200000 T0 write before calibration (calib=0)
+             5075000 T0 ok: write completed 3875000 after start, calib=1
+             6025000 T1 INCR bursts
+            20875000 T2 WRAP bursts
+            25125000 T3 narrow writes
+            37575000 T4 high addresses
+            43125000 T4 ok: 0x2_0000_0040 landed at DDR4 line 1
+            43125000 T5 ordering
+            45825000 T6 SoC reset
+===SIM=== checks=203 errors=0 PASS
+$finish called at time : 53375 ns : File "/tmpdir/claude-44910/-home-ad1u25-megasoc-project-FPGA-Tasos-haps-top/da65de02-56b2-483b-9b30-fa33da96a2d8/scratchpad/ddr4_step2/brsim/tb_bridge.sv" Line 144
