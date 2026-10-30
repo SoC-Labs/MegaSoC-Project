@@ -87,12 +87,12 @@
 -    .ACLK(SYS_CLK),
 -    .ARESETn(ROM_RESETn),
 -    .AWAKEUP(AWAKEUP_ROM),
--
--    // AXI Subordinate Interface
--    .ROM_AXI(ROM_AXI),
 +    .ACLK           (SYS_CLK),
 +    .ARESETn        (ROM_RESETn),
  
+-    // AXI Subordinate Interface
+-    .ROM_AXI(ROM_AXI),
+-
 -    // Power Control Q-channels
 -    .ROM_qchan_q(ROM_qchan_q),
 -    .ROM_qchan_p(ROM_qchan_p),
@@ -171,7 +171,7 @@
      .OPT_LITTLE_ENDIAN(1'b1),
      .OPT_SERDES(1'b0),
      .OPT_DDR(1'b0),
-@@ -1171,4 +1236,1275 @@
+@@ -1171,4 +1236,1328 @@
  );
  
  
@@ -263,8 +263,8 @@
 +    output wire [15:0]      P1_EN,
 +    output wire [15:0]      P1_FUNC,
 +
-+    output wire             DDR4_CK_T,
-+    output wire             DDR4_CK_C,
++    output wire [1:0]       DDR4_CK_T,   // 2026-10-28 (build 58): two clock pairs on the SODIMM
++    output wire [1:0]       DDR4_CK_C,   // 2026-10-28 (build 58): two clock pairs on the SODIMM
 +    output wire [16:0]      DDR4_ADR,
 +    output wire [1:0]       DDR4_BA,
 +    output wire [1:0]       DDR4_BG,
@@ -280,6 +280,11 @@
 +    output wire             DDR4_RESET_N,
 +    input  wire             DDR_nALERT,
 +    input  wire             DDR_nEVENT,
++    // 2026-10-28 (build 58, MGSOC-34 step 2): DDR4 IP reference clock (AF51/AF52, 299.85 MHz), IP reset, status
++    input  wire             DDR4_SYS_CLK_P,
++    input  wire             DDR4_SYS_CLK_N,
++    input  wire             DDR4_SYS_RST,
++    output wire             DDR4_CALIB_COMPLETE,
 +
 +    output wire             SDIO_o_cfg_ddr,
 +    output wire             SDIO_o_cfg_ds,
@@ -917,6 +922,43 @@
 +// aliased across the window) so that test programs can be loaded over the console
 +// UART by the monitor boot ROM and run from 0x8000_0000 without the QSPI flash.
 +// The error slave above remains the fallback - swap the module name back to restore it.
++// 2026-10-28 (build 58, MGSOC-34 step 2): USE_DDR4 = 1 puts the on-board DDR4 SODIMM on the DRAM port through
++// haps_ddr4_bridge (Xilinx DDR4 IP + AXI clock/width converters, see that file). 0 = the 512 KB block RAM of builds 47-57.
++localparam USE_DDR4 = 1;
++generate if (USE_DDR4) begin : g_dram_ddr4
++haps_ddr4_bridge #(
++    .ID_W(ID_W), .DATA_W(64), .ADDR_W(33)
++) u_dram_ddr4 (
++    .ACLK(SYS_CLK), .ARESETn(SYS_RESETn),
++    .DDR4_SYS_CLK_P(DDR4_SYS_CLK_P), .DDR4_SYS_CLK_N(DDR4_SYS_CLK_N), .DDR4_SYS_RST(DDR4_SYS_RST),
++    .DDR4_CALIB_COMPLETE(DDR4_CALIB_COMPLETE),
++    .DDR4_CK_T(DDR4_CK_T), .DDR4_CK_C(DDR4_CK_C), .DDR4_ADR(DDR4_ADR), .DDR4_BA(DDR4_BA), .DDR4_BG(DDR4_BG),
++    .DDR4_ACT_n(DDR4_ACT_n), .DDR4_CKE(DDR4_CKE), .DDR4_CS_N(DDR4_CS_N), .DDR4_ODT(DDR4_ODT),
++    .DDR4_DQ(DDR4_DQ), .DDR4_DM_DBI_N(DDR4_DM_DBI_N), .DDR4_DQS_T(DDR4_DQS_T), .DDR4_DQS_C(DDR4_DQS_C),
++    .DDR4_RESET_N(DDR4_RESET_N),
++    .AWVALID(DRAM_AXI.AWVALID), .AWREADY(DRAM_AXI.AWREADY),
++    .AWID(DRAM_AXI.AWID),       .AWADDR(DRAM_AXI.AWADDR),
++    .AWLEN(DRAM_AXI.AWLEN),     .AWSIZE(DRAM_AXI.AWSIZE),
++    .AWBURST(DRAM_AXI.AWBURST), .AWLOCK(DRAM_AXI.AWLOCK),
++    .AWCACHE(DRAM_AXI.AWCACHE), .AWPROT(DRAM_AXI.AWPROT),
++    .WVALID(DRAM_AXI.WVALID),   .WREADY(DRAM_AXI.WREADY),
++    .WDATA(DRAM_AXI.WDATA),     .WSTRB(DRAM_AXI.WSTRB),
++    .WLAST(DRAM_AXI.WLAST),
++    .BVALID(DRAM_AXI.BVALID),   .BREADY(DRAM_AXI.BREADY),
++    .BID(DRAM_AXI.BID),         .BRESP(DRAM_AXI.BRESP),
++    .ARVALID(DRAM_AXI.ARVALID), .ARREADY(DRAM_AXI.ARREADY),
++    .ARID(DRAM_AXI.ARID),       .ARADDR(DRAM_AXI.ARADDR),
++    .ARLEN(DRAM_AXI.ARLEN),     .ARSIZE(DRAM_AXI.ARSIZE),
++    .ARBURST(DRAM_AXI.ARBURST), .ARLOCK(DRAM_AXI.ARLOCK),
++    .ARCACHE(DRAM_AXI.ARCACHE), .ARPROT(DRAM_AXI.ARPROT),
++    .RVALID(DRAM_AXI.RVALID),   .RREADY(DRAM_AXI.RREADY),
++    .RID(DRAM_AXI.RID),         .RDATA(DRAM_AXI.RDATA),
++    .RRESP(DRAM_AXI.RRESP),     .RLAST(DRAM_AXI.RLAST)
++);
++// the flash emulator's backdoor has no RAM behind it in this configuration
++assign bd_we = 1'b0; assign bd_re = 1'b0; assign bd_addr = 16'h0; assign bd_wdata = 64'h0; assign bd_wstrb = 8'h0;
++assign DDR_PARITY = 1'b0;   // no parity line on the SODIMM socket
++end else begin : g_dram_bram
 +axi4_bram_slave #(
 +    .ID_W(ID_W), .DATA_W(64), .ADDR_W(33), .MEM_KB(512), .BD_BIT(19)
 +) u_dram_error_slave (
@@ -941,6 +983,10 @@
 +    .RID(DRAM_AXI.RID),         .RDATA(DRAM_AXI.RDATA),
 +    .RRESP(DRAM_AXI.RRESP),     .RLAST(DRAM_AXI.RLAST)
 +);
++assign DDR4_CK_T = 2'b00; assign DDR4_CK_C = 2'b11; assign DDR4_ADR = 17'h0; assign DDR4_BA = 2'b00; assign DDR4_BG = 2'b00;
++assign DDR4_ACT_n = 1'b1; assign DDR4_CKE = 2'b00; assign DDR4_CS_N = 2'b11; assign DDR4_ODT = 2'b00; assign DDR4_RESET_N = 1'b0;
++assign DDR_PARITY = 1'b0; assign DDR4_CALIB_COMPLETE = 1'b0;
++end endgenerate
 +
 +// =========================================================================
 +// Periodic pulse generator for ROM's ext_gt Q-channel (finding 2026-08-04):
@@ -1052,12 +1098,19 @@
 +generate for (gq = 0; gq < 4; gq = gq + 1) begin : g_qspi_emu_mux
 +    assign qspi_io_i_int[gq] = USE_FLASH_EMU ? (emu_io_e[gq] ? emu_io_o[gq] : (QSPI_IO_e[gq] ? QSPI_IO_o[gq] : 1'b1)) : QSPI_IO_i[gq];
 +end endgenerate
++// 2026-10-28 (build 58): only instantiated when USE_FLASH_EMU = 1. With the DDR4 bridge on the DRAM port the backdoor
++// is tied off, and Vivado then fails on the emulator's lane RAMs ('Unsupported RAM template', 7 errors, reproduced
++// standalone); in builds 50-57 the dead emulator also kept 512 KB of block RAM alive through that backdoor read path.
++generate if (USE_FLASH_EMU) begin : g_flash_emu
 +qspi_flash_emu #(.MEM_KB(512), .JEDEC(24'hBF2643), .QPI_DUMMY(4), .SPI_DUMMY(8)) u_flash_emu (
 +    .HCLK(SYS_CLK), .HRESETn(SYS_RESETn),
 +    .SCLK(QSPI_SCLK), .nCS(QSPI_nCS), .IO_i(QSPI_IO_o), .IO_o(emu_io_o), .IO_e(emu_io_e),
 +    .bd_we(bd_we), .bd_re(bd_re), .bd_addr(bd_addr), .bd_wdata(bd_wdata), .bd_wstrb(bd_wstrb), .bd_rdata(bd_rdata),
 +    .emu_qpi(emu_qpi), .emu_busy(emu_busy)
 +);
++end else begin : g_no_flash_emu
++assign emu_io_o = 4'h0; assign emu_io_e = 4'h0; assign emu_qpi = 1'b0; assign emu_busy = 1'b0; assign bd_rdata = 64'h0;
++end endgenerate
 +top_ahb_qspi #(.DATA_W(32)) u_sl_ahb_qspi(
 +    .HCLK(SYS_CLK), .HRESETn(SYS_RESETn),
 +    .PCLK(SYS_CLK), .PRESETn(SYS_RESETn),

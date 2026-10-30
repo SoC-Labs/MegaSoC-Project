@@ -183,9 +183,10 @@ def run_one(fd, path, addr, test_timeout, log, flash=False, winbond=False):
         sram = path.replace("_flash.bin", "_sram.bin")
         if not program(fd, path, 0):
             return "PROG-FAIL", "verify through the 1-bit window failed"
-        okv, want, got = load_verify(fd, sram, 0x00800000)
-        if not okv:
-            return "LOAD-FAIL", "sram sum want %08X got %08X" % (want, got)
+        if os.path.exists(sram):                  # old per-region images; single-load-region images carry their own RW/ZI
+            okv, want, got = load_verify(fd, sram, 0x00800000)
+            if not okv:
+                return "LOAD-FAIL", "sram sum want %08X got %08X" % (want, got)
         t0 = time.time()
         txt, d = winbond_boot(fd, log, test_timeout, os.path.basename(path))
         dt = time.time() - t0

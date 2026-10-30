@@ -256,7 +256,7 @@
 /home/ad1u25/megasoc_project/FPGA_Tasos/haps_top/haps_top.srcs/sources_1/imports/MP030-BU-50000-r0p4-52rel2/cortexa53/logical/shared/verilog/ca53_ecc_repair32.v
 /home/ad1u25/megasoc_project/FPGA_Tasos/haps_top/haps_top.srcs/sources_1/imports/MP030-BU-50000-r0p4-52rel2/cortexa53/logical/shared/verilog/ca53_ecc_repair33.v
 /home/ad1u25/megasoc_project/FPGA_Tasos/haps_top/haps_top.srcs/sources_1/imports/MP030-BU-50000-r0p4-52rel2/cortexa53/logical/cortexa53/verilog/ca53_l2.v
-/home/ad1u25/megasoc_project/FPGA_Tasos/haps_top/haps_top.srcs/sources_1/imports/models/rams/tsmc_cln28hpm_L1_32I_32D_L2_1M/ca53_l2_datarams.v
+/home/ad1u25/megasoc_project/FPGA_Tasos/haps_top/haps_top.srcs/sources_1/imports/models/rams/generic/ca53_l2_datarams.v
 /home/ad1u25/megasoc_project/FPGA_Tasos/haps_top/haps_top.srcs/sources_1/imports/models/rams/generic/ca53_l2_tagrams.v
 /home/ad1u25/megasoc_project/FPGA_Tasos/haps_top/haps_top.srcs/sources_1/imports/MP030-BU-50000-r0p4-52rel2/cortexa53/logical/cortexa53/verilog/ca53_l2noram.v
 /home/ad1u25/megasoc_project/FPGA_Tasos/haps_top/haps_top.srcs/sources_1/imports/MP030-BU-50000-r0p4-52rel2/cortexa53/logical/cortexa53/verilog/ca53_noram.v
@@ -562,6 +562,7 @@
 /home/ad1u25/megasoc_project/FPGA_Tasos/haps_top/haps_top.srcs/sources_1/imports/MP030-BU-50000-r0p4-52rel2/cortexa53/logical/shared/verilog/ca53_ecc_generate64.v
 /home/ad1u25/megasoc_project/FPGA_Tasos/haps_top/haps_top.srcs/sources_1/imports/MP030-BU-50000-r0p4-52rel2/cortexa53/logical/shared/verilog/ca53_ecc_repair64.v
 /home/ad1u25/megasoc_project/FPGA_Tasos/haps_top/haps_top.srcs/sources_1/new/ca53_generic_ram_fpga.v
+/home/ad1u25/megasoc_project/FPGA_Tasos/haps_top/haps_top.srcs/sources_1/new/haps_ddr4_bridge.sv
 /home/ad1u25/megasoc_project/FPGA_Tasos/haps_top/haps_top.srcs/sources_1/imports/MP030-BU-50000-r0p4-52rel2/cortexa53/logical/ca53cti/verilog/ca53cti.v
 /home/ad1u25/megasoc_project/FPGA_Tasos/haps_top/haps_top.srcs/sources_1/imports/MP030-BU-50000-r0p4-52rel2/cortexa53/logical/ca53cti/verilog/ca53cti_apbif.v
 /home/ad1u25/megasoc_project/FPGA_Tasos/haps_top/haps_top.srcs/sources_1/imports/MP030-BU-50000-r0p4-52rel2/cortexa53/logical/ca53cti/verilog/ca53cti_ci.v
