@@ -50,17 +50,24 @@ ifeq ($(INC_EXP),yes)
 endif
 
 ifeq ($(INC_LPDDR4),yes)
+	# Own simulation folder, so LPDDR4 and default builds never overwrite each
+	# other's simv (logs go to simulate/sim_lpddr4/<test>/logs)
+	SIM_TOP_DIR ?= $(SOCLABS_PROJECT_DIR)/simulate/sim_lpddr4
 	# RTL selects dram_wrapper (LPDDR4) over the fast sim DRAM responder
-	DEFINES_VC += +define+INC_LPDDR4
+	LPDDR4_DEFINES_VC += +define+INC_LPDDR4
 	FLIST_INCLUDES += $(SOCLABS_MEGASOC_TECH_DIR)/flist/megasoc_tech_LPDDR4.flist
 	# filelist_compile.py drops +define+ lines from flists, so take the
 	# subsystem's design defines straight from its flist (single source of truth)
-	DEFINES_VC += $(shell grep -h '^+define+' $(LPDDR4_PROJECT_DIR)/flist/lpddr4_rtl.vc)
+	LPDDR4_DEFINES_VC += $(shell grep -h '^+define+' $(LPDDR4_PROJECT_DIR)/flist/lpddr4_rtl.vc)
 	# LPDDR4 DRAM device model for the testbench (Synopsys LPDDR VIP behind
 	# lpddr_model.v), set up as in the subsystem's standalone testbench
 	FLIST_INCLUDES += $(LPDDR4_PROJECT_DIR)/flist/lpddr4_mem_model.vc
-	DEFINES_VC += $(shell grep -h '^+define+' $(LPDDR4_PROJECT_DIR)/flist/lpddr4_mem_model.vc)
-	DEFINES_VC += +define+SYNOPSYS_SV +define+SVT_UVM_TECHNOLOGY +define+SVT_MEM_DPI_OK
+	LPDDR4_DEFINES_VC += $(shell grep -h '^+define+' $(LPDDR4_PROJECT_DIR)/flist/lpddr4_mem_model.vc)
+	LPDDR4_DEFINES_VC += +define+SVT_MEM_DPI_OK
+	# LPDDR4_DEFINES_VC is also added to the SDIO VIP flow (see below), which
+	# brings its own SVT/UVM defines
+	DEFINES_VC += $(LPDDR4_DEFINES_VC)
+	DEFINES_VC += +define+SYNOPSYS_SV +define+SVT_UVM_TECHNOLOGY
 	DEFINES_VC += +define+UVM_DISABLE_AUTO_ITEM_RECORDING +define+UVM_PACKER_MAX_BYTES=1500000
 endif
 
@@ -148,16 +155,30 @@ include $(SOCLABS_PROJECT_DIR)/flows/makefile.simulate
 # LPDDR4 memory model: SVT/UVM base classes and the VIP memory server. Added
 # after makefile.simulate because that file assigns VCS_OPTIONS with '='.
 ifeq ($(INC_LPDDR4),yes)
+# The SDIO VIP flow (compile_vip/run_vip, testbench top_VIP.flist) already
+# passes '-ntb_opts uvm' and the memory server in VIP_DEFINES_VC, so there the
+# LPDDR4 defines are added to VIP_DEFINES_VC instead, with the LPDDR VIP's
+# larger UVM packer size. The eMMC VIP comes from the LPDDR VIP's generated
+# folder (make build_megasoc_vip_models), not the install: compiling one VIP
+# from the install and the other from a generated folder mixes two SVT
+# common versions.
+LPDDR4_VIP_DIR  = $(LPDDR4_PROJECT_DIR)/verif/models/lpddr_vip
+VIP_SVT_INCDIRS = +incdir+$(LPDDR4_VIP_DIR)/include/sverilog +incdir+$(LPDDR4_VIP_DIR)/src/sverilog/vcs
+VIP_DEFINES_VC := $(subst UVM_PACKER_MAX_BYTES=150000,UVM_PACKER_MAX_BYTES=1500000,$(VIP_DEFINES_VC)) $(LPDDR4_DEFINES_VC)
+ifeq ($(findstring top_VIP.flist,$(TBENCH_VC)),)
 VCS_OPTIONS    += -ntb_opts uvm $(DESIGNWARE_HOME)/vip/svt/common/latest/C/lib/amd64/libmemserver.so
+endif
 # Same time settings as the subsystem's standalone flow: 1ns/100fs as the
 # default only (not forced), so the LPDDR4 PHY models keep their own timescale.
 # Forcing 1ps on them stops the PHY generating the DRAM clock (CK stays X).
 VCS_OPTIONS    := $(subst -override_timescale=1ns/1ps,-timescale=1ns/100fs,$(VCS_OPTIONS))
-VCS_SIM_OPTION += +ddr_squashz_to_0
+# Run options go in LPDDR4_SIM_OPTION (added by run_vcs), because the VIP flow
+# replaces VCS_SIM_OPTION on the command line
+LPDDR4_SIM_OPTION += +ddr_squashz_to_0
 # Optional LPDDR4 integration waveform (lpddr4_waves.fsdb in the run folder)
 LPDDR4_WAVES ?= no
 ifeq ($(LPDDR4_WAVES),yes)
-VCS_SIM_OPTION += +LPDDR4_WAVES
+LPDDR4_SIM_OPTION += +LPDDR4_WAVES
 endif
 endif
 
@@ -186,6 +207,13 @@ make_project:
 
 build_ip:
 	make -C ./megasoc_tech build_ip
+
+# Synopsys VIP models for INC_LPDDR4 simulations (generated per user, not in
+# git): the subsystem's LPDDR4 memory model, plus the eMMC/SD card VIP for the
+# SDIO bench in the same folder, so both share one SVT common library.
+build_megasoc_vip_models:
+	make -C $(LPDDR4_PROJECT_DIR) build_vip_models
+	$(DESIGNWARE_HOME)/bin/dw_vip_setup -path $(LPDDR4_PROJECT_DIR)/verif/models/lpddr_vip -e emmc_svt/tb_emmc_svt_sd_uvm_basic_sys -svlog
 
 get_flash_model:
 	make -C ./megasoc_tech/logical/sl_ahb_qspi get_flash_model
