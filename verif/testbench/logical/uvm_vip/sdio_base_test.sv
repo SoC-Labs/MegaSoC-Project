@@ -73,6 +73,19 @@ class sdio_base_test extends uvm_test;
     phase.drop_objection(this, "Embedded SDIO test software completed");
   endtask : main_phase
 
+  // Safety net for INC_LPDDR4 builds: the LPDDR4 memory model has its own
+  // UVM component, which can keep the run-time phases open after the
+  // embedded test has finished, so the simulation would only stop at the
+  // global timeout. Normal runs end long before the 50 us below.
+  task run_phase(uvm_phase phase);
+    super.run_phase(phase);
+    wait (sim_done_vif.done == 1'b1);
+    #50us;
+    `uvm_warning("run_phase", "Embedded test software finished 50 us ago but another component still holds an objection (listed below) -- ending the simulation")
+    phase.get_objection().display_objections(null, 1);
+    uvm_root::get().die();
+  endtask : run_phase
+
   function void final_phase(uvm_phase phase);
     uvm_report_server svr;
     super.final_phase(phase);

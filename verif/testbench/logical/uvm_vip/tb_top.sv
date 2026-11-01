@@ -34,6 +34,10 @@ module tb_top();
   `include "sdio_base_test.sv"
   `include "sdio_vip_tc3_test.sv"
 
+  // vplan MEGASOC-BOOT-006 (full boot via SD card image into DRAM): preloads
+  // the card model with the boot image. Same placement rules as above.
+  `include "sdio_full_boot_test.sv"
+
 `define CORTEXA53_UNIVENT_DPI_CAPTURE
 `define CORTEXA53_UNIVENT
 
@@ -41,6 +45,51 @@ module tb_top();
   wire EXT_CLK; // 100 MHz crystal clock
   wire RT_CLK;  // 32.768 kHz crystal clock
   wire nRESET;
+
+  // LPDDR4 DRAM (INC_LPDDR4 builds), connected as in megasoc_tb.sv: 400 MHz
+  // controller/DFI clock and the Synopsys LPDDR VIP device model (x16, rank
+  // 0, ODT unused, ALERT_N pulled up, VREF high). Tied low otherwise.
+  reg          DDR_CLK = 1'b0;
+  wire         LPDDR4_RESET_N;
+  wire         LPDDR4_CK_T;
+  wire         LPDDR4_CK_C;
+  wire [1:0]   LPDDR4_CKE;
+  wire [1:0]   LPDDR4_CS;
+  wire [5:0]   LPDDR4_CA;
+  wire         LPDDR4_ODT;
+  wire [1:0]   LPDDR4_DQS_T;
+  wire [1:0]   LPDDR4_DQS_C;
+  wire [15:0]  LPDDR4_DQ;
+  wire [1:0]   LPDDR4_DMI;
+  wire         LPDDR4_ALERT_N;
+  wire         LPDDR4_VREF;
+  wire         LPDDR4_ZN;
+
+`ifdef INC_LPDDR4
+  always #1.25 DDR_CLK = ~DDR_CLK;
+
+  pullup(LPDDR4_ALERT_N);
+  // Supply strength, so the PHY model cannot turn VREF into X
+  assign (supply1, supply0) LPDDR4_VREF = 1'b1;
+
+  lpddr_model u_lpddr4_memory(
+    .ck_t    (LPDDR4_CK_T),
+    .ck_c    (LPDDR4_CK_C),
+    .cke     (LPDDR4_CKE[0]),
+    .cs      (LPDDR4_CS[0]),
+    .odt     (1'b0),
+    .ca      (LPDDR4_CA),
+    .dm      (LPDDR4_DMI),
+    .dqs_t   (LPDDR4_DQS_T),
+    .dqs_c   (LPDDR4_DQS_C),
+    .dq      (LPDDR4_DQ),
+    .reset_n (LPDDR4_RESET_N)
+  );
+
+  // DRAM bring-up markers for the run log (same text as megasoc_tb.sv)
+  always @(LPDDR4_RESET_N) $display("[%0t] LPDDR4_MON: RESET_N = %b", $time, LPDDR4_RESET_N);
+  always @(LPDDR4_CKE[0])  if ($isunknown(LPDDR4_CKE[0])) $display("[%0t] LPDDR4_MON: CKE[0] = x <-- UNKNOWN", $time);
+`endif
 
   wire         QSPI_SCLK;
   wire [3:0]   QSPI_IO;
@@ -119,7 +168,25 @@ module tb_top();
     .SDIO_CK(SDIO_CK),
     .SDIO_CMD(SDIO_CMD),
     .SDIO_DAT(SDIO_DAT),
-    .SD_O_1P8V(SD_O_1P8V)
+    .SD_O_1P8V(SD_O_1P8V),
+
+    // LPDDR4 DRAM (idle unless INC_LPDDR4)
+    .DDR_CLK_IN(DDR_CLK),
+    .LPDDR4_RESET_N(LPDDR4_RESET_N),
+    .LPDDR4_CK_T(LPDDR4_CK_T),
+    .LPDDR4_CK_C(LPDDR4_CK_C),
+    .LPDDR4_CKE(LPDDR4_CKE),
+    .LPDDR4_CS(LPDDR4_CS),
+    .LPDDR4_CA(LPDDR4_CA),
+    .LPDDR4_ODT(LPDDR4_ODT),
+    .LPDDR4_DQS_T(LPDDR4_DQS_T),
+    .LPDDR4_DQS_C(LPDDR4_DQS_C),
+    .LPDDR4_DQ(LPDDR4_DQ),
+    .LPDDR4_DMI(LPDDR4_DMI),
+    .LPDDR4_ALERT_N(LPDDR4_ALERT_N),
+    .LPDDR4_VREF(LPDDR4_VREF),
+    .LPDDR4_ZN_SENSE(1'b0),
+    .LPDDR4_ZN(LPDDR4_ZN)
   );
 
   N25Qxxx FLASH(
@@ -192,10 +259,24 @@ module tb_top();
   end
 
   //---------------------------------------------------------------------
-  // Bridge megasoc_uart_capture's SIMULATIONEND pulse (set when the
-  // embedded test software calls TEST_PASS()/TEST_FAIL()) into a UVM
-  // virtual interface. This is the only thing main_phase waits on before
-  // dropping its objection -- see sim_done_if.sv for why.
+  // Bridge embedded-software completion (TEST_PASS()/TEST_FAIL(), which
+  // both end in UartEndSimulation() sending a 0x04 EOT byte) into a UVM
+  // virtual interface. This is the only thing sdio_base_test's main_phase
+  // waits on before dropping its objection -- see sim_done_if.sv for why.
+  //
+  // Two independent latches feed this, below:
+  //   1. megasoc_uart_capture's SIMULATIONEND pulse (sim_end_pulse) --
+  //      decodes the 0x04 bit-by-bit off the real apb_uart_0 TXD pin.
+  //   2. extio_eof (megasoc_axi_stream_io_8_rxd_to_file's EOF marker on
+  //      the AXI-stream "ADP" path) -- the one that actually fires under
+  //      this bench's +define+CORTEX_A53 +define+USE_TARMAC compile
+  //      configuration; see BENCH.md changelog for the full root-cause
+  //      trace (megasoc_uart_capture's whole baud_clk domain is dead: the
+  //      Cortex-A53 "univent" DPI capture redirects the software's UART
+  //      output through the ADP path instead of the real UART peripheral,
+  //      so apb_uart_0's TXD/BAUDTICK never toggle). #2 is latched next to
+  //      its own signal declaration further down this file; both write the
+  //      same `done` bit so either path working is sufficient.
   //---------------------------------------------------------------------
   sim_done_if u_sim_done_if();
 
@@ -358,6 +439,32 @@ module tb_top();
     .rxd8_valid   (axis_tx0_tvalid),
     .rxd8_data    (axis_tx0_tdata8)
   );
+
+  //---------------------------------------------------------------------
+  // Second, working path into sim_done_vif.done: extio_eof.
+  //
+  // Root cause (see BENCH.md changelog): under this bench's compile
+  // configuration (+define+CORTEX_A53 +define+USE_TARMAC), the embedded
+  // software's UartPutc()-driven output (including UartEndSimulation()'s
+  // trailing 0x04 EOT byte) never toggles the real apb_uart_0 TXD pin --
+  // confirmed by instrumentation: BAUDTICK/TXD/rx_shift_reg inside
+  // megasoc_uart_capture stay at their reset values for the entire run, so
+  // sim_end_pulse (SIMULATIONEND) never fires and the block above never
+  // latches done. The Cortex-A53 "univent" DPI capture (`define
+  // CORTEXA53_UNIVENT/_DPI_CAPTURE above) instead redirects that same
+  // console text through this AXI-stream "ADP" path -- confirmed by
+  // logs/extadp_out.log actually containing the firmware's printf output.
+  // megasoc_axi_stream_io_8_rxd_to_file (this instance) applies the exact
+  // same "0x04 ends the stream" rule as megasoc_uart_capture and asserts
+  // extio_eof accordingly; this is the same proven mechanism
+  // megasoc_tb.sv / megasoc_smoke_checker.sv already rely on (as
+  // "test_done") for every other MegaSoC firmware test under this CPU
+  // model, so it is the reliable one here too. Latch done from whichever
+  // path fires first/at all.
+  //---------------------------------------------------------------------
+  always @(posedge extio_eof) begin
+    u_sim_done_if.done <= 1'b1;
+  end
 
   megasoc_axi_stream_io_8_rxd_to_file#(
     .RXDFILENAME("logs/extdat_out.log"),

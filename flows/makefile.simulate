@@ -130,8 +130,16 @@ UVM_TESTNAME  ?= sdio_vip_tc3_test
 # silently has no effect (confirmed: still hits 'Error-[UPIMI-E] Undefined
 # port' on io_cmd_tristate with a local `define, works with this command-line
 # one instead).
+# eMMC/SD VIP sources, compiled straight from the install. The top makefile
+# replaces this in INC_LPDDR4 builds, where the eMMC and LPDDR VIPs must share
+# one generated VIP folder (one copy of the SVT common library).
+VIP_SVT_INCDIRS = +define+DESIGNWARE_INCDIR=$(DESIGNWARE_HOME) \
+                  +incdir+$(DESIGNWARE_HOME)/vip/svt/common/latest/sverilog/include \
+                  +incdir+$(DESIGNWARE_HOME)/vip/svt/common/latest/sverilog/src/vcs \
+                  +incdir+$(DESIGNWARE_HOME)/vip/svt/emmc_svt/latest/sverilog/include \
+                  +incdir+$(DESIGNWARE_HOME)/vip/svt/emmc_svt/latest/sverilog/src/vcs
 VIP_DEFINES_VC = +define+CORTEX_A53 +define+USE_TARMAC +define+SDFRONTEND_SPLIT_TRISTATE -ntb_opts uvm \
-                 +define+DESIGNWARE_INCDIR=$(DESIGNWARE_HOME) +define+SVT_UVM_TECHNOLOGY \
+                 $(VIP_SVT_INCDIRS) +define+SVT_UVM_TECHNOLOGY \
                  +define+SYNOPSYS_SV +define+UVM_DISABLE_AUTO_ITEM_RECORDING \
                  +define+UVM_PACKER_MAX_BYTES=150000 +define+SVT_MEM_MAX_DATA_WIDTH=4096 \
                  $(DESIGNWARE_HOME)/vip/svt/common/latest/C/lib/linux64/libmemserver.so
@@ -214,7 +222,7 @@ run_vcs : testcode
 	@if [ -f $(TESTCODES_DIR)/$(TESTNAME)/adp.cmd ] ; then \
 		cp $(TESTCODES_DIR)/$(TESTNAME)/adp.cmd $(SIM_DIR)/; \
 	fi
-	cd $(SIM_DIR); $(SIM_BUILD_DIR)/simv $(VCS_SIM_OPTION) $(VCS_COVERAGE_RUN_OPTIONS) +MEGASOC_TESTNAME=$(TESTNAME) +ca53_tarmac_enable -define ADP_FILE=adp.cmd < quit.do | tee logs/run_$(TESTNAME).log ;
+	cd $(SIM_DIR); $(SIM_BUILD_DIR)/simv $(VCS_SIM_OPTION) $(LPDDR4_SIM_OPTION) $(VCS_COVERAGE_RUN_OPTIONS) +MEGASOC_TESTNAME=$(TESTNAME) +ca53_tarmac_enable -define ADP_FILE=adp.cmd < quit.do | tee logs/run_$(TESTNAME).log ;
 
 # Run simulation in interactive mode
 sim_vcs : code 

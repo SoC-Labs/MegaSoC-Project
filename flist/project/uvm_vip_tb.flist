@@ -39,11 +39,6 @@ $(SOCLABS_PROJECT_DIR)/megasoc_tech/logical/socdebug_tech/socket/f232h_ft1248_st
 $(SOCLABS_PROJECT_DIR)/verif/models/MT25QU128ABA8E0_VG17/code/N25Qxxx.v
 
 // =============    VC-VIP-SOC eMMC/SD VIP include paths    =========
-// Requires $DESIGNWARE_HOME=/eda/synopsys/2022-23/RHELx86/VC-VIP-SOC_2022.12
-// (or equivalent) exported, and -ntb_opts uvm plus the SVT defines passed
-// on the vcs command line (filelist_compile.py drops +define+/-ntb_opts
-// lines placed in a -f file, so those cannot live here).
-+incdir+$(DESIGNWARE_HOME)/vip/svt/common/latest/sverilog/include
-+incdir+$(DESIGNWARE_HOME)/vip/svt/common/latest/sverilog/src/vcs
-+incdir+$(DESIGNWARE_HOME)/vip/svt/emmc_svt/latest/sverilog/include
-+incdir+$(DESIGNWARE_HOME)/vip/svt/emmc_svt/latest/sverilog/src/vcs
+// Not in this file: they are VIP_SVT_INCDIRS in flows/makefile.simulate,
+// because INC_LPDDR4 builds take the eMMC VIP from the generated VIP folder
+// shared with the LPDDR4 memory model instead of the install.
