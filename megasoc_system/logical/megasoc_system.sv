@@ -150,7 +150,24 @@ module megasoc_system(
     input  wire             SDIO_AC_VALID,
     input  wire [1:0]       SDIO_AC_DATA,
     input  wire             SDIO_AD_VALID,
-    input  wire [31:0]      SDIO_AD_DATA
+    input  wire [31:0]      SDIO_AD_DATA,
+
+    // Ethernet MII + MDIO (ethmac_subsystem_apb in megasoc_tech). Used by
+    // INC_ETH builds; outputs 0 and inputs unused otherwise.
+    input  wire             ETH_TX_CLK,
+    output wire [3:0]       ETH_TXD,
+    output wire             ETH_TX_EN,
+    output wire             ETH_TX_ER,
+    input  wire             ETH_RX_CLK,
+    input  wire [3:0]       ETH_RXD,
+    input  wire             ETH_RX_DV,
+    input  wire             ETH_RX_ER,
+    input  wire             ETH_COL,
+    input  wire             ETH_CRS,
+    output wire             ETH_MDC,
+    input  wire             ETH_MDIO_i,
+    output wire             ETH_MDIO_o,
+    output wire             ETH_MDIO_e
 );
 
 // Update 24/09/2025 No "system" DMA needed as not yet getting ethernet or PCIe added
@@ -398,8 +415,23 @@ megasoc_tech_wrapper u_megasoc_tech_wrapper(
     .SDIO_AC_VALID(SDIO_AC_VALID),
     .SDIO_AC_DATA(SDIO_AC_DATA),
     .SDIO_AD_VALID(SDIO_AD_VALID),
-    .SDIO_AD_DATA(SDIO_AD_DATA)
+    .SDIO_AD_DATA(SDIO_AD_DATA),
 
+    // Ethernet MII + MDIO
+    .ETH_TX_CLK(ETH_TX_CLK),
+    .ETH_TXD(ETH_TXD),
+    .ETH_TX_EN(ETH_TX_EN),
+    .ETH_TX_ER(ETH_TX_ER),
+    .ETH_RX_CLK(ETH_RX_CLK),
+    .ETH_RXD(ETH_RXD),
+    .ETH_RX_DV(ETH_RX_DV),
+    .ETH_RX_ER(ETH_RX_ER),
+    .ETH_COL(ETH_COL),
+    .ETH_CRS(ETH_CRS),
+    .ETH_MDC(ETH_MDC),
+    .ETH_MDIO_i(ETH_MDIO_i),
+    .ETH_MDIO_o(ETH_MDIO_o),
+    .ETH_MDIO_e(ETH_MDIO_e)
 );
 
 // Update 24/09/2025 No "system" DMA needed as not yet getting ethernet or PCIe added

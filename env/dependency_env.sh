@@ -34,6 +34,14 @@ export SOCLABS_AHB_QSPI_DIR="$SOCLABS_MEGASOC_TECH_DIR/logical/sl_ahb_qspi"
 export SOCLABS_LPDDR4_DIR="$SOCLABS_MEGASOC_TECH_DIR/logical/lpddr4_subsystem"
 export LPDDR4_PROJECT_DIR="$SOCLABS_LPDDR4_DIR"
 
+# Ethernet subsystem (Ethernet-MAC-AHB, ethmac_subsystem_apb) -- nested
+# submodule of megasoc_tech, used by INC_ETH builds. The OpenCores ethmac and
+# HA1588 sources it builds on are not in the submodule; these are the shared
+# copies on this server (external users: OpenCores ethmac rel27 / ha1588).
+export SOCLABS_ETHMAC_AHB_DIR="$SOCLABS_MEGASOC_TECH_DIR/logical/ethernet_mac_ahb"
+export ETHMAC_IP_DIR="${ETHMAC_IP_DIR:-/research/AAA/ip_library/OpenCores-EthMAC}"
+export HA1588_IP_DIR="${HA1588_IP_DIR:-/research/AAA/ip_library/OpenCores-HA1588}"
+
 # SoCLabs ASIC FLow - toolkit of scripts related to ASIC implementatino
 export SOCLABS_ASIC_FLOW_DIR="$SOCLABS_PROJECT_DIR/asic_flow"
 

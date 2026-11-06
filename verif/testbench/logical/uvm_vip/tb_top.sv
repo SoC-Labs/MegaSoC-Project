@@ -34,6 +34,7 @@ module tb_top();
   `include "sdio_base_test.sv"
   `include "sdio_vip_tc3_test.sv"
 
+
   // vplan MEGASOC-BOOT-006 (full boot via SD card image into DRAM): preloads
   // the card model with the boot image. Same placement rules as above.
   `include "sdio_full_boot_test.sv"
@@ -103,6 +104,20 @@ module tb_top();
   wire         SDIO_CMD;
   wire [3:0]   SDIO_DAT;
   wire         SD_O_1P8V;
+
+  // Ethernet MII + MDIO (megasoc_eth_phy_model in INC_ETH builds)
+  wire         ETH_TX_CLK;
+  wire [3:0]   ETH_TXD;
+  wire         ETH_TX_EN;
+  wire         ETH_TX_ER;
+  wire         ETH_RX_CLK;
+  wire [3:0]   ETH_RXD;
+  wire         ETH_RX_DV;
+  wire         ETH_RX_ER;
+  wire         ETH_COL;
+  wire         ETH_CRS;
+  wire         ETH_MDC;
+  wire         ETH_MDIO;
 
   wire         PL011_UARTTXRX;
   wire         PL011_nUARTRTSCTS;
@@ -186,8 +201,49 @@ module tb_top();
     .LPDDR4_ALERT_N(LPDDR4_ALERT_N),
     .LPDDR4_VREF(LPDDR4_VREF),
     .LPDDR4_ZN_SENSE(1'b0),
-    .LPDDR4_ZN(LPDDR4_ZN)
+    .LPDDR4_ZN(LPDDR4_ZN),
+
+    // Ethernet MII + MDIO
+    .ETH_TX_CLK(ETH_TX_CLK),
+    .ETH_TXD(ETH_TXD),
+    .ETH_TX_EN(ETH_TX_EN),
+    .ETH_TX_ER(ETH_TX_ER),
+    .ETH_RX_CLK(ETH_RX_CLK),
+    .ETH_RXD(ETH_RXD),
+    .ETH_RX_DV(ETH_RX_DV),
+    .ETH_RX_ER(ETH_RX_ER),
+    .ETH_COL(ETH_COL),
+    .ETH_CRS(ETH_CRS),
+    .ETH_MDC(ETH_MDC),
+    .ETH_MDIO(ETH_MDIO)
   );
+
+`ifdef INC_ETH
+  // Ethernet PHY stand-in (MII loopback + MDIO model), as in megasoc_tb
+  megasoc_eth_phy_model u_eth_phy_model(
+    .ETH_TX_CLK(ETH_TX_CLK),
+    .ETH_TXD(ETH_TXD),
+    .ETH_TX_EN(ETH_TX_EN),
+    .ETH_TX_ER(ETH_TX_ER),
+    .ETH_RX_CLK(ETH_RX_CLK),
+    .ETH_RXD(ETH_RXD),
+    .ETH_RX_DV(ETH_RX_DV),
+    .ETH_RX_ER(ETH_RX_ER),
+    .ETH_COL(ETH_COL),
+    .ETH_CRS(ETH_CRS),
+    .ETH_MDC(ETH_MDC),
+    .ETH_MDIO(ETH_MDIO)
+  );
+`else
+  // No Ethernet subsystem: hold the MII inputs low
+  assign ETH_TX_CLK = 1'b0;
+  assign ETH_RX_CLK = 1'b0;
+  assign ETH_RXD    = 4'h0;
+  assign ETH_RX_DV  = 1'b0;
+  assign ETH_RX_ER  = 1'b0;
+  assign ETH_COL    = 1'b0;
+  assign ETH_CRS    = 1'b0;
+`endif
 
   N25Qxxx FLASH(
     .DQ0(QSPI_IO[0]),

@@ -22,6 +22,8 @@
 // fail to resolve uvm_test / svt_emmc_* types.
 +incdir+$(SOCLABS_PROJECT_DIR)/verif/testbench/logical/uvm_vip
 $(SOCLABS_PROJECT_DIR)/verif/testbench/logical/uvm_vip/tb_top.sv
+// Ethernet PHY bench model (instantiated only in INC_ETH builds)
+$(SOCLABS_PROJECT_DIR)/verif/testbench/logical/megasoc_eth_phy_model.sv
 
 $(SOCLABS_PROJECT_DIR)/verif/trace/megasoc_uart_capture.v
 $(SOCLABS_PROJECT_DIR)/verif/trace/megasoc_qspi_capture.v
