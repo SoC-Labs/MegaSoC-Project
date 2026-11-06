@@ -157,6 +157,21 @@ wire         SDIO_CMD;
 wire [3:0]   SDIO_DAT;
 wire         SD_O_1P8V;
 
+// Ethernet MII + MDIO (driven by megasoc_eth_phy_model in INC_ETH builds;
+// unused otherwise)
+wire         ETH_TX_CLK;
+wire [3:0]   ETH_TXD;
+wire         ETH_TX_EN;
+wire         ETH_TX_ER;
+wire         ETH_RX_CLK;
+wire [3:0]   ETH_RXD;
+wire         ETH_RX_DV;
+wire         ETH_RX_ER;
+wire         ETH_COL;
+wire         ETH_CRS;
+wire         ETH_MDC;
+wire         ETH_MDIO;
+
 // Loopback PL011
 wire         PL011_UARTTXRX;
 wire         PL011_nUARTRTSCTS;
@@ -243,8 +258,68 @@ megasoc_chip_pads u_megasoc_chip_pads(
     .LPDDR4_ALERT_N(LPDDR4_ALERT_N),
     .LPDDR4_VREF(LPDDR4_VREF),
     .LPDDR4_ZN_SENSE(1'b0),
-    .LPDDR4_ZN(LPDDR4_ZN)
+    .LPDDR4_ZN(LPDDR4_ZN),
+
+    // Ethernet MII + MDIO (PHY model below in INC_ETH builds)
+    .ETH_TX_CLK(ETH_TX_CLK),
+    .ETH_TXD(ETH_TXD),
+    .ETH_TX_EN(ETH_TX_EN),
+    .ETH_TX_ER(ETH_TX_ER),
+    .ETH_RX_CLK(ETH_RX_CLK),
+    .ETH_RXD(ETH_RXD),
+    .ETH_RX_DV(ETH_RX_DV),
+    .ETH_RX_ER(ETH_RX_ER),
+    .ETH_COL(ETH_COL),
+    .ETH_CRS(ETH_CRS),
+    .ETH_MDC(ETH_MDC),
+    .ETH_MDIO(ETH_MDIO)
 );
+
+`ifdef INC_ETH
+// Ethernet PHY stand-in: 25 MHz MII clocks, TX->RX loopback, MDIO pull-up
+// and Clause 22 register model at PHY address 1.
+megasoc_eth_phy_model u_eth_phy_model(
+    .ETH_TX_CLK(ETH_TX_CLK),
+    .ETH_TXD(ETH_TXD),
+    .ETH_TX_EN(ETH_TX_EN),
+    .ETH_TX_ER(ETH_TX_ER),
+    .ETH_RX_CLK(ETH_RX_CLK),
+    .ETH_RXD(ETH_RXD),
+    .ETH_RX_DV(ETH_RX_DV),
+    .ETH_RX_ER(ETH_RX_ER),
+    .ETH_COL(ETH_COL),
+    .ETH_CRS(ETH_CRS),
+    .ETH_MDC(ETH_MDC),
+    .ETH_MDIO(ETH_MDIO)
+);
+
+// ETH_M monitor: log every AHB error response the NIC gives the Ethernet
+// DMA master, with the address of the refused transfer (evidence for
+// eth_decode_tests; the MAC itself does not report DMA bus errors).
+`define ETH_M_AHB_W `MEGASOC_TECH_WRAPPER.ETH_M_AHB
+reg [31:0] eth_m_dphase_addr;
+reg        eth_m_dphase = 1'b0;
+integer    eth_m_err_count = 0;
+always @(posedge `MEGASOC_TECH_WRAPPER.SYS_CLK) begin
+    if (`ETH_M_AHB_W.HREADY) begin
+        if (eth_m_dphase && `ETH_M_AHB_W.HRESP) begin
+            eth_m_err_count = eth_m_err_count + 1;
+            $display("[%0t] ETH_M_MON: error response #%0d, HADDR 0x%08h", $time, eth_m_err_count, eth_m_dphase_addr);
+        end
+        eth_m_dphase      <= `ETH_M_AHB_W.HTRANS[1];
+        eth_m_dphase_addr <= `ETH_M_AHB_W.HADDR;
+    end
+end
+`else
+// No Ethernet subsystem: hold the MII inputs low
+assign ETH_TX_CLK = 1'b0;
+assign ETH_RX_CLK = 1'b0;
+assign ETH_RXD    = 4'h0;
+assign ETH_RX_DV  = 1'b0;
+assign ETH_RX_ER  = 1'b0;
+assign ETH_COL    = 1'b0;
+assign ETH_CRS    = 1'b0;
+`endif
 
 pullup(SDIO_CMD);
 pullup(SDIO_DAT[0]);

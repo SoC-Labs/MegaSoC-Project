@@ -32,6 +32,10 @@ INC_EXP ?= no
 # Include the LPDDR4 DRAM subsystem (megasoc_tech/logical/lpddr4_subsystem)?
 INC_LPDDR4 ?= no
 
+# Include the Ethernet subsystem (megasoc_tech/logical/ethernet_mac_ahb)?
+# Off until it passes its tests.
+INC_ETH ?= no
+
 ASIC_MEMS ?= no 
 
 ifeq ($(ASIC_MEMS),yes)
@@ -69,6 +73,15 @@ ifeq ($(INC_LPDDR4),yes)
 	DEFINES_VC += $(LPDDR4_DEFINES_VC)
 	DEFINES_VC += +define+SYNOPSYS_SV +define+SVT_UVM_TECHNOLOGY
 	DEFINES_VC += +define+UVM_DISABLE_AUTO_ITEM_RECORDING +define+UVM_PACKER_MAX_BYTES=1500000
+endif
+
+ifeq ($(INC_ETH),yes)
+	# RTL instantiates ethmac_subsystem_apb (otherwise its NIC-400 ports are
+	# tied off). ETH_WISHBONE_B3 is the ethmac compile define from the
+	# submodule's flist (filelist_compile.py drops +define+ lines).
+	ETH_DEFINES_VC = +define+INC_ETH +define+ETH_WISHBONE_B3
+	DEFINES_VC += $(ETH_DEFINES_VC)
+	FLIST_INCLUDES += $(SOCLABS_MEGASOC_TECH_DIR)/flist/megasoc_tech_ETH.flist
 endif
 
 export FLIST_INCLUDES
@@ -180,6 +193,13 @@ LPDDR4_WAVES ?= no
 ifeq ($(LPDDR4_WAVES),yes)
 LPDDR4_SIM_OPTION += +LPDDR4_WAVES
 endif
+endif
+
+# INC_ETH in the SDIO VIP flow: compile_vip replaces DEFINES_VC with
+# VIP_DEFINES_VC (set in makefile.simulate), so the Ethernet defines are
+# added there too, as for LPDDR4 above.
+ifeq ($(INC_ETH),yes)
+VIP_DEFINES_VC += $(ETH_DEFINES_VC)
 endif
 
 # Include Regression Simulation Makefile

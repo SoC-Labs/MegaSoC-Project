@@ -79,8 +79,30 @@ module megasoc_chip_pads(
     output wire         SDIO_CK,
     inout  wire         SDIO_CMD,
     inout  wire [3:0]   SDIO_DAT,
-    output wire         SD_O_1P8V
+    output wire         SD_O_1P8V,
+
+    // Ethernet MII + MDIO (driven by INC_ETH builds)
+    input  wire         ETH_TX_CLK,
+    output wire [3:0]   ETH_TXD,
+    output wire         ETH_TX_EN,
+    output wire         ETH_TX_ER,
+    input  wire         ETH_RX_CLK,
+    input  wire [3:0]   ETH_RXD,
+    input  wire         ETH_RX_DV,
+    input  wire         ETH_RX_ER,
+    input  wire         ETH_COL,
+    input  wire         ETH_CRS,
+    output wire         ETH_MDC,
+    inout  wire         ETH_MDIO          // needs a pull-up on the board / in the testbench
 );
+
+// Ethernet MDIO
+wire         ETH_MDIO_i;
+wire         ETH_MDIO_o;
+wire         ETH_MDIO_e;
+
+assign ETH_MDIO   = ETH_MDIO_e ? ETH_MDIO_o : 1'bz;
+assign ETH_MDIO_i = ETH_MDIO;
 
 // QSPI
 wire [3:0]   QSPI_IO_o;
@@ -208,7 +230,23 @@ megasoc_chip u_megasoc_chip(
     .LPDDR4_ALERT_N(LPDDR4_ALERT_N),
     .LPDDR4_VREF(LPDDR4_VREF),
     .LPDDR4_ZN_SENSE(LPDDR4_ZN_SENSE),
-    .LPDDR4_ZN(LPDDR4_ZN)
+    .LPDDR4_ZN(LPDDR4_ZN),
+
+    // Ethernet MII + MDIO
+    .ETH_TX_CLK(ETH_TX_CLK),
+    .ETH_TXD(ETH_TXD),
+    .ETH_TX_EN(ETH_TX_EN),
+    .ETH_TX_ER(ETH_TX_ER),
+    .ETH_RX_CLK(ETH_RX_CLK),
+    .ETH_RXD(ETH_RXD),
+    .ETH_RX_DV(ETH_RX_DV),
+    .ETH_RX_ER(ETH_RX_ER),
+    .ETH_COL(ETH_COL),
+    .ETH_CRS(ETH_CRS),
+    .ETH_MDC(ETH_MDC),
+    .ETH_MDIO_i(ETH_MDIO_i),
+    .ETH_MDIO_o(ETH_MDIO_o),
+    .ETH_MDIO_e(ETH_MDIO_e)
 );
 
 
