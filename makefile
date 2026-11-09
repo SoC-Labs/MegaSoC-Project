@@ -36,6 +36,11 @@ INC_LPDDR4 ?= no
 # Off until it passes its tests.
 INC_ETH ?= no
 
+# Include the DMA-350 (memory-to-memory configuration)? Its RTL is generated
+# into megasoc_tech/logical/dma350 by `make build_dma350` in megasoc_tech.
+# Off until it passes its tests.
+INC_DMA ?= no
+
 ASIC_MEMS ?= no 
 
 ifeq ($(ASIC_MEMS),yes)
@@ -82,6 +87,21 @@ ifeq ($(INC_ETH),yes)
 	ETH_DEFINES_VC = +define+INC_ETH +define+ETH_WISHBONE_B3
 	DEFINES_VC += $(ETH_DEFINES_VC)
 	FLIST_INCLUDES += $(SOCLABS_MEGASOC_TECH_DIR)/flist/megasoc_tech_ETH.flist
+endif
+
+ifeq ($(INC_DMA),yes)
+	# RTL instantiates megasoc_dma350_wrapper (otherwise its NIC-400 ports are
+	# tied off)
+	DMA_DEFINES_VC = +define+INC_DMA
+	DEFINES_VC += $(DMA_DEFINES_VC)
+	FLIST_INCLUDES += $(SOCLABS_MEGASOC_TECH_DIR)/flist/megasoc_tech_DMA.flist
+	# Stop compiles early with a clear message if the DMA-350 has not been
+	# generated (software builds do not need it)
+  ifneq ($(filter compile%,$(MAKECMDGOALS)),)
+    ifeq ($(wildcard $(SOCLABS_MEGASOC_TECH_DIR)/logical/dma350/logical),)
+      $(error INC_DMA=yes but $(SOCLABS_MEGASOC_TECH_DIR)/logical/dma350/logical is missing: run make build_dma350 in megasoc_tech first, or check SOCLABS_MEGASOC_TECH_DIR)
+    endif
+  endif
 endif
 
 export FLIST_INCLUDES
@@ -200,6 +220,9 @@ endif
 # added there too, as for LPDDR4 above.
 ifeq ($(INC_ETH),yes)
 VIP_DEFINES_VC += $(ETH_DEFINES_VC)
+endif
+ifeq ($(INC_DMA),yes)
+VIP_DEFINES_VC += $(DMA_DEFINES_VC)
 endif
 
 # Include Regression Simulation Makefile
