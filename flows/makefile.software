@@ -37,6 +37,16 @@ code : testcode bootrom
 
 # Compile bootloader
 # Note : The use of ls after compile allows the computing server to sync up
+#
+# Stale-image guard (MEGASOC-BOOT-015 / spec S13), added 2026-11-11: the image
+# passed to bootrom_gen.py must not be older than the bootloader ELF, or the
+# build stops. This catches the S13 case: a bootloader.hex directory left by an
+# older two-load-region build is preferred below (SEC_ROM_BOOT_IMG) and a newer
+# single-file build cannot replace it. In that case the bootloader build stops
+# early and leaves its new ELF in build/bootloader/ instead of host0/, so the
+# newer of the two ELFs is used for the comparison (otherwise an image from the
+# last good build would pass). Nothing is deleted automatically. The
+# image path, both timestamps and the bootrom.v Date header are printed.
 bootrom:
 	@(cd $(TESTCODES_DIR)/$(BOOTLOADER) ;\
 	echo CD $(TESTCODES_DIR)/$(BOOTLOADER) ;\
@@ -58,7 +68,23 @@ bootrom:
 	mkdir -p $(BOOTROM_BUILD_DIR)/verilog/ ;\
 	mkdir -p $(BOOTROM_BUILD_DIR)/bintxt/ ;\
 	IMG=$(TESTCODES_DIR)/../build/$(BOOTLOADER)/bootloader.hex ; if [ -d $$IMG ] ; then IMG=$$IMG/SEC_ROM_BOOT_IMG ; fi ; \
-	python3 bootrom_gen.py -a $(BOOTROM_ADDRW) -i $$IMG -v $(BOOTROM_BUILD_DIR)/verilog/bootrom.v -b $(BOOTROM_BUILD_DIR)/bintxt/bootrom.bintxt )
+	ELF=$(TESTCODES_DIR)/../build/$(BOOTLOADER)/host0/app.v8-a.elf ;\
+	TOPELF=$(TESTCODES_DIR)/../build/$(BOOTLOADER)/app.v8-a.elf ;\
+	if [ -e $$TOPELF ] && { [ ! -e $$ELF ] || [ $$TOPELF -nt $$ELF ] ; } ; then \
+		echo "bootrom: note: newer ELF $$TOPELF was not moved into host0/ (the bootloader build stopped early); comparing against it" ;\
+		ELF=$$TOPELF ;\
+	fi ;\
+	if [ ! -e $$ELF ] ; then echo "bootrom: ERROR: bootloader ELF $$ELF not found" ; exit 1 ; fi ;\
+	if [ ! -e $$IMG ] ; then echo "bootrom: ERROR: ROM image $$IMG not found" ; exit 1 ; fi ;\
+	if [ $$ELF -nt $$IMG ] ; then \
+		echo "bootrom: ERROR: ROM image $$IMG is older than $$ELF (stale image, MEGASOC-BOOT-015)." ;\
+		echo "bootrom:        Delete $(TESTCODES_DIR)/../build/$(BOOTLOADER)/bootloader.hex by hand and rebuild." ;\
+		exit 1; \
+	fi ;\
+	echo "bootrom: image $$IMG" ;\
+	echo "bootrom: ELF $$(date -r $$ELF '+%F %T'), image $$(date -r $$IMG '+%F %T')" ;\
+	python3 bootrom_gen.py -a $(BOOTROM_ADDRW) -i $$IMG -v $(BOOTROM_BUILD_DIR)/verilog/bootrom.v -b $(BOOTROM_BUILD_DIR)/bintxt/bootrom.bintxt || exit 1 ;\
+	grep -m1 'Date:' $(BOOTROM_BUILD_DIR)/verilog/bootrom.v | sed 's|^//[ ]*|bootrom: bootrom.v |' )
 	mkdir -p $(SIM_TOP_DIR)/bootloader
 
 
