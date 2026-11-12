@@ -33,6 +33,20 @@ Summary
 +---------------------------+-------------------+---------------+
 
 
+Security
+----------
+megaSoC has no TrustZone partitioning. Every slave interface of the NIC-400
+interconnect is configured as Secure, which ties the forwarded AxPROT[1] to 0:
+all transactions inside the interconnect are Secure, whatever the security state
+of the master, and no address region is Secure-only. For software this means
+that the Cortex-A53's security state (SCR_EL3.NS) does not change which regions
+it can reach, and that the GIC-400 sees every access as Secure: interrupts must
+be handled through the GIC's Secure register view with all interrupts in
+Group 0, as the ``gic_init`` functions of the software library do. The
+configuration of record is ``megasoc_tech/socrates`` (see its README); the
+rationale and the configuration that would enable TrustZone are in Jira MBT-68.
+
+
 System IO Region
 ---------------------
 Below are the address regions for the System IO/Peripherals, detailed address
