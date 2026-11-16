@@ -53,30 +53,6 @@ module megasoc_chip(
     output wire             PL011_nUARTRTS,
     output wire             PL011_nUARTDTR,
 
-    // DDR4 signals
-    output wire             DDR4_CK_T,
-    output wire             DDR4_CK_C,
-
-    output wire [16:0]      DDR4_ADR,
-    output wire [1:0]       DDR4_BA,
-    output wire [1:0]       DDR4_BG,
-
-    output wire             DDR4_ACT_n,
-    output wire [1:0]       DDR4_CKE,
-    output wire [1:0]       DDR4_CS_N,
-    output wire [1:0]       DDR4_ODT,
-    output wire             DDR_PARITY,
-
-    inout  wire [63:0]      DDR4_DQ,
-    inout  wire [7:0]       DDR4_DM_DBI_N,
-    inout  wire [7:0]       DDR4_DQS_T,
-    inout  wire [7:0]       DDR4_DQS_C,
-
-    output wire             DDR4_RESET_N,
-
-    input  wire             DDR_nALERT,
-    input  wire             DDR_nEVENT,
-
     // LPDDR4 DRAM (lpddr4_subsystem in megasoc_tech). Used by INC_LPDDR4 builds;
     // idle otherwise. The PHY has its own I/O cells, so these pins pass through
     // to the package without pad-ring cells.
@@ -343,24 +319,6 @@ megasoc_system u_megasoc_system(
     .P1_OUT(SOC_P1_OUT),
     .P1_EN(SOC_P1_EN),
     .P1_FUNC(SOC_P1_FUNC),
-
-    .DDR4_CK_T(DDR4_CK_T),
-    .DDR4_CK_C(DDR4_CK_C),
-    .DDR4_ADR(DDR4_ADR),
-    .DDR4_BA(DDR4_BA),
-    .DDR4_BG(DDR4_BG),
-    .DDR4_ACT_n(DDR4_ACT_n),
-    .DDR4_CKE(DDR4_CKE),
-    .DDR4_CS_N(DDR4_CS_N),
-    .DDR4_ODT(DDR4_ODT),
-    .DDR_PARITY(DDR_PARITY),
-    .DDR4_DQ(DDR4_DQ),
-    .DDR4_DM_DBI_N(DDR4_DM_DBI_N),
-    .DDR4_DQS_T(DDR4_DQS_T),
-    .DDR4_DQS_C(DDR4_DQS_C),
-    .DDR4_RESET_N(DDR4_RESET_N),
-    .DDR_nALERT(DDR_nALERT),
-    .DDR_nEVENT(DDR_nEVENT),
 
     // LPDDR4 DRAM
     .DDR_CLK(DDR_CLK_IN),
