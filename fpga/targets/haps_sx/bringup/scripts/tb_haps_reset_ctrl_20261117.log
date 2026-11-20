@@ -1,0 +1,19 @@
+PASS T1 periodic retry: 3 resets in 3 periods with no boot
+PASS T2a early flash access (monitor JEDEC) does not latch
+PASS T2b flash access after BOOT_DETECT_MIN latches
+PASS T2c no periodic reset once latched (3 periods)
+PASS T2d bytes after the latch mark the session attended
+PASS T2e still no reset after the hold-off expires (latched)
+PASS T2f a 0x00 character at the normal rate is not a reset request
+PASS T3a reset within a few cycles of the release
+PASS T3b new session: latch and attended cleared, hold-off cleared
+PASS T3c periodic retry resumes after a requested reset with no boot
+PASS T4a attended flag set by the key
+PASS T4b flash activity in an attended session does not latch
+PASS T4c host silence -> hold-off expiry -> periodic reset (build-46 behaviour kept)
+PASS T5a latched again
+PASS T5b stuck-low UART_RX causes no reset
+PASS T5c the release of a stuck-low line gives exactly one reset
+PASS T6a PB1 asserts the SoC reset
+PASS T6b release after PB1
+SUMMARY: 18 passed, 0 failed

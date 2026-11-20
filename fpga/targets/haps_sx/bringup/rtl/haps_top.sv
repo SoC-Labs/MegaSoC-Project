@@ -10,6 +10,9 @@
 //           IO[1] BE19 = UART_RX  (FPGA receives,  wire to bridge TX)
 //           IO[2] BG19 = PL011_TX
 // QSPI:   On-board SPI flash W25Q32FW (bank 21, 1.8V)
+// SD:     PMOD4 connector (bank 93, 3.3V), Digilent Pmod MicroSD (build 62, 2026-11-11)
+//           IO[0] AE15 = DAT3, IO[1] AE14 = CMD, IO[2] AE13 = DAT0, IO[3] AD13 = CLK,
+//           IO[4] AE17 = DAT1, IO[5] AD17 = DAT2; IO[6] AD16 = card detect, unused
 // Debug:  ILA removed 2026-08-11 - debug_uart_probe is the sole channel now
 //
 // A joint work commissioned on behalf of SoC Labs, under Arm Academic
@@ -48,6 +51,14 @@ module haps_top (
     output wire        QSPI_SCLK,        // CA49
     output wire        QSPI_nCS,         // CB49
     inout  wire [3:0]  QSPI_IO,          // CC49, CC50, CA51, CB51
+
+    // 2026-11-11 (build 62): SD card on PMOD4 (bank 93, 3.3 V), Digilent Pmod MicroSD,
+    // same signal order as the PMOD adapter SoC Labs validated on the PYNQ-Z2
+    // (logical/sdspi/examples/pynq_z2/constrs). Card detect (pin 9, AD16) is not
+    // connected: the SoC ties the controller's card-present input high.
+    output wire        SDIO_CLK,         // AD13 (PMOD4 IO[3], header pin 4)
+    inout  wire        SDIO_CMD,         // AE14 (PMOD4 IO[1], header pin 2)
+    inout  wire [3:0]  SDIO_DAT,         // [0] AE13 pin 3, [1] AE17 pin 7, [2] AD17 pin 8, [3] AE15 pin 1
 
     // 2026-10-28 (build 58, MGSOC-34 step 2): on-board DDR4 SODIMM (banks 29/30/31, SLR2) and its
     // 299.85 MHz reference clock; pins in haps_top_ddr4_impl.xdc. LED_G1 = DDR4 calibration complete.
@@ -93,59 +104,25 @@ module haps_top (
     // =========================================================================
     // 2) Reset shaping
     // =========================================================================
-    // 2026-08-11: periodic auto-reset for unattended operation. PB1 was
-    // never actually required for a single reset-release cycle (nreset_soc
-    // starts counting from its bitstream-init value the moment
-    // configuration completes, with no dependency on HAPS_RESET_N ever
-    // being asserted) - but a single automatic cycle only gives one
-    // observation window, easy to miss if a logging terminal isn't
-    // connected before programming finishes. With no physical access for
-    // the next week, auto_reset_n re-triggers the whole SoC reset
-    // sequence every ~10s on its own, giving many independent boot
-    // attempts for debug_uart_probe (which stays running continuously
-    // across these, tied only to HAPS_RESET_N - see dbg_resetn below) to
-    // capture into one continuous log. A real PB1 press still works too.
-    logic [27:0] auto_rst_period_cnt;
-    localparam logic [27:0] AUTO_RST_PERIOD = 28'd200_000_000;  // ~10s at 20MHz
-    always_ff @(posedge clk or negedge HAPS_RESET_N)
-        if (!HAPS_RESET_N) auto_rst_period_cnt <= '0;
-        else if (auto_rst_period_cnt == AUTO_RST_PERIOD - 1'b1) auto_rst_period_cnt <= '0;
-        else auto_rst_period_cnt <= auto_rst_period_cnt + 1'b1;
-    // 2026-10-14 (build 46): the monitor boot ROM needs the SoC to stay up while a
-    // host talks to it over UART0, and the 10 s auto-reset above cut every monitor
-    // session short. Any falling edge on UART_RX (a start bit) now suspends the
-    // auto-reset for 2^32 cycles (~215 s at 20 MHz), renewed by every byte received.
-    // Edge detection rather than level, so a floating or stuck-low RX pin cannot
-    // disable the auto-reset. PB1 (HAPS_RESET_N) still resets at any time.
-    (* ASYNC_REG = "true" *) logic [1:0] uart_rx_sync;
-    logic        uart_rx_q;
-    logic [31:0] rx_holdoff_cnt;
-    always_ff @(posedge clk or negedge HAPS_RESET_N)
-        if (!HAPS_RESET_N) begin
-            uart_rx_sync   <= 2'b11;
-            uart_rx_q      <= 1'b1;
-            rx_holdoff_cnt <= '0;
-        end else begin
-            uart_rx_sync <= {uart_rx_sync[0], UART_RX};
-            uart_rx_q    <= uart_rx_sync[1];
-            if (uart_rx_q & ~uart_rx_sync[1])  rx_holdoff_cnt <= 32'hFFFF_FFFF;
-            else if (rx_holdoff_cnt != '0)     rx_holdoff_cnt <= rx_holdoff_cnt - 1'b1;
-        end
-    wire rx_holdoff   = (rx_holdoff_cnt != '0);
-    wire auto_reset_n = ~((auto_rst_period_cnt < 28'd64) & ~rx_holdoff);
-
-    logic [15:0] rst_cnt;
-    logic        nreset_soc;
-
-    always_ff @(posedge clk or negedge HAPS_RESET_N) begin
-        if (!HAPS_RESET_N || !auto_reset_n) begin
-            rst_cnt    <= '0;
-            nreset_soc <= 1'b0;
-        end else begin
-            if (!rst_cnt[15]) rst_cnt <= rst_cnt + 1'b1;
-            nreset_soc <= rst_cnt[15];
-        end
-    end
+    // 2026-11-17 (build 64): the reset policy lives in haps_reset_ctrl.sv (history in its header: 2026-08-11
+    // periodic ~10 s auto-reset for unattended logging; 2026-10-14 build 46 UART_RX hold-off of ~215 s so a host can
+    // use the monitor ROM). Build 64 adds: the periodic reset is a boot retry only and stops once a flash boot has
+    // begun in a host-silent session (QSPI_nCS activity more than 2 s after reset release), so a board left alone
+    // boots the flash image / SD card and stays up; and a host reset request = UART_RX held low >= 4 ms (a 0x00
+    // character at 1200 baud), acted on when the line is released. PB1 (HAPS_RESET_N) resets at any time, as before.
+    logic nreset_soc;
+    logic boot_latched, attended, rx_holdoff, host_reset_req;   // status, for the debug probe / ILA
+    haps_reset_ctrl u_rst_ctrl (
+        .clk            (clk),
+        .pb_reset_n     (HAPS_RESET_N),
+        .uart_rx        (UART_RX),
+        .qspi_ncs       (QSPI_nCS),
+        .nreset_soc     (nreset_soc),
+        .boot_latched   (boot_latched),
+        .attended       (attended),
+        .rx_holdoff     (rx_holdoff),
+        .host_reset_req (host_reset_req)
+    );
 
     // 2026-08-10: debug_uart_probe needs its OWN, fast-releasing reset.
     // Tying it to nreset_soc (which takes ~1.6ms / 32768 cycles to
@@ -303,12 +280,23 @@ module haps_top (
     wire        ddr4_calib;
     assign LED_DDR4_CALIB = ddr4_calib;
 
-    // SDIO (not pinned)
-    wire        SDIO_CK, SDIO_CMD_tri, SDIO_CMD_o;
-    wire        SDIO_CMD_i = 1'b1;
-    wire [3:0]  SDIO_DAT_tri, SDIO_DAT_o;
-    wire [3:0]  SDIO_DAT_i = 4'hF;
+    // =========================================================================
+    // 6b) SD card pads (build 62). The SoC's tri-state enables are active high:
+    //     1 = release the line (sdfrontend.v: io_cmd_tristate / io_dat_tristate),
+    //     so each pad drives only while its enable is 0, like the QSPI breakout.
+    //     SD_O_1P8V is the 1.8 V signalling request; the controller is built
+    //     with OPT_1P8V = 0 and the adapter is 3.3 V only, so it goes nowhere.
+    // =========================================================================
+    wire        SDIO_CK, SDIO_CMD_tri, SDIO_CMD_o, SDIO_CMD_i;
+    wire [3:0]  SDIO_DAT_tri, SDIO_DAT_o, SDIO_DAT_i;
     wire        SD_O_1P8V;
+    assign SDIO_CLK   = SDIO_CK;
+    assign SDIO_CMD   = SDIO_CMD_tri ? 1'bz : SDIO_CMD_o;
+    assign SDIO_CMD_i = SDIO_CMD;
+    generate for (k = 0; k < 4; k++) begin : g_sdio
+        assign SDIO_DAT[k]   = SDIO_DAT_tri[k] ? 1'bz : SDIO_DAT_o[k];
+        assign SDIO_DAT_i[k] = SDIO_DAT[k];
+    end endgenerate
 
     // =========================================================================
     // 7) SoC instance
