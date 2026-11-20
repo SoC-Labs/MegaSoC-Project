@@ -330,6 +330,9 @@ set_property IOSTANDARD LVCMOS33 [get_ports UART_TX]
 
 set_property PACKAGE_PIN BB17 [get_ports UART_RX]
 set_property IOSTANDARD LVCMOS33 [get_ports UART_RX]
+# build 64: weak pull-up so a disconnected or unpowered bridge reads idle-high; haps_reset_ctrl.sv treats a
+# >= 4 ms low followed by a release as a host reset request.
+set_property PULLUP true [get_ports UART_RX]
 
 ############################
 # PL011 secondary UART - PMOD3 IO[2]
@@ -489,3 +492,42 @@ set_false_path -from [get_ports UART_RX]
 # exception in the project without a current justification. It is now timed
 # like everything else. The ASYNC_REG pair in megasoc_tech_wrapper.sv is left
 # in place - harmless, and correct again should gating ever be re-enabled.
+
+############################
+# SD card - PMOD4 connector (bank 93, SLR2), build 62 (2026-11-11)
+#
+# Digilent Pmod MicroSD, same signal order as the adapter SoC Labs validated on
+# the PYNQ-Z2 (logical/sdspi/examples/pynq_z2/constrs/pynq_sdio_pinmap.xdc).
+# Bank 93 VCCO confirmed 3.3 V on this unit (Tasos, 11 Nov 2026); the HAPS-SX
+# pinout reference flags banks 88/93 as "verify VCCO", which is why it is
+# recorded here. Header pins 5/11 = GND, 6/12 = 3.3 V.
+#
+#   Header pin 1 (IO[0]) = AE15 = DAT3     Header pin 7 (IO[4]) = AE17 = DAT1
+#   Header pin 2 (IO[1]) = AE14 = CMD      Header pin 8 (IO[5]) = AD17 = DAT2
+#   Header pin 3 (IO[2]) = AE13 = DAT0     Header pin 9 (IO[6]) = AD16 = card detect (unused)
+#   Header pin 4 (IO[3]) = AD13 = CLK
+#
+# CMD and DAT are bidirectional and idle high: weak FPGA pull-ups keep command
+# turnarounds and the DAT3 idle level defined, as in the validated PYNQ set-up.
+# DRIVE 8 / SLEW FAST are the validated values too. Timing in
+# haps_top_sdio_io_impl.xdc (implementation only).
+############################
+set_property PACKAGE_PIN AD13 [get_ports SDIO_CLK]
+set_property IOSTANDARD LVCMOS33 [get_ports SDIO_CLK]
+set_property DRIVE 8 [get_ports SDIO_CLK]
+set_property SLEW FAST [get_ports SDIO_CLK]
+
+set_property PACKAGE_PIN AE14 [get_ports SDIO_CMD]
+set_property IOSTANDARD LVCMOS33 [get_ports SDIO_CMD]
+set_property DRIVE 8 [get_ports SDIO_CMD]
+set_property SLEW FAST [get_ports SDIO_CMD]
+set_property PULLUP true [get_ports SDIO_CMD]
+
+set_property PACKAGE_PIN AE13 [get_ports {SDIO_DAT[0]}]
+set_property PACKAGE_PIN AE17 [get_ports {SDIO_DAT[1]}]
+set_property PACKAGE_PIN AD17 [get_ports {SDIO_DAT[2]}]
+set_property PACKAGE_PIN AE15 [get_ports {SDIO_DAT[3]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {SDIO_DAT[*]}]
+set_property DRIVE 8 [get_ports {SDIO_DAT[*]}]
+set_property SLEW FAST [get_ports {SDIO_DAT[*]}]
+set_property PULLUP true [get_ports {SDIO_DAT[*]}]
