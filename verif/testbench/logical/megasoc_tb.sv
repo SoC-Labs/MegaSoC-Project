@@ -35,20 +35,18 @@ wire         LPDDR4_CK_C;
 wire [1:0]   LPDDR4_CKE;
 wire [1:0]   LPDDR4_CS;
 wire [5:0]   LPDDR4_CA;
-wire         LPDDR4_ODT;
 wire [1:0]   LPDDR4_DQS_T;
 wire [1:0]   LPDDR4_DQS_C;
 wire [15:0]  LPDDR4_DQ;
 wire [1:0]   LPDDR4_DMI;
-wire         LPDDR4_ALERT_N;
 wire         LPDDR4_VREF;
 wire         LPDDR4_ZN;
 
 `ifdef INC_LPDDR4
 // LPDDR4 x16 DRAM device model (Synopsys LPDDR VIP behind lpddr_model.v from
 // the lpddr4_subsystem submodule), connected as in the subsystem's standalone
-// testbench: single rank (rank 0), ODT unused, ALERT_N pulled up, VREF high.
-pullup(LPDDR4_ALERT_N);
+// testbench: single rank (rank 0), ODT unused, VREF high. ALERT_N and ODT are no
+// longer chip pins (no LPDDR4 ball); ALERT_N is held inactive inside megasoc_tech_wrapper.
 // Supply strength, like the standalone testbench's supply1 net: nothing in
 // the PHY model can override it (a plain 1'b1 driver would resolve to X if
 // the PHY also drives the pin).
@@ -125,7 +123,7 @@ initial begin
     $fsdbDumpvars(1, megasoc_tb.u_lpddr4_memory);       // DRAM pins at the memory model
     $fsdbDumpvars(0, megasoc_tb.DDR_CLK, megasoc_tb.LPDDR4_RESET_N, megasoc_tb.LPDDR4_CKE,
                      megasoc_tb.LPDDR4_CS, megasoc_tb.LPDDR4_CA, megasoc_tb.LPDDR4_CK_T,
-                     megasoc_tb.LPDDR4_VREF, megasoc_tb.LPDDR4_ALERT_N);
+                     megasoc_tb.LPDDR4_VREF);
   end
 end
 
@@ -250,12 +248,10 @@ megasoc_chip_pads u_megasoc_chip_pads(
     .LPDDR4_CKE(LPDDR4_CKE),
     .LPDDR4_CS(LPDDR4_CS),
     .LPDDR4_CA(LPDDR4_CA),
-    .LPDDR4_ODT(LPDDR4_ODT),
     .LPDDR4_DQS_T(LPDDR4_DQS_T),
     .LPDDR4_DQS_C(LPDDR4_DQS_C),
     .LPDDR4_DQ(LPDDR4_DQ),
     .LPDDR4_DMI(LPDDR4_DMI),
-    .LPDDR4_ALERT_N(LPDDR4_ALERT_N),
     .LPDDR4_VREF(LPDDR4_VREF),
     .LPDDR4_ZN_SENSE(1'b0),
     .LPDDR4_ZN(LPDDR4_ZN),

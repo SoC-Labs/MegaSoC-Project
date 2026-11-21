@@ -49,7 +49,7 @@ module tb_top();
 
   // LPDDR4 DRAM (INC_LPDDR4 builds), connected as in megasoc_tb.sv: 400 MHz
   // controller/DFI clock and the Synopsys LPDDR VIP device model (x16, rank
-  // 0, ODT unused, ALERT_N pulled up, VREF high). Tied low otherwise.
+  // 0, ODT unused, VREF high; ALERT_N and ODT are no longer chip pins). Tied low otherwise.
   reg          DDR_CLK = 1'b0;
   wire         LPDDR4_RESET_N;
   wire         LPDDR4_CK_T;
@@ -57,19 +57,16 @@ module tb_top();
   wire [1:0]   LPDDR4_CKE;
   wire [1:0]   LPDDR4_CS;
   wire [5:0]   LPDDR4_CA;
-  wire         LPDDR4_ODT;
   wire [1:0]   LPDDR4_DQS_T;
   wire [1:0]   LPDDR4_DQS_C;
   wire [15:0]  LPDDR4_DQ;
   wire [1:0]   LPDDR4_DMI;
-  wire         LPDDR4_ALERT_N;
   wire         LPDDR4_VREF;
   wire         LPDDR4_ZN;
 
 `ifdef INC_LPDDR4
   always #1.25 DDR_CLK = ~DDR_CLK;
 
-  pullup(LPDDR4_ALERT_N);
   // Supply strength, so the PHY model cannot turn VREF into X
   assign (supply1, supply0) LPDDR4_VREF = 1'b1;
 
@@ -193,12 +190,10 @@ module tb_top();
     .LPDDR4_CKE(LPDDR4_CKE),
     .LPDDR4_CS(LPDDR4_CS),
     .LPDDR4_CA(LPDDR4_CA),
-    .LPDDR4_ODT(LPDDR4_ODT),
     .LPDDR4_DQS_T(LPDDR4_DQS_T),
     .LPDDR4_DQS_C(LPDDR4_DQS_C),
     .LPDDR4_DQ(LPDDR4_DQ),
     .LPDDR4_DMI(LPDDR4_DMI),
-    .LPDDR4_ALERT_N(LPDDR4_ALERT_N),
     .LPDDR4_VREF(LPDDR4_VREF),
     .LPDDR4_ZN_SENSE(1'b0),
     .LPDDR4_ZN(LPDDR4_ZN),
