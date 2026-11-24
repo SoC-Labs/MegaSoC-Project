@@ -99,6 +99,17 @@ def write_all(fd, data):
         except BlockingIOError: continue
         data = data[n:]
 
+def at_prompt(fd, log=None, wait=0.5):
+    """Send a newline and return True only for a real monitor prompt: '> ' is the LAST thing received and the line then
+    stays quiet. A running program whose output merely contains '> ' (seen 23 Nov 2026: sdio_tests printing while
+    'program' probed, which then sent its erase command to the test) is not a prompt."""
+    write_all(fd, b"\n")
+    buf, ok = read_until(fd, b"> ", wait)
+    more = b""
+    if ok: more, _ = read_until(fd, b"\x00\x00no-such-token", 0.25)
+    if log is not None: log.write(buf + more)
+    return ok and buf.endswith(b"> ") and not more
+
 def cmd(fd, line, timeout=5.0, show=True):
     write_all(fd, (line + "\n").encode())
     buf, ok = read_until(fd, b"> ", timeout)
@@ -161,6 +172,10 @@ def program(fd, image, off):
 # target MCU and never touches the line, so tcsendbreak() is useless here. Set HAPS_RESET_REQ=0 for builds <= 63, where the
 # character would only be a stray byte that re-arms the 215 s hold-off.
 RESET_REQ = os.environ.get("HAPS_RESET_REQ", "1") == "1"
+# build 65 (monitor v6.0): 'n D 1' starts the flash image with the CPU caches on, as the stock bootloader does; a third
+# argument 0 starts it with the caches off, as the monitor did up to v5.2. HAPS_BOOT_CACHES=0 selects that for the
+# 'suite --winbond' boots (older monitors ignore the extra argument).
+BOOT_CACHES_OFF = os.environ.get("HAPS_BOOT_CACHES", "1") == "0"
 
 def request_reset(fd):
     """Ask a build-64+ board to reset: one 0x00 at 1200 baud, then back to 115200. Returns once the line is idle again."""
@@ -229,10 +244,13 @@ def load_verify(fd, path, addr):
 def winbond_boot(fd, log, test_timeout, name=""):
     """build 50+: 'n D 1' = Winbond start-up (Daniel's draft) and boot. Try N_Dummy 6, then 8."""
     for d in (6, 8):
-        write_all(fd, f"n {d} 1\n".encode())
-        buf, _ = read_until(fd, b"\x04", 3.0)              # a mismatch returns to the prompt quickly
+        write_all(fd, (f"n {d} 1 0\n" if BOOT_CACHES_OFF else f"n {d} 1\n").encode())
+        buf, ended = read_until(fd, b"\x04", 3.0)          # a mismatch returns to the prompt quickly
         txt = buf.decode(errors="replace")
         if "Booting" in txt:
+            if ended:                                      # build 65: with the CPU caches on a test can finish inside
+                log.write(buf)                             # these 3 s; its end marker is already here, do not wait again
+                return txt, d
             rate = next((r for k, r in BAUD_AFTER.items() if k in name), None)
             if rate: set_baud(fd, rate)
             more, _ = read_until(fd, b"\x04", test_timeout)
@@ -303,9 +321,7 @@ def suite(fd, files, addr, test_timeout, flash=False, winbond=False):
         # get to a monitor prompt: try actively first, then wait for a reset
         got = False
         for _ in range(40):
-            write_all(fd, b"\n")
-            buf, got = read_until(fd, b"> ", 0.5)
-            slog.write(buf)
+            got = at_prompt(fd, slog)
             if got: break
         if not got:
             print("  board busy (spinning test?) - waiting silently for the auto-reset ...")
@@ -554,9 +570,7 @@ def main():
                 sys.exit("no monitor prompt on %s: no 'press any key' seen in 5 min - is build 46+ running and the RX wire connected?" % port)
     else:
         for _ in range(0 if verb in ("suite", "term", "linuxterm") else 40):
-            write_all(fd, b"\n")
-            buf, ok = read_until(fd, b"> ", 0.5)
-            if ok: break
+            if at_prompt(fd): break
         else:
             if verb not in ("suite", "term", "linuxterm"):
                 # build 64+: a spinning test or a running Linux never answers; request a reset and take the window

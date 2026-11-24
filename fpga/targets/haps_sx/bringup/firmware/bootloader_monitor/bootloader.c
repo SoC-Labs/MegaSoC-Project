@@ -1,3 +1,13 @@
+// 2026-11-24 BRING-UP BUILD ONLY (FPGA build 65, v6.0) - scratch copy, do not commit.
+// v6.0 (build 65): a flash image is started the way the stock bootloader.c starts it, with the CPU caches on
+// (enable_caches + enable_caches_el1), plus the two things MBT-66 says the stock sequence lacks: the data caches are
+// invalidated by set/way first and CPUECTLR.SMPEN is set. Measured reason (23 Nov 2026, build 64): started with the
+// caches off a flash image executes in place over QPI at about 100 us per taken branch (sdboot: 521 s to Linux
+// instead of 31 s). Applies to the production boots only: auto-start, 'n D 1' and 'b'. 'n D 1 0' / 'b 0' start the
+// image with the caches off as v5.2 did. The monitor itself still runs with the caches off (key window and UART
+// paths are timed that way) and 'g' is unchanged, so RAM-loaded programs (ld2, the shim, RAM-mode tests) see the
+// same state as before. Built from the current tree the start-up goes through __main, so RW/ZI are initialised.
+// --- v5.2 header follows ---
 // 2026-10-19 BRING-UP BUILD ONLY (FPGA build 51, v5.2) - scratch copy, do not commit.
 // v5.2: winbond_startup rewritten (see its comment): QPI JEDEC check, direct EBh+mode transaction, AHB_CMD = EBh.
 // v5 (build 50): real on-board W25Q32FW again (no emulator), QSPI controller SPI-write fixes (N39 extra clock,
@@ -24,7 +34,7 @@
 //      - if the flash holds code, jump to it; else drop into the monitor
 //  * monitor: raw register/memory access, raw SPI commands, erase/program/
 //    verify of the flash and memory load over UART (see 'h').
-// Caches stay OFF (enable_caches() stops the boot - separate open issue).
+// Up to v5.2 the caches stayed OFF (enable_caches() stopped the boot until the L2 tag RAM fix of build 54); see v6.0.
 #include "system.h"
 #include "qspi_flash.h"
 #include "cpu_asm_codes.h"
@@ -51,6 +61,7 @@
 
 static uint32_t g_id = 0;
 static int g_rx_seen = 0;
+static int g_boot_caches = 1; /* v6: 1 = turn the CPU caches on before jumping to a flash image */
 static int g_wrmode = 0;      /* SPI-mode write byte mapping: 0 raw, 1 nibble-reverse, 2 byte-reverse, 3 nibble-swap, -1 unknown */
 static inline void dsb(void) { __asm volatile("dsb sy" ::: "memory"); }
 
@@ -109,6 +120,44 @@ static int wait_wip(uint32_t loops, const char *what) {
 }
 static void cache_off(void) { CG092->CCR = 0; dsb(); }
 static void cache_on(void) { CG092->CCR = 0; dsb(); CG092->CCR = 1; dsb(); for (uint32_t i = 0; i < 100000; i++) if ((CG092->SR & 3) == 2) break; dsb(); }
+
+/* ---------------- v6: CPU caches for the flash image ---------------- */
+/* Invalidate every data/unified cache level by set/way (CLIDR/CCSIDR walk, dc isw, no clean). The caches are off
+   when this runs, so nothing can be dirty; after a warm reset the RAMs may still hold lines of the previous run. */
+static void dcache_inval_all(void) {
+  uint64_t clidr; __asm volatile("mrs %0, clidr_el1" : "=r"(clidr));
+  for (uint64_t level = 0; level < 7; level++) {
+    unsigned ctype = (unsigned)((clidr >> (3 * level)) & 7u);
+    if (ctype < 2) continue;                                   /* no cache, or instruction cache only */
+    __asm volatile("msr csselr_el1, %0 \n\t isb" :: "r"(level << 1));
+    uint64_t ccsidr; __asm volatile("mrs %0, ccsidr_el1" : "=r"(ccsidr));
+    unsigned line_shift = (unsigned)(ccsidr & 7u) + 4u;
+    unsigned ways = (unsigned)((ccsidr >> 3) & 0x3ffu) + 1u;
+    unsigned sets = (unsigned)((ccsidr >> 13) & 0x7fffu) + 1u;
+    unsigned way_shift = (ways > 1) ? (unsigned)__builtin_clz(ways - 1u) : 0u;
+    for (unsigned w = 0; w < ways; w++)
+      for (unsigned st = 0; st < sets; st++) {
+        uint64_t v = ((uint64_t)w << way_shift) | ((uint64_t)st << line_shift) | (level << 1);
+        __asm volatile("dc isw, %0" :: "r"(v));
+      }
+  }
+  __asm volatile("dsb sy \n\t isb" ::: "memory");
+}
+/* What bootloader.c does before it jumps (enable_caches, enable_caches_el1), preceded by the set/way invalidate and
+   CPUECTLR.SMPEN (Cortex-A53: must be 1 before the caches are enabled; the library function does not set it, MBT-66).
+   Called last, after the flash start-up, so the monitor's own code and timing are unchanged. */
+static void boot_caches_on(void) {
+  uint64_t ectlr, sctlr;
+  dcache_inval_all();
+  __asm volatile("mrs %0, s3_1_c15_c2_1" : "=r"(ectlr));
+  ectlr |= 1UL << 6;
+  __asm volatile("msr s3_1_c15_c2_1, %0 \n\t isb" :: "r"(ectlr));
+  enable_caches();
+  enable_caches_el1();
+  __asm volatile("mrs %0, sctlr_el3" : "=r"(sctlr));
+  printf("[mon] CPU caches on: SCTLR_EL3=%08lX (C=%u I=%u) SMPEN=1\n", (unsigned long)sctlr,
+         (unsigned)((sctlr >> 2) & 1u), (unsigned)((sctlr >> 12) & 1u));
+}
 
 /* Reset + identify; if the chip was left in QPI mode (volatile), exit it first. */
 static uint32_t flash_identify(void) {
@@ -300,8 +349,9 @@ static void help(void) {
          " k A N      sum32 of N bytes read from address A (verify)\n"
          " g [A]      jump to A (default 400000) with the flash cache on | a   re-run auto start\n"
          " t          write-order probe on sector 3FF000 (only if erased)  | o M   set SPI write mapping 0..3\n"
-         " b          production flash boot: SPI_STARTUP() then jump to 400000, flash cache untouched\n"
-         " n [D] [1]  Winbond start-up (Daniel's draft), controller N_Dummy D (default 6), 1 = boot if image\n"
+         " b [0]      production flash boot: SPI_STARTUP() then jump to 400000, CPU caches on (b 0 = off)\n"
+         " n [D] [1] [0]  Winbond start-up, controller N_Dummy D (default 6), 1 = boot if image with the CPU\n"
+         "            caches on (as bootloader.c); a third argument 0 boots with the caches off (v5.2)\n"
          " flash emulator store = 80080000..800FFFFF (flash offset 0..7FFFF); RAM = 80000000..8007FFFF\n");
 }
 static void info(void) {
@@ -385,6 +435,7 @@ static int winbond_startup(int ndummy, int go) {
   same = 1; for (int i = 0; i < 16; i++) if (rd[i] != ref[i]) same = 0;
   printf("[mon] Winbond QPI XIP, N_Dummy %d, CTRL=%08lX: window %s the 1-bit reference\n", ndummy, (unsigned long)SL_QSPI->CTRL, same ? "MATCHES" : "DIFFERS FROM");
   if (go && same && f[0] == 0xD2800000UL) {
+    if (g_boot_caches) boot_caches_on(); else printf("[mon] CPU caches left off (v5.2 behaviour)\n");
     printf("***Flash Enabled...Booting***\n\n\n");
     dsb(); __asm volatile("isb");
     ((void (*)(void))(uintptr_t)FLASH_WIN)();
@@ -407,7 +458,7 @@ static void qpi_exit_any(void) {      /* leave QPI / continuous read on any SST/
   qspi_cmd(0x66, 0, 0, 0); qspi_cmd(0x99, 0, 0, 0);
   delay_loops(2000);
 }
-/* Same steps as bootloader.c main() after the banner, minus enable_caches (N25). */
+/* Same steps as bootloader.c main() after the banner; the caches are enabled last (v6), not first. */
 static void prod_boot(void) {
   qpi_exit_any();
   SL_QSPI->CLK_DIV = 0x4; dsb();
@@ -418,6 +469,7 @@ static void prod_boot(void) {
   printf("[mon] SPI_STARTUP rc=%d CTRL=%08lX  flash[0..3]=%08lX %08lX %08lX %08lX\n", rc, (unsigned long)SL_QSPI->CTRL,
          (unsigned long)w0, (unsigned long)w1, (unsigned long)w2, (unsigned long)w3);
   if (rc == 0 && w0 == 0xD2800000UL) {
+    if (g_boot_caches) boot_caches_on(); else printf("[mon] CPU caches left off (v5.2 behaviour)\n");
     printf("***Flash Enabled...Booting***\n\n\n");
     dsb(); __asm volatile("isb");
     ((void (*)(void))(uintptr_t)FLASH_WIN)();
@@ -470,9 +522,16 @@ static void auto_start(void) {
 extern uint8_t SET_QIO_MODE_CMD;
 int main(void) {
   /* N35: this ROM's RW/ZI region is never initialised - set every global explicitly */
-  g_id = 0; g_rx_seen = 0; g_wrmode = 0; SET_QIO_MODE_CMD = 0x38;
+  g_id = 0; g_rx_seen = 0; g_wrmode = 0; g_boot_caches = 1; SET_QIO_MODE_CMD = 0x38;
   UartStdOutInit();
-  printf("\n***SoCLabs MegaSoC***\n[mon] build 51 QSPI/flash monitor v5.2 (real W25Q32FW, fixed SPI writes), caches off\n");
+#ifdef MON_RAM_TEST
+  /* Test copy linked for DDR4 and started with 'g 80000000' by the ROM monitor, which turns the CG092 flash cache on
+     for 'g': put it back to its reset state (off, statistics on) so that this copy sees what a ROM sees after reset. */
+  CG092->CCR = 0x40; dsb(); for (uint32_t i = 0; i < 100000; i++) if ((CG092->SR & 3) == 0) break;
+  printf("\n***SoCLabs MegaSoC***\n[mon] build 65 QSPI/flash monitor v6.0 RAM TEST COPY (flash images start with the CPU caches on)\n");
+#else
+  printf("\n***SoCLabs MegaSoC***\n[mon] build 65 QSPI/flash monitor v6.0 (flash images start with the CPU caches on)\n");
+#endif
   SL_QSPI->CLK_DIV = 0x4;
   g_id = flash_identify();
   printf("[mon] JEDEC=%06lX  press any key within ~3 s for the monitor\n", (unsigned long)g_id);
@@ -520,9 +579,9 @@ int main(void) {
         printf(r == 0 ? "OK\n" : "ERR program\n"); break; }
       case 'k': printf("SUM=%08lX\n", (unsigned long)sum32(a, n)); break;
       case 'g': jump_to(ac > 1 ? a : FLASH_WIN); break;
-      case 'a': auto_start(); break;
-      case 'b': prod_boot(); break;
-      case 'n': (void)winbond_startup(ac > 1 ? (int)a : 6, ac > 2 ? (int)n : 0); break;
+      case 'a': g_boot_caches = 1; auto_start(); break;
+      case 'b': g_boot_caches = (ac > 1) ? (a != 0) : 1; prod_boot(); break;
+      case 'n': g_boot_caches = (ac > 3) ? (hex(av[3]) != 0) : 1; (void)winbond_startup(ac > 1 ? (int)a : 6, ac > 2 ? (int)n : 0); break;
       case 't': probe_write_order(); break;
       case 'o': g_wrmode = (int)a; printf("wrmode=%d\n", g_wrmode); break;
       default: printf("? (h for help)\n");
