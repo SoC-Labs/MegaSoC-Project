@@ -10,7 +10,11 @@
 # Copyright (C) 2021-4, SoC Labs (www.soclabs.org)
 #-----------------------------------------------------------------------------
 
-SIM_UPF_FILE := $(SOCLABS_PROJECT_DIR)/verif/testbench/megasoc_tb.upf
+ifeq ($(ASIC_MEMS),yes)
+	SIM_UPF_FILE := $(SOCLABS_PROJECT_DIR)/verif/testbench/megasoc_tb_ASICMEMS.upf
+else
+	SIM_UPF_FILE := $(SOCLABS_PROJECT_DIR)/verif/testbench/megasoc_tb.upf
+endif
 
 # MTI options
 MTI_VC_OPTIONS    = +acc
@@ -216,8 +220,8 @@ run_vcs : testcode
 	@if [ -f $(SOCLABS_PROJECT_DIR)/verif/models/MT25QU128ABA8E0_VG17/sfdp.vmf ] ; then \
 		cp $(SOCLABS_PROJECT_DIR)/verif/models/MT25QU128ABA8E0_VG17/sfdp.vmf $(SIM_DIR)/sfdp.vmf; \
 	fi
-	@if [ "$(ASIC_MEMS)" = "yes"]; then \
-		cp $(SOCLABS_PROJECT_DIR)/memories/megasoc/bootrom/bootrom_emulation.rcf $(SIM_DIR)/; \
+	@if [ "$(ASIC_MEMS)" = "yes" ]; then \
+		cp $(TSMC_16_MEMS)/megasoc_rom/ts3n16ffcllulvta8192x64m16o_120c/TS3N16FFCLLULVTA8192X64M16O.rom.v $(SIM_DIR)/; \
 	fi
 	@if [ -f $(TESTCODES_DIR)/$(TESTNAME)/adp.cmd ] ; then \
 		cp $(TESTCODES_DIR)/$(TESTNAME)/adp.cmd $(SIM_DIR)/; \
