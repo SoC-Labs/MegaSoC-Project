@@ -41,6 +41,12 @@ INC_ETH ?= no
 # Off until it passes its tests.
 INC_DMA ?= no
 
+# Simulation-only PL031 RTC speed-up (MEGASOC-IRQ-008; see the SIM_FAST_RTC
+# comment block in megasoc_peripheral_subsystem.sv). Opt-in, off by default
+# so it never silently changes existing regression behavior -- pass
+# SIM_FAST_RTC=yes on the command line only for RTC-focused runs.
+SIM_FAST_RTC ?= no
+
 ASIC_MEMS ?= no 
 
 ifeq ($(ASIC_MEMS),yes)
@@ -107,6 +113,10 @@ ifeq ($(INC_DMA),yes)
       $(error INC_DMA=yes but $(SOCLABS_MEGASOC_TECH_DIR)/logical/dma350/logical is missing: run make build_dma350 in megasoc_tech first, or check SOCLABS_MEGASOC_TECH_DIR)
     endif
   endif
+endif
+
+ifeq ($(SIM_FAST_RTC),yes)
+	DEFINES_VC += +define+SIM_FAST_RTC
 endif
 
 export FLIST_INCLUDES
