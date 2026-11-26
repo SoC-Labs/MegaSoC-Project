@@ -1,0 +1,28 @@
+tb_sd_busy.v, VCS, 25 November 2026. One RESULT line per case; cases as in run_tb_sd_busy.sh.
+
+=== sdfrontend.v of sdio-controller main 2f8d794 (before the fix) ===
+[old] RESULT mode=0 ckspd=0x03 token=1 busy_us=230 | ack=1 nak=0 | ready-while-busy clocks=4596 (BUSY MISSED) | busy released by front end 0.1 us after the card
+[old]        first ready-while-busy 1.6 us after the end of the host block, 0.2 us into the card's busy
+[old] RESULT mode=0 ckspd=0x03 token=1 busy_us=3000 | ack=1 nak=0 | ready-while-busy clocks=59996 (BUSY MISSED) | busy released by front end 0.1 us after the card
+[old]        first ready-while-busy 1.6 us after the end of the host block, 0.2 us into the card's busy
+[old] RESULT mode=0 ckspd=0x10 token=1 busy_us=230 | ack=1 nak=0 | ready-while-busy clocks=4644 (BUSY MISSED) | busy released by front end 0.1 us after the card
+[old]        first ready-while-busy 19.8 us after the end of the host block, 0.2 us into the card's busy
+[old] RESULT mode=0 ckspd=0x20 token=1 busy_us=230 | ack=1 nak=0 | ready-while-busy clocks=4676 (BUSY MISSED) | busy released by front end 0.1 us after the card
+[old]        first ready-while-busy 42.2 us after the end of the host block, 0.2 us into the card's busy
+[old] RESULT mode=0 ckspd=0x41 token=1 busy_us=230 | ack=1 nak=0 | ready-while-busy clocks=4784 (BUSY MISSED) | busy released by front end 0.1 us after the card
+[old]        first ready-while-busy 88.4 us after the end of the host block, 0.2 us into the card's busy
+[old] RESULT mode=0 ckspd=0x03 token=2 busy_us=230 | ack=0 nak=1 | ready-while-busy clocks=0               | busy released by front end 0.1 us after the card
+[old] RESULT mode=0 ckspd=0x03 token=0 busy_us=230 | ack=0 nak=0 | ready-while-busy clocks=0               | busy released by front end 0.0 us after the card
+[old] RESULT mode=1 ckspd=0x03 token=1 busy_us=500 | ack=0 nak=0 | ready-while-busy clocks=0               | busy released by front end 0.1 us after the card
+[old] RESULT mode=1 ckspd=0x20 token=1 busy_us=500 | ack=0 nak=0 | ready-while-busy clocks=0               | busy released by front end 0.1 us after the card
+
+=== sdfrontend.v with the fix (268bb21, same tree as the merged 1e02358) ===
+[new] RESULT mode=0 ckspd=0x03 token=1 busy_us=230 | ack=1 nak=0 | ready-while-busy clocks=0               | busy released by front end 0.1 us after the card
+[new] RESULT mode=0 ckspd=0x03 token=1 busy_us=3000 | ack=1 nak=0 | ready-while-busy clocks=0               | busy released by front end 0.1 us after the card
+[new] RESULT mode=0 ckspd=0x10 token=1 busy_us=230 | ack=1 nak=0 | ready-while-busy clocks=0               | busy released by front end 0.1 us after the card
+[new] RESULT mode=0 ckspd=0x20 token=1 busy_us=230 | ack=1 nak=0 | ready-while-busy clocks=0               | busy released by front end 0.1 us after the card
+[new] RESULT mode=0 ckspd=0x41 token=1 busy_us=230 | ack=1 nak=0 | ready-while-busy clocks=0               | busy released by front end 0.1 us after the card
+[new] RESULT mode=0 ckspd=0x03 token=2 busy_us=230 | ack=0 nak=1 | ready-while-busy clocks=0               | busy released by front end 0.7 us after the card
+[new] RESULT mode=0 ckspd=0x03 token=0 busy_us=230 | ack=0 nak=0 | ready-while-busy clocks=0               | busy released by front end 0.0 us after the card
+[new] RESULT mode=1 ckspd=0x03 token=1 busy_us=500 | ack=0 nak=0 | ready-while-busy clocks=0               | busy released by front end 0.1 us after the card
+[new] RESULT mode=1 ckspd=0x20 token=1 busy_us=500 | ack=0 nak=0 | ready-while-busy clocks=0               | busy released by front end 0.1 us after the card
