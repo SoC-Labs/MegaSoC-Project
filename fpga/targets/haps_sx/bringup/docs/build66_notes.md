@@ -156,8 +156,10 @@ of the bench card. Check that range on another card before running them.
 
 ## 8. Two side results
 - **Library start-up, MBT-66.** MegaSoC-Tech PR #32, merged as 49ebaf1, makes every application start with the CPU
-  caches on. It was measured on this build: nine of the ten regression images pass with it unchanged.
-- **`uart_tests` TX overrun check.** The tenth image failed, because the library change moved the test by 16 bytes.
+  caches on. It was measured on build 65: nine of the ten regression images pass with it unchanged, and eight images
+  pass from the DDR4 in RAM mode.
+- **`uart_tests` TX overrun check.** The tenth image failed, on builds 65 and 66, because the library change moved the
+  test by 16 bytes.
   The check needed three UART writes to arrive within one 160-clock frame. On this board the stores can reach the UART
   about 2000 clocks apart when an instruction fetch from the flash falls between them. The same PR rewrites the check
   so that it no longer depends on that. Which bus element holds the writes back was not traced.
